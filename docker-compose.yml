@@ -1,0 +1,64 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Vector Database (ChromaDB)
+  # ---------------------------------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: zaisaku-chromadb
+    volumes:
+      - chroma-data:/chroma/chroma
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - zaisaku-network
+
+  # ---------------------------------------------------------------------------
+  # FastAPI Backend
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zaisaku-backend
+    ports:
+      # Expose if you want to reach the API directly bypassing nginx
+      - "8080:8000"
+    environment:
+      - ZAISAKU_ENV=prod
+      - ZAISAKU_CHROMA_HOST=chromadb
+      - ZAISAKU_CHROMA_PORT=8000
+      - ZAISAKU_LLM_MAX_TOKENS=1024
+      # Default to local Ollama if host.docker.internal works, else configure OpenRouter
+      - ZAISAKU_OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      - chromadb
+    volumes:
+      - backend-uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - zaisaku-network
+
+  # ---------------------------------------------------------------------------
+  # Vue 3 Frontend (Nginx)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zaisaku-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - zaisaku-network
+
+volumes:
+  chroma-data:
+  backend-uploads:
+
+networks:
+  zaisaku-network:
+    driver: bridge
