@@ -16,7 +16,6 @@ Do not include markdown blocks around the JSON (e.g. ```json). Output raw JSON o
 
 
 def build_rag_prompt(query: str, chunks: list[dict]) -> str:
-def build_rag_prompt(query: str, chunks: list[dict]) -> str:
     if not chunks:
         context_str = "No relevant documents found."
     else:
@@ -24,7 +23,6 @@ def build_rag_prompt(query: str, chunks: list[dict]) -> str:
         for i, chunk in enumerate(chunks, 1):
             text = chunk.get("text", "")
             meta = chunk.get("metadata", {})
-            source = meta.get("source", "Unknown Source")
             source = meta.get("source", "Unknown Source")
             
             part = f"--- Document {i} ---\nSource: {source}\n\n{text}\n"

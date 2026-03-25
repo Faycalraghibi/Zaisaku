@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 @runtime_checkable
 class VectorStore(Protocol):
-class VectorStore(Protocol):
     def upsert(
         self, doc_id: str, chunks: list[str], embeddings: list[list[float]], metadatas: list[dict]
     ) -> int:
@@ -29,7 +28,6 @@ class VectorStore(Protocol):
         ...
 
 
-class ChromaVectorStore:
 class ChromaVectorStore:
     def __init__(self, collection_name: str, client: ClientAPI) -> None:
         self.collection_name = collection_name

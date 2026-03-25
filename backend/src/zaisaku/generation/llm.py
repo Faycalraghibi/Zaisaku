@@ -14,12 +14,10 @@ logger = logging.getLogger(__name__)
 
 @runtime_checkable
 class LLMBackend(Protocol):
-class LLMBackend(Protocol):
     def generate(self, prompt: str, system_prompt: str) -> dict:
         ...
 
 
-class _OllamaBackend:
 class _OllamaBackend:
 
     def __init__(self, config: Settings) -> None:
@@ -43,7 +41,6 @@ class _OllamaBackend:
             r = httpx.post(url, json=payload, timeout=60.0)
             r.raise_for_status()
             data = r.json()
-            data = r.json()
             text = data.get("message", {}).get("content", "")
             return {
                 "text": text,
@@ -55,7 +52,6 @@ class _OllamaBackend:
             raise RuntimeError(f"Ollama error: {e}") from e
 
 
-class _OpenRouterBackend:
 class _OpenRouterBackend:
 
     def __init__(self, config: Settings) -> None:
@@ -91,7 +87,6 @@ class _OpenRouterBackend:
             raise RuntimeError(f"OpenRouter error: {e}") from e
 
 
-class LLMRouter:
 class LLMRouter:
 
     def __init__(self, config: Settings) -> None:
