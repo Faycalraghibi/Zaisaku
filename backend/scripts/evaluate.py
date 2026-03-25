@@ -1,9 +1,3 @@
-"""Integration with RAGAS for evaluating pipeline performance.
-
-Usage:
-    python scripts/evaluate.py
-"""
-
 import os
 import datasets
 from ragas import evaluate

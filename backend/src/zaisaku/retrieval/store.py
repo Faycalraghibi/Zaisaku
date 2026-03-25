@@ -1,7 +1,4 @@
-"""Vector store implementation for document retrieval.
 
-Provides a Protocol for swappability and a default ChromaDB implementation.
-"""
 
 from __future__ import annotations
 
@@ -16,69 +13,27 @@ logger = logging.getLogger(__name__)
 
 @runtime_checkable
 class VectorStore(Protocol):
-    """Interface for vector database interactions."""
-
+class VectorStore(Protocol):
     def upsert(
         self, doc_id: str, chunks: list[str], embeddings: list[list[float]], metadatas: list[dict]
     ) -> int:
-        """Insert or update chunks for a document.
-
-        Args:
-            doc_id: Unique identifier for the parent document.
-            chunks: List of text chunks.
-            embeddings: List of embedding vectors corresponding to the chunks.
-            metadatas: List of metadata dicts corresponding to the chunks.
-
-        Returns:
-            The number of chunks affected.
-        """
         ...
 
     def search(self, query_embedding: list[float], top_k: int) -> list[dict]:
-        """Search for the most similar chunks.
-
-        Args:
-            query_embedding: The vector to search with.
-            top_k: Maximum number of results to return.
-
-        Returns:
-            A list of dicts with keys: `text`, `score` (0.0 to 1.0), and `metadata`.
-        """
         ...
 
     def delete(self, doc_id: str) -> int:
-        """Delete all chunks belonging to a document.
-
-        Args:
-            doc_id: The identifier of the document to delete.
-
-        Returns:
-            The number of chunks deleted.
-        """
         ...
 
     def list_documents(self) -> list[dict]:
-        """List all unique indexed documents.
-
-        Returns:
-            A list of dicts with document metadata.
-        """
         ...
 
 
 class ChromaVectorStore:
-    """VectorStore implementation using ChromaDB via HTTP or ephemeral client."""
-
+class ChromaVectorStore:
     def __init__(self, collection_name: str, client: ClientAPI) -> None:
-        """Initialize with an existing Chroma client.
-
-        Args:
-            collection_name: Name of the collection to use/create.
-            client: Pre-configured chromadb client (HttpClient or EphemeralClient).
-        """
         self.collection_name = collection_name
         self.client = client
-        # Use cosine distance space
         self.collection = self.client.get_or_create_collection(
             name=self.collection_name, metadata={"hnsw:space": "cosine"}
         )

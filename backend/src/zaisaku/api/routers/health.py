@@ -1,4 +1,3 @@
-"""Health check endpoints."""
 
 from fastapi import APIRouter
 
@@ -10,5 +9,4 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health", response_model=HealthResponse)
 async def health_check(settings: ConfigDep):
-    """Simple health check returning the active environment."""
     return HealthResponse(status="ok", env=settings.env)

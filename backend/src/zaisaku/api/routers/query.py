@@ -1,4 +1,3 @@
-"""RAG generation endpoint."""
 
 from __future__ import annotations
 
@@ -28,7 +27,6 @@ async def query_documents(
     reranker: RerankerDep,
     llm: LLMDep,
 ):
-    """Query the RAG pipeline."""
     q = request.question.strip()
     if not q:
         raise HTTPException(
@@ -36,7 +34,6 @@ async def query_documents(
             detail="Question cannot be empty.",
         )
 
-    # 1. Embed user query
     try:
         q_vec = embedder.embed_one(q)
     except Exception as e:
@@ -45,7 +42,6 @@ async def query_documents(
             detail=f"Failed to embed query: {str(e)}",
         ) from e
 
-    # 2. Retrieve top_k from vector store
     try:
         candidates = store.search(q_vec, top_k=settings.retrieval_top_k)
     except Exception as e:
@@ -54,7 +50,6 @@ async def query_documents(
             detail=f"ChromaDB search failed: {str(e)}",
         ) from e
 
-    # 3. Rerank the candidates
     if candidates:
         try:
             candidates = reranker.rerank(q, candidates, top_k=settings.rerank_top_k)
@@ -64,13 +59,10 @@ async def query_documents(
                 detail=f"Reranking failed: {str(e)}",
             ) from e
             
-    # Keep track of unique sources matching the final candidates
     sources_used = list({c["metadata"].get("source", "Unknown") for c in candidates})
 
-    # 4. Build prompt
     prompt = build_rag_prompt(q, candidates)
 
-    # 5. Generate answer
     try:
         response_data = llm.generate(prompt=prompt, system_prompt=SYSTEM_PROMPT)
     except Exception as e:
@@ -79,7 +71,6 @@ async def query_documents(
             detail=f"LLM generation failed: {str(e)}",
         ) from e
 
-    # 6. Parse JSON output
     raw_text = response_data.get("text", "{}").strip()
     
     # Sometimes LLMs prepend/append markdown backticks despite instructions.

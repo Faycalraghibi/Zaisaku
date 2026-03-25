@@ -1,4 +1,3 @@
-"""Document ingestion endpoint."""
 
 from __future__ import annotations
 
@@ -28,14 +27,12 @@ async def ingest_document(
     store: StoreDep,
     file: Annotated[UploadFile, File(...)],
 ):
-    """Upload a file, parse it, chunk it, embed it, and store it in the vector DB."""
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No filename provided in upload.",
         )
 
-    # Pre-validate extension
     suffix = Path(file.filename).suffix.lower()
     if suffix not in DocumentLoader.SUPPORTED_EXTENSIONS:
         raise HTTPException(
@@ -47,11 +44,9 @@ async def ingest_document(
     temp_path = _UPLOAD_DIR / f"{uuid.uuid4()}_{file.filename}"
 
     try:
-        # Save file to disk
         with temp_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # 1. Load document
         try:
             doc = DocumentLoader.load(temp_path)
         except Exception as e:
@@ -60,7 +55,6 @@ async def ingest_document(
                 detail=f"Failed to parse document: {str(e)}",
             ) from e
 
-        # 2. Chunk text
         chunks: list[str] = Chunker.chunk(
             doc.text,
             chunk_size=settings.chunk_size,
@@ -73,7 +67,6 @@ async def ingest_document(
                 detail="Extracted text resulted in 0 chunks (file might be empty or unreadable).",
             )
 
-        # 3. Embed chunks (batch processing)
         try:
             embeddings = embedder.embed(chunks)
         except Exception as e:
@@ -82,9 +75,7 @@ async def ingest_document(
                 detail=f"Failed to generate embeddings: {str(e)}",
             ) from e
 
-        # 4. Upsert to Vector Store
         doc_id = str(uuid.uuid4())
-        # Replicate base document metadata for each chunk
         metadatas = [doc.metadata.copy() for _ in chunks]
         
         # Override source with original filename natively rather than the temp uuid path
@@ -112,6 +103,5 @@ async def ingest_document(
         )
 
     finally:
-        # Cleanup temp file
         if temp_path.exists():
             os.remove(temp_path)

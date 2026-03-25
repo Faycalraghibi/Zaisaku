@@ -9,7 +9,6 @@ const documentCount = ref(0)
 const sidebarRef = ref(null)
 
 const handleDocumentChange = () => {
-  // Update count from the sidebar's latest state
   if (sidebarRef.value && sidebarRef.value.documents) {
     documentCount.value = sidebarRef.value.documents.length
   }
@@ -18,13 +17,11 @@ const handleDocumentChange = () => {
 
 <template>
   <main class="flex h-screen w-full bg-slate-950 overflow-hidden text-slate-200">
-    <!-- Left Sidebar: Document Management -->
     <DocumentSidebar 
       ref="sidebarRef" 
       @document-change="handleDocumentChange" 
     />
 
-    <!-- Right Area: Chat Interface -->
     <ChatArea 
       :document-count="documentCount" 
     />

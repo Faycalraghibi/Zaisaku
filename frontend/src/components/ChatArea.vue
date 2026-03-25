@@ -89,7 +89,6 @@ const confidenceColor = (score) => {
 
 <template>
   <div class="flex flex-col flex-1 h-full bg-slate-950">
-    <!-- Header -->
     <div class="h-16 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 bg-slate-900/50 backdrop-blur-md">
       <h1 class="text-lg font-medium text-slate-100 flex items-center gap-2">
         <Sparkles class="w-5 h-5 text-emerald-500" />
@@ -101,7 +100,6 @@ const confidenceColor = (score) => {
       </div>
     </div>
 
-    <!-- Chat Messages -->
     <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
       <div 
         v-for="(msg, idx) in messages" 
@@ -109,7 +107,6 @@ const confidenceColor = (score) => {
         class="flex gap-4 max-w-4xl mx-auto"
         :class="msg.role === 'user' ? 'flex-row-reverse' : ''"
       >
-        <!-- Avatar -->
         <div 
           class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1"
           :class="msg.role === 'user' ? 'bg-blue-600' : 'bg-emerald-600'"
@@ -118,7 +115,6 @@ const confidenceColor = (score) => {
           <Bot v-else class="w-4 h-4 text-white" />
         </div>
 
-        <!-- Bubble -->
         <div 
           class="flex flex-col gap-2 max-w-[80%]"
           :class="msg.role === 'user' ? 'items-end' : 'items-start'"
@@ -135,7 +131,6 @@ const confidenceColor = (score) => {
             {{ msg.text }}
           </div>
 
-          <!-- Metadata for Assistant Responses -->
           <div v-if="msg.role === 'assistant' && (msg.sources?.length > 0 || msg.model)" class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1 px-1">
             <div v-if="msg.confidence !== null" class="flex items-center gap-1.5 text-xs font-medium bg-slate-800/80 px-2 py-1 rounded border border-slate-700/50">
               <span class="text-slate-400">Confidence:</span>
@@ -146,7 +141,6 @@ const confidenceColor = (score) => {
                {{ msg.model }} <span class="text-slate-600">|</span> <span class="text-blue-400">{{ msg.env }}</span>
             </div>
 
-            <!-- Sources -->
             <div v-if="msg.sources?.length > 0" class="flex flex-wrap gap-2 items-center w-full mt-1.5">
               <span class="text-xs text-slate-500">Sources:</span>
               <SourceBadge v-for="source in msg.sources" :key="source" :source="source" />
@@ -155,7 +149,6 @@ const confidenceColor = (score) => {
         </div>
       </div>
 
-      <!-- Loading Indicator -->
       <div v-if="isQuerying" class="flex gap-4 max-w-4xl mx-auto">
         <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
           <Bot class="w-4 h-4 text-white" />
@@ -171,7 +164,6 @@ const confidenceColor = (score) => {
       </div>
     </div>
 
-    <!-- Input Area -->
     <div class="p-4 bg-slate-900 border-t border-slate-800 shrink-0">
       <div class="max-w-4xl mx-auto relative">
         <textarea

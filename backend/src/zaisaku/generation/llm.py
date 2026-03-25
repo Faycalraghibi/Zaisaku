@@ -1,8 +1,4 @@
-"""LLM Generation module.
 
-Provides a Protocol for swappability, with Ollama (dev) and OpenRouter (prod) backends,
-and a Router to select between them based on configuration.
-"""
 
 from __future__ import annotations
 
@@ -18,26 +14,13 @@ logger = logging.getLogger(__name__)
 
 @runtime_checkable
 class LLMBackend(Protocol):
-    """Interface for LLM generation backends."""
-
+class LLMBackend(Protocol):
     def generate(self, prompt: str, system_prompt: str) -> dict:
-        """Generate a response from the LLM.
-
-        Args:
-            prompt: The user query + context.
-            system_prompt: System-level instructions for the LLM.
-
-        Returns:
-            A dict containing:
-                - "text" (str): The raw text output from the LLM.
-                - "model" (str): The model identifier used.
-                - "env" (str): The environment identifier (e.g. "dev", "prod").
-        """
         ...
 
 
 class _OllamaBackend:
-    """Local LLM backend using the Ollama REST API."""
+class _OllamaBackend:
 
     def __init__(self, config: Settings) -> None:
         self.base_url = config.ollama_base_url
@@ -60,7 +43,7 @@ class _OllamaBackend:
             r = httpx.post(url, json=payload, timeout=60.0)
             r.raise_for_status()
             data = r.json()
-            # Handle standard Ollama payload return
+            data = r.json()
             text = data.get("message", {}).get("content", "")
             return {
                 "text": text,
@@ -73,7 +56,7 @@ class _OllamaBackend:
 
 
 class _OpenRouterBackend:
-    """Cloud LLM backend using OpenRouter via the OpenAI SDK."""
+class _OpenRouterBackend:
 
     def __init__(self, config: Settings) -> None:
         self.api_key = config.openrouter_api_key
@@ -109,7 +92,7 @@ class _OpenRouterBackend:
 
 
 class LLMRouter:
-    """Facade that delegates to the appropriate LLMBackend based on configuration."""
+class LLMRouter:
 
     def __init__(self, config: Settings) -> None:
         if config.env == "dev":

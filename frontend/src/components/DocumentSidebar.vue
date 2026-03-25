@@ -58,7 +58,6 @@ const handleFileUpload = async (event) => {
       throw new Error(errData.detail || 'Upload failed')
     }
     
-    // Clear input
     event.target.value = ''
     await fetchDocuments()
     emit('document-change')
@@ -108,7 +107,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Document List -->
     <div class="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-slate-700">
       <div class="px-2 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
         Indexed Documents ({{ documents.length }})

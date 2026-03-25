@@ -1,4 +1,3 @@
-"""FastAPI Dependency Injection providers."""
 
 from __future__ import annotations
 

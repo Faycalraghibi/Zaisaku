@@ -1,7 +1,5 @@
-"""Word-embedding module.
+"""Provides a Protocol for swappability."""
 
-Provides a Protocol for swappability and a default SentenceTransformer implementation.
-"""
 
 from __future__ import annotations
 
@@ -19,31 +17,13 @@ class Embedder(Protocol):
     """Interface for text embedding models."""
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        """Encode a batch of strings into a list of vector embeddings.
-
-        Args:
-            texts: List of strings to encode.
-
-        Returns:
-            List of embedding vectors (lists of floats).
-        """
         ...
 
     def embed_one(self, text: str) -> list[float]:
-        """Encode a single string into a vector.
-
-        Args:
-            text: String to encode.
-
-        Returns:
-            A single embedding vector (list of floats).
-        """
         ...
 
 
 class SentenceTransformerEmbedder:
-    """Embedder implementation using sentence-transformers."""
-
     def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> None:
         """Initialize the embedder, downloading the model if necessary.
 
@@ -62,7 +42,6 @@ class SentenceTransformerEmbedder:
         return self._model
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        """Encode a batch of strings, returning a list of float lists."""
         if not texts:
             return []
         model = self._get_model()
@@ -72,5 +51,4 @@ class SentenceTransformerEmbedder:
         return embeddings.tolist()
 
     def embed_one(self, text: str) -> list[float]:
-        """Encode a single string."""
         return self.embed([text])[0]

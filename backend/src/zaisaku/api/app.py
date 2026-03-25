@@ -1,4 +1,3 @@
-"""FastAPI application factory."""
 
 from __future__ import annotations
 
@@ -10,7 +9,6 @@ from zaisaku.config import Settings
 
 
 def create_app(config: Settings | None = None) -> FastAPI:
-    """Create and configure the FastAPI application."""
     if config is None:
         from zaisaku.config import get_settings
         config = get_settings()

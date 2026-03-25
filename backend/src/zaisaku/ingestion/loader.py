@@ -1,10 +1,3 @@
-"""Document loader — parses PDF, HTML, and TXT into Document models.
-
-Supported formats:
-- .pdf  → PyMuPDF (fitz)
-- .html → BeautifulSoup
-- .txt  → plain read
-"""
 
 from __future__ import annotations
 
@@ -23,12 +16,6 @@ class DocumentLoader:
 
     @classmethod
     def load(cls, path: str | Path) -> Document:
-        """Load a document from *path* and return a ``Document``.
-
-        Raises:
-            FileNotFoundError: if *path* does not exist.
-            ValueError: if the file extension is not supported.
-        """
         path = Path(path)
 
         suffix = path.suffix.lower()
@@ -46,8 +33,6 @@ class DocumentLoader:
         }[suffix]
 
         return loader(path)
-
-    # ── Private loaders ──────────────────────────
 
     @staticmethod
     def _load_pdf(path: Path) -> Document:
