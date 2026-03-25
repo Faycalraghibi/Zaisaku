@@ -31,27 +31,37 @@ class TestLLMRouterSelection:
 class TestOllamaBackend:
     """Mocked tests for the Ollama backend."""
 
-    def test_generate_success(self, respx_mock):
+    def test_generate_success(self, monkeypatch):
         settings = Settings(ollama_base_url="http://test:11434", ollama_model="test-model")
         backend = _OllamaBackend(settings)
 
-        # Mock the Ollama /api/chat endpoint
-        respx_mock.post("http://test:11434/api/chat").mock(
-            return_value=httpx.Response(200, json={"message": {"content": '{"answer": "test"}'}})
-        )
+        class MockResponse:
+            def __init__(self, json_data, status_code=200):
+                self._json = json_data
+                self.status_code = status_code
+            def json(self):
+                return self._json
+            def raise_for_status(self):
+                pass
+
+        def mock_post(*args, **kwargs):
+            return MockResponse({"message": {"content": '{"answer": "test"}'}})
+
+        monkeypatch.setattr("httpx.post", mock_post)
 
         res = backend.generate("Hello", "System")
         assert res["model"] == "test-model"
         assert res["env"] == "dev"
         assert res["text"] == '{"answer": "test"}'
 
-    def test_generate_error(self, respx_mock):
+    def test_generate_error(self, monkeypatch):
         settings = Settings(ollama_base_url="http://test:11434", ollama_model="test-model")
         backend = _OllamaBackend(settings)
 
-        respx_mock.post("http://test:11434/api/chat").mock(
-            return_value=httpx.Response(500, text="Internal Server Error")
-        )
+        def mock_post(*args, **kwargs):
+            raise httpx.RequestError("Mocked error")
+
+        monkeypatch.setattr("httpx.post", mock_post)
 
         with pytest.raises(RuntimeError, match="Ollama error"):
             backend.generate("Hello", "System")
