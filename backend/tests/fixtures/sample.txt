@@ -1,0 +1,12 @@
+This is a sample financial report for testing purposes.
+
+Company: Acme Corp
+Fiscal Year: 2023
+
+Revenue: $45.2 billion
+Net Income: $8.7 billion
+Total Assets: $120.5 billion
+
+The company reported strong quarterly earnings driven by growth in the
+technology and services divisions. Management expects continued growth
+in the next fiscal year with expanded operations in international markets.
