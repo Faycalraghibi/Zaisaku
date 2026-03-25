@@ -8,9 +8,9 @@ skipped when the corresponding service/model is not available.
 from __future__ import annotations
 
 import os
-import pytest
-import httpx
 
+import httpx
+import pytest
 
 # ---------------------------------------------------------------------------
 # Availability probes — called once per session, cached

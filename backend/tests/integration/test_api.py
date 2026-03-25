@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from zaisaku.api.app import create_app
-from zaisaku.config import Settings, get_settings
+from zaisaku.api.dependencies import get_embedder, get_llm_backend, get_reranker, get_vector_store
 
-
-from zaisaku.api.dependencies import get_embedder, get_reranker, get_vector_store, get_llm_backend
 
 # ---------------------------------------------------------------------------
 # Fixtures & Overrides
@@ -35,7 +32,11 @@ def app():
 
     class DummyLLM:
         def generate(self, prompt, sys_prompt): 
-            return {"text": '{"answer": "mock answer", "confidence": 1.0, "sources_used": []}', "model": "mock", "env": "test"}
+            return {
+                "text": '{"answer": "mock answer", "confidence": 1.0, "sources_used": []}',
+                "model": "mock",
+                "env": "test"
+            }
 
     # Apply overrides
     app.dependency_overrides[get_embedder] = lambda: DummyEmbedder()

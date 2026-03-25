@@ -6,7 +6,6 @@ and a Router to select between them based on configuration.
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Protocol, runtime_checkable
 

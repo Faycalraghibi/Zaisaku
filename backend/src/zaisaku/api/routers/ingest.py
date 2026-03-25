@@ -6,6 +6,7 @@ import os
 import shutil
 import uuid
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
@@ -25,7 +26,7 @@ async def ingest_document(
     settings: ConfigDep,
     embedder: EmbedderDep,
     store: StoreDep,
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
 ):
     """Upload a file, parse it, chunk it, embed it, and store it in the vector DB."""
     if not file.filename:
@@ -57,7 +58,7 @@ async def ingest_document(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Failed to parse document: {str(e)}",
-            )
+            ) from e
 
         # 2. Chunk text
         chunks: list[str] = Chunker.chunk(
@@ -79,7 +80,7 @@ async def ingest_document(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to generate embeddings: {str(e)}",
-            )
+            ) from e
 
         # 4. Upsert to Vector Store
         doc_id = str(uuid.uuid4())
@@ -101,7 +102,7 @@ async def ingest_document(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to store vectors: {str(e)}",
-            )
+            ) from e
 
         return IngestResponse(
             doc_id=doc_id,

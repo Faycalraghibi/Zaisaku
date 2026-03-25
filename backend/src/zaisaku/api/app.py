@@ -5,8 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from zaisaku.api.routers import documents, health, ingest, query
 from zaisaku.config import Settings
-from zaisaku.api.routers import health, ingest, query, documents
 
 
 def create_app(config: Settings | None = None) -> FastAPI:

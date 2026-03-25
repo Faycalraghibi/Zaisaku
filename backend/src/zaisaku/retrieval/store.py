@@ -6,7 +6,10 @@ Provides a Protocol for swappability and a default ChromaDB implementation.
 from __future__ import annotations
 
 import logging
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from chromadb.api import ClientAPI
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +69,7 @@ class VectorStore(Protocol):
 class ChromaVectorStore:
     """VectorStore implementation using ChromaDB via HTTP or ephemeral client."""
 
-    def __init__(self, collection_name: str, client: "chromadb.ClientAPI") -> None:
+    def __init__(self, collection_name: str, client: ClientAPI) -> None:
         """Initialize with an existing Chroma client.
 
         Args:
@@ -117,7 +120,7 @@ class ChromaVectorStore:
         metas = results["metadatas"][0]
         distances = results["distances"][0]
 
-        for text, meta, dist in zip(docs, metas, distances):
+        for text, meta, dist in zip(docs, metas, distances, strict=False):
             # Convert cosine distance to a similarity score (1 = identical, 0 = opposite)
             score = max(0.0, 1.0 - float(dist))
             out.append({"text": text, "score": score, "metadata": meta})

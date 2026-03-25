@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -17,7 +16,7 @@ router = APIRouter(tags=["generation"])
 
 class QueryRequest(BaseModel):
     question: str
-    filter: Optional[dict] = None
+    filter: dict | None = None
 
 
 @router.post("/query", response_model=QueryResponse)
@@ -44,7 +43,7 @@ async def query_documents(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to embed query: {str(e)}",
-        )
+        ) from e
 
     # 2. Retrieve top_k from vector store
     try:
@@ -53,7 +52,7 @@ async def query_documents(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"ChromaDB search failed: {str(e)}",
-        )
+        ) from e
 
     # 3. Rerank the candidates
     if candidates:
@@ -63,7 +62,7 @@ async def query_documents(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Reranking failed: {str(e)}",
-            )
+            ) from e
             
     # Keep track of unique sources matching the final candidates
     sources_used = list({c["metadata"].get("source", "Unknown") for c in candidates})
@@ -78,7 +77,7 @@ async def query_documents(
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"LLM generation failed: {str(e)}",
-        )
+        ) from e
 
     # 6. Parse JSON output
     raw_text = response_data.get("text", "{}").strip()

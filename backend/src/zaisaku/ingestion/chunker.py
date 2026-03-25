@@ -63,7 +63,7 @@ class Chunker:
             chunk_spaces = spaces[i : i + chunk_size]
             
             # Reconstruct the string for this block
-            chunk_str = "".join(w + s for w, s in zip(chunk_words, chunk_spaces))
+            chunk_str = "".join(w + s for w, s in zip(chunk_words, chunk_spaces, strict=False))
             chunks.append(chunk_str.strip())
             
             # If we've reached the end of the text, stop

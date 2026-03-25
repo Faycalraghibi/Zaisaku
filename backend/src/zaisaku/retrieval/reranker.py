@@ -65,7 +65,7 @@ class CrossEncoderReranker:
         # Inject the new scores into the candidate dicts
         # (We make shallow copies so we don't mutate the caller's objects)
         scored_candidates = []
-        for doc, score in zip(candidates, scores):
+        for doc, score in zip(candidates, scores, strict=False):
             new_doc = dict(doc)
             new_doc["rerank_score"] = float(score)
             scored_candidates.append(new_doc)

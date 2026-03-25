@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import chromadb
 import pytest
 
-import chromadb
 from zaisaku.retrieval.store import ChromaVectorStore, VectorStore
 
 

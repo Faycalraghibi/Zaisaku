@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 from typing import Annotated
-from fastapi import Depends
 
 import chromadb
+from fastapi import Depends
 
 from zaisaku.config import Settings, get_settings
+from zaisaku.generation.llm import LLMBackend, LLMRouter
 from zaisaku.ingestion.embedder import Embedder, SentenceTransformerEmbedder
 from zaisaku.retrieval.reranker import CrossEncoderReranker, Reranker
 from zaisaku.retrieval.store import ChromaVectorStore, VectorStore
-from zaisaku.generation.llm import LLMBackend, LLMRouter
 
 # ---------------------------------------------------------------------------
 # Singleton instances to prevent reloading models per-request
