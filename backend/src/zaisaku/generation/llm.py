@@ -23,6 +23,7 @@ class _OllamaBackend:
     def __init__(self, config: Settings) -> None:
         self.base_url = config.ollama_base_url
         self.model = config.ollama_model
+        self.timeout = config.llm_timeout
 
     def generate(self, prompt: str, system_prompt: str) -> dict:
         url = f"{self.base_url}/api/chat"
@@ -38,7 +39,7 @@ class _OllamaBackend:
         }
 
         try:
-            r = httpx.post(url, json=payload, timeout=60.0)
+            r = httpx.post(url, json=payload, timeout=self.timeout)
             r.raise_for_status()
             data = r.json()
             text = data.get("message", {}).get("content", "")
@@ -57,12 +58,15 @@ class _OpenRouterBackend:
     def __init__(self, config: Settings) -> None:
         self.api_key = config.openrouter_api_key
         self.model = config.openrouter_model
+        self.base_url = config.openrouter_base_url
+        self.timeout = config.llm_timeout
         
         # We lazy import openai to avoid hard dependency if running strictly locally
         import openai
         self.client = openai.OpenAI(
-            base_url="https://openrouter.ai/api/v1",
+            base_url=self.base_url,
             api_key=self.api_key,
+            timeout=self.timeout,
         )
 
     def generate(self, prompt: str, system_prompt: str) -> dict:

@@ -19,19 +19,26 @@ class Settings(BaseSettings):
     )
 
     env: str = "dev"
+    app_host: str = "127.0.0.1"
+    app_port: int = 8000
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "mistral:7b"
     openrouter_api_key: str = "sk-or-change-me"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "google/gemini-flash-1.5"
+    llm_timeout: float = 60.0
     chroma_host: str = "chromadb"
     chroma_port: int = 8000
     chroma_collection: str = "zaisaku_docs"
+    chroma_mode: str = "http"
+    chroma_persist_path: str = "./data/chroma"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     chunk_size: int = 512
     chunk_overlap: int = 64
     retrieval_top_k: int = 10
     rerank_top_k: int = 3
-    app_port: int = 5000
+    upload_dir: str = "uploads"
     secret_key: str = "change-me-in-production"
     cors_origin: str = "http://localhost:5173"
 

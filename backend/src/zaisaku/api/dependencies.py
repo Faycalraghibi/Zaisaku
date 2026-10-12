@@ -31,7 +31,7 @@ def get_embedder(settings: Annotated[Settings, Depends(get_settings)]) -> Embedd
 def get_reranker(settings: Annotated[Settings, Depends(get_settings)]) -> Reranker:
     global _reranker_instance
     if _reranker_instance is None:
-        _reranker_instance = CrossEncoderReranker()
+        _reranker_instance = CrossEncoderReranker(settings.reranker_model)
     return _reranker_instance
 
 

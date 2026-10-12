@@ -17,6 +17,7 @@ const fetchDocuments = async () => {
     if (!res.ok) throw new Error('Failed to fetch documents')
     const data = await res.json()
     documents.value = data.documents || []
+    emit('document-change', documents.value.length)
   } catch (err) {
     errorMsg.value = err.message
   } finally {
@@ -31,7 +32,6 @@ const deleteDocument = async (docId) => {
     const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete document')
     await fetchDocuments()
-    emit('document-change')
   } catch (err) {
     errorMsg.value = err.message
   }
@@ -60,7 +60,6 @@ const handleFileUpload = async (event) => {
     
     event.target.value = ''
     await fetchDocuments()
-    emit('document-change')
   } catch (err) {
     errorMsg.value = err.message
   } finally {
