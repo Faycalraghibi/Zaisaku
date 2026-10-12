@@ -33,7 +33,11 @@ class TestSettingsDefaults:
     def test_default_app_port_is_int(self):
         s = Settings()
         assert isinstance(s.app_port, int)
-        assert s.app_port == 5000
+        assert s.app_port == 8000
+
+    def test_default_app_host(self):
+        s = Settings()
+        assert s.app_host == "127.0.0.1"
 
     def test_default_chroma_port_is_int(self):
         s = Settings()

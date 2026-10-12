@@ -16,10 +16,6 @@ from zaisaku.models import IngestResponse
 
 router = APIRouter(tags=["ingestion"])
 
-# Temp directory for saving uploads before parsing
-_UPLOAD_DIR = Path("uploads")
-
-
 @router.post("/ingest", response_model=IngestResponse)
 async def ingest_document(
     settings: ConfigDep,
@@ -40,8 +36,9 @@ async def ingest_document(
             detail=f"Unsupported file type. Must be one of: {DocumentLoader.SUPPORTED_EXTENSIONS}",
         )
 
-    _UPLOAD_DIR.mkdir(exist_ok=True)
-    temp_path = _UPLOAD_DIR / f"{uuid.uuid4()}_{file.filename}"
+    upload_dir = Path(settings.upload_dir)
+    upload_dir.mkdir(exist_ok=True)
+    temp_path = upload_dir / f"{uuid.uuid4()}_{file.filename}"
 
     try:
         with temp_path.open("wb") as buffer:
