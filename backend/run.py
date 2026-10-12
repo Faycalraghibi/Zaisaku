@@ -3,8 +3,10 @@
 import uvicorn
 
 from zaisaku.api.app import create_app
+from zaisaku.config import get_settings
 
 app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run("run:app", host="127.0.0.0", port=8000, reload=True)
+    settings = get_settings()
+    uvicorn.run("run:app", host=settings.app_host, port=settings.app_port, reload=True)

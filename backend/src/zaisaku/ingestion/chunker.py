@@ -16,41 +16,21 @@ class Chunker:
         if overlap >= chunk_size:
             raise ValueError("Overlap must be strictly less than chunk_size")
 
-        # Split by whitespace, preserving the exact whitespace characters
-        # so we can rebuild the raw string accurately.
-        # re.split(r'(\s+)') returns: [word, space, word, space, ...]
-        tokens = re.split(r'(\s+)', text.strip())
-        
-        # Filter out empty strings that re.split might produce at the ends
-        tokens = [t for t in tokens if t]
-
-        # Extract only the word tokens (even indices) for length counting
-        # Note: tokens list looks like: ['Word', ' ', 'Word', '\n', 'Word']
-        # Thus, len(tokens) // 2 + 1 is roughly the word count.
-        
-        words = []
-        spaces = []
-        for i, t in enumerate(tokens):
-            if i % 2 == 0:
-                words.append(t)
-            else:
-                spaces.append(t)
-        
-        # If there are N words, there are N-1 spaces
-        if len(spaces) < len(words):
-            spaces.append("")
+        # Extract pairs of (word, trailing_spaces) to preserve formatting
+        # without fragile alternating even/odd parity assumptions.
+        pairs: list[tuple[str, str]] = re.findall(r"(\S+)(\s*)", text.strip())
+        if not pairs:
+            return []
 
         chunks = []
         step = chunk_size - overlap
-        
-        for i in range(0, len(words), step):
-            chunk_words = words[i : i + chunk_size]
-            chunk_spaces = spaces[i : i + chunk_size]
-            
-            chunk_str = "".join(w + s for w, s in zip(chunk_words, chunk_spaces, strict=False))
-            chunks.append(chunk_str.strip())
-            
-            if i + chunk_size >= len(words):
+
+        for i in range(0, len(pairs), step):
+            window = pairs[i : i + chunk_size]
+            chunk_str = "".join(w + s for w, s in window).strip()
+            chunks.append(chunk_str)
+
+            if i + chunk_size >= len(pairs):
                 break
 
         return chunks

@@ -38,7 +38,22 @@ def get_reranker(settings: Annotated[Settings, Depends(get_settings)]) -> Rerank
 def get_vector_store(settings: Annotated[Settings, Depends(get_settings)]) -> VectorStore:
     global _vector_store_instance
     if _vector_store_instance is None:
-        client = chromadb.HttpClient(host=settings.chroma_host, port=settings.chroma_port)
+        if settings.chroma_mode == "persistent":
+            client = chromadb.PersistentClient(path=settings.chroma_persist_path)
+        else:
+            try:
+                client = chromadb.HttpClient(host=settings.chroma_host, port=settings.chroma_port)
+                client.heartbeat()
+            except Exception as e:
+                if settings.env == "dev":
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        f"Could not connect to ChromaDB at {settings.chroma_host}:{settings.chroma_port} ({e}). "
+                        f"Falling back to local PersistentClient at {settings.chroma_persist_path}."
+                    )
+                    client = chromadb.PersistentClient(path=settings.chroma_persist_path)
+                else:
+                    raise
         _vector_store_instance = ChromaVectorStore(settings.chroma_collection, client)
     return _vector_store_instance
 

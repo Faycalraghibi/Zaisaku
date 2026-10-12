@@ -46,3 +46,10 @@ class TestChunker:
         text = "Space   between   words."
         chunks = Chunker.chunk(text, chunk_size=5, overlap=0)
         assert chunks[0] == text
+
+    def test_irregular_whitespace_and_newlines(self):
+        text = "  \n\tLeading mixed\n\nnewlines\tand   tabs.  "
+        chunks = Chunker.chunk(text, chunk_size=4, overlap=1)
+        assert len(chunks) == 2
+        assert chunks[0] == "Leading mixed\n\nnewlines\tand"
+        assert chunks[1] == "and   tabs."
