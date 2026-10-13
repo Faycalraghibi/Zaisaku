@@ -43,6 +43,9 @@ const handleSecImport = async () => {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))
+      if (res.status === 504) {
+        throw new Error('Server timed out (504). Large SEC filings take extra time to embed on CPU; the task may still be processing.')
+      }
       throw new Error(errData.detail || `SEC import failed with status ${res.status}`)
     }
 

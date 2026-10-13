@@ -17,6 +17,9 @@ COPY src/ /app/src/
 # Install the project and dependencies
 RUN pip install --no-cache-dir .
 
+# Pre-download ML models to eliminate first-request cold start and timeout
+RUN python -c "from sentence_transformers import CrossEncoder, SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
+
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
