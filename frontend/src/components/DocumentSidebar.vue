@@ -1,11 +1,60 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink } from 'lucide-vue-next'
+import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink, Globe } from 'lucide-vue-next'
 
 const documents = ref([])
 const isUploading = ref(false)
 const isLoadingDocs = ref(true)
 const errorMsg = ref('')
+
+const showSecModal = ref(false)
+const secTicker = ref('')
+const secForm = ref('10-K')
+const isImportingSec = ref(false)
+const secErrorMsg = ref('')
+
+const openSecModal = () => {
+  secTicker.value = ''
+  secForm.value = '10-K'
+  secErrorMsg.value = ''
+  showSecModal.value = true
+}
+
+const cancelSecModal = () => {
+  if (isImportingSec.value) return
+  showSecModal.value = false
+  secErrorMsg.value = ''
+}
+
+const handleSecImport = async () => {
+  if (!secTicker.value.trim() || isImportingSec.value) return
+  isImportingSec.value = true
+  secErrorMsg.value = ''
+
+  try {
+    const res = await fetch('/api/sec/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticker: secTicker.value.trim().toUpperCase(),
+        form: secForm.value
+      })
+    })
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || `SEC import failed with status ${res.status}`)
+    }
+
+    showSecModal.value = false
+    secTicker.value = ''
+    await fetchDocuments()
+  } catch (err) {
+    secErrorMsg.value = err.message
+  } finally {
+    isImportingSec.value = false
+  }
+}
 
 const emit = defineEmits(['document-change'])
 
@@ -121,6 +170,16 @@ onMounted(() => {
         <input type="file" class="hidden" accept=".pdf,.html,.txt" @change="handleFileUpload" :disabled="isUploading" />
       </label>
 
+      <button
+        type="button"
+        @click="openSecModal"
+        :disabled="isUploading"
+        class="w-full py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700/80 hover:border-emerald-500/50 text-slate-200 text-xs font-medium flex items-center justify-center gap-2 transition-all shadow-xs group"
+      >
+        <Globe class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+        <span>Import from SEC EDGAR</span>
+      </button>
+
       <div v-if="errorMsg" class="p-3 rounded bg-red-900/20 border border-red-900/50 text-red-400 text-xs flex gap-2 items-start">
         <AlertCircle class="w-4 h-4 shrink-0 mt-0.5" />
         <span class="flex-1">{{ errorMsg }}</span>
@@ -214,6 +273,91 @@ onMounted(() => {
             >
               <Loader2 v-if="isDeleting" class="w-3.5 h-3.5 animate-spin" />
               <span>{{ isDeleting ? 'Deleting...' : 'Delete' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- SEC EDGAR Import Modal -->
+    <Teleport to="body">
+      <div 
+        v-if="showSecModal" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+        @keydown.esc="cancelSecModal"
+        @click.self="cancelSecModal"
+      >
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-md w-full p-6 shadow-2xl text-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Globe class="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-slate-100 text-base">Import from SEC EDGAR</h3>
+              <p class="text-xs text-slate-400">Fetch official filings directly from SEC archives.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1.5">Stock Ticker</label>
+              <input
+                v-model="secTicker"
+                placeholder="e.g. NVDA, AAPL, MSFT, TSLA"
+                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                :disabled="isImportingSec"
+                @keydown.enter.prevent="handleSecImport"
+              />
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <span class="text-[11px] text-slate-500 mr-1 self-center">Popular:</span>
+                <button
+                  v-for="t in ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA']"
+                  :key="t"
+                  type="button"
+                  @click="secTicker = t"
+                  class="px-2 py-0.5 text-[11px] rounded bg-slate-800 border border-slate-700 hover:border-emerald-500 text-slate-300 hover:text-white transition-colors"
+                >
+                  {{ t }}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1.5">Filing Type</label>
+              <select
+                v-model="secForm"
+                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                :disabled="isImportingSec"
+              >
+                <option value="10-K">10-K (Annual Comprehensive Report)</option>
+                <option value="10-Q">10-Q (Quarterly Financial Report)</option>
+                <option value="8-K">8-K (Major Material Events)</option>
+              </select>
+            </div>
+
+            <div v-if="secErrorMsg" class="p-3 rounded bg-red-900/20 border border-red-900/50 text-red-400 text-xs flex gap-2 items-start">
+              <AlertCircle class="w-4 h-4 shrink-0 mt-0.5" />
+              <span class="flex-1">{{ secErrorMsg }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              @click="cancelSecModal"
+              :disabled="isImportingSec"
+              class="px-4 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              @click="handleSecImport"
+              :disabled="!secTicker.trim() || isImportingSec"
+              class="px-4 py-2 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <Loader2 v-if="isImportingSec" class="w-3.5 h-3.5 animate-spin" />
+              <span>{{ isImportingSec ? 'Downloading & Indexing...' : 'Import & Index' }}</span>
             </button>
           </div>
         </div>

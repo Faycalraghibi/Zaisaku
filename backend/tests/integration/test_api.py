@@ -213,3 +213,25 @@ def test_get_raw_document_success(client, app, test_settings, tmp_path):
     assert response.status_code == 200
     assert response.content == b"%PDF-1.4 sample pdf content"
     assert "application/pdf" in response.headers["content-type"]
+
+
+def test_sec_ingest_empty_ticker(client):
+    response = client.post("/api/sec/ingest", json={"ticker": "", "form": "10-K"})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Ticker cannot be empty."
+
+
+def test_sec_ingest_success(client, monkeypatch):
+    from zaisaku.ingestion.sec_edgar import SECEdgarClient
+
+    def mock_fetch(self, ticker, form):
+        return f"{ticker}_{form}.htm", b"<html><body>NVIDIA Revenue grew by 122 percent YoY.</body></html>"
+
+    monkeypatch.setattr(SECEdgarClient, "fetch_recent_filing", mock_fetch)
+
+    response = client.post("/api/sec/ingest", json={"ticker": "NVDA", "form": "10-K"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "indexed"
+    assert data["filename"] == "NVDA_10-K.htm"
+    assert data["chunks"] >= 1
