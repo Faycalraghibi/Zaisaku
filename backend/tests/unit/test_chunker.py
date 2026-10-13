@@ -10,6 +10,20 @@ class TestChunker:
         chunks = Chunker.chunk("", chunk_size=50, overlap=10)
         assert chunks == []
 
+    def test_invalid_chunk_size(self):
+        import pytest
+        with pytest.raises(ValueError, match="chunk_size must be strictly positive"):
+            Chunker.chunk("Some text", chunk_size=0, overlap=0)
+        with pytest.raises(ValueError, match="chunk_size must be strictly positive"):
+            Chunker.chunk("Some text", chunk_size=-5, overlap=0)
+
+    def test_invalid_overlap(self):
+        import pytest
+        with pytest.raises(ValueError, match="overlap must be non-negative"):
+            Chunker.chunk("Some text", chunk_size=10, overlap=-1)
+        with pytest.raises(ValueError, match="Overlap must be strictly less than chunk_size"):
+            Chunker.chunk("Some text", chunk_size=10, overlap=10)
+
     def test_short_text_single_chunk(self):
         text = "This is a very short text."
         chunks = Chunker.chunk(text, chunk_size=50, overlap=10)

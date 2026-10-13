@@ -31,7 +31,7 @@ def app():
         def upsert(self, doc_id, chunks, embeddings, metadatas): return len(chunks)
 
     class DummyLLM:
-        def generate(self, prompt, sys_prompt): 
+        def generate(self, prompt, system_prompt): 
             return {
                 "text": '{"answer": "mock answer", "confidence": 1.0, "sources_used": []}',
                 "model": "mock",
@@ -93,3 +93,42 @@ def test_ingest_no_file(client):
     response = client.post("/api/ingest")
     # File is a required body parameter
     assert response.status_code == 422
+
+
+def test_query_markdown_wrapped_json(client, app):
+    from zaisaku.api.dependencies import get_llm_backend
+
+    class MarkdownLLM:
+        def generate(self, prompt, system_prompt):
+            return {
+                "text": '```json\n{"answer": "fenced answer", "confidence": 0.95, "sources_used": ["doc1.pdf"]}\n```',
+                "model": "mock",
+                "env": "test",
+            }
+
+    app.dependency_overrides[get_llm_backend] = lambda: MarkdownLLM()
+    response = client.post("/api/query", json={"question": "What is revenue?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["answer"] == "fenced answer"
+    assert data["confidence"] == 0.95
+    assert data["sources"] == ["doc1.pdf"]
+
+
+def test_query_unadorned_backticks_json(client, app):
+    from zaisaku.api.dependencies import get_llm_backend
+
+    class PlainBackticksLLM:
+        def generate(self, prompt, system_prompt):
+            return {
+                "text": '```\n{"answer": "unadorned answer", "confidence": 0.85, "sources_used": []}\n```',
+                "model": "mock",
+                "env": "test",
+            }
+
+    app.dependency_overrides[get_llm_backend] = lambda: PlainBackticksLLM()
+    response = client.post("/api/query", json={"question": "What is net income?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["answer"] == "unadorned answer"
+    assert data["confidence"] == 0.85
