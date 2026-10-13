@@ -189,3 +189,27 @@ def test_query_stream_success(client, app):
     assert "Revenue was " in body
     assert "$100 million." in body
     assert "event: complete" in body
+
+
+def test_get_raw_document_not_found(client):
+    response = client.get("/api/documents/non-existent-id/raw")
+    assert response.status_code == 404
+    assert "Document file for non-existent-id not found" in response.json()["detail"]
+
+
+def test_get_raw_document_success(client, app, test_settings, tmp_path):
+    from zaisaku.api.dependencies import get_settings
+
+    upload_dir = tmp_path / "uploads"
+    docs_dir = upload_dir / "documents"
+    docs_dir.mkdir(parents=True)
+    file_path = docs_dir / "test-doc-id_financial_report.pdf"
+    file_path.write_bytes(b"%PDF-1.4 sample pdf content")
+
+    custom_settings = test_settings.model_copy(update={"upload_dir": str(upload_dir)})
+    app.dependency_overrides[get_settings] = lambda: custom_settings
+
+    response = client.get("/api/documents/test-doc-id/raw")
+    assert response.status_code == 200
+    assert response.content == b"%PDF-1.4 sample pdf content"
+    assert "application/pdf" in response.headers["content-type"]
