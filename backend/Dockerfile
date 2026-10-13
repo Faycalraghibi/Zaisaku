@@ -7,14 +7,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install runtime dependencies
-COPY pyproject.toml .
-# We use pip to install the project and its dependencies natively
-RUN pip install --no-cache-dir build && \
-    pip install --no-cache-dir -e .
+# Install PyTorch CPU first to avoid downloading ~3GB of CUDA wheels
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
-# Copy application source
+# Copy project specification and application source
+COPY pyproject.toml .
 COPY src/ /app/src/
+
+# Install the project and dependencies
+RUN pip install --no-cache-dir .
 
 # Create uploads directory
 RUN mkdir -p /app/uploads
