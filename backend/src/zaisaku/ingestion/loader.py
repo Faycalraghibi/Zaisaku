@@ -31,8 +31,53 @@ class DocumentLoader:
             ".htm": cls._load_html,
             ".txt": cls._load_txt,
         }[suffix]
-
         return loader(path)
+
+    @classmethod
+    def load_pages(cls, path: str | Path) -> list[Document]:
+        path = Path(path)
+
+        suffix = path.suffix.lower()
+        if suffix not in cls.SUPPORTED_EXTENSIONS:
+            raise ValueError(f"Unsupported file type: {suffix}")
+
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {path}")
+
+        if suffix == ".pdf":
+            doc = fitz.open(str(path))
+            pages = []
+            total = len(doc)
+            for idx, page in enumerate(doc, 1):
+                p_text = page.get_text()
+                if p_text.strip():
+                    pages.append(
+                        Document(
+                            text=p_text,
+                            metadata={
+                                "source": str(path),
+                                "filetype": "pdf",
+                                "page": idx,
+                                "pages": total,
+                            },
+                        )
+                    )
+            doc.close()
+            return pages or [
+                Document(
+                    text="",
+                    metadata={
+                        "source": str(path),
+                        "filetype": "pdf",
+                        "page": 1,
+                        "pages": total,
+                    },
+                )
+            ]
+        else:
+            single = cls.load(path)
+            single.metadata["page"] = 1
+            return [single]
 
     @staticmethod
     def _load_pdf(path: Path) -> Document:

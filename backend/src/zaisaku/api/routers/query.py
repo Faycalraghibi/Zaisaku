@@ -17,6 +17,13 @@ from zaisaku.models import QueryResponse
 router = APIRouter(tags=["generation"])
 
 
+def _format_candidate_source(c: dict) -> str:
+    meta = c.get("metadata", {})
+    source = meta.get("source", "Unknown")
+    page = meta.get("page")
+    return f"{source} (p. {page})" if page is not None else str(source)
+
+
 class QueryRequest(BaseModel):
     question: str
     filter: dict | None = None
@@ -62,8 +69,8 @@ async def query_documents(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Reranking failed: {str(e)}",
             ) from e
-            
-    sources_used = list(dict.fromkeys(c["metadata"].get("source", "Unknown") for c in candidates))
+
+    sources_used = list(dict.fromkeys(_format_candidate_source(c) for c in candidates))
 
     prompt = build_rag_prompt(q, candidates)
 
@@ -145,7 +152,7 @@ async def query_documents_stream(
                 yield _format_sse("error", {"detail": f"Reranking failed: {str(e)}"})
                 return
 
-        sources_used = list(dict.fromkeys(c["metadata"].get("source", "Unknown") for c in candidates))
+        sources_used = list(dict.fromkeys(_format_candidate_source(c) for c in candidates))
         yield _format_sse("sources", {"sources": sources_used})
 
         confidence = 0.0

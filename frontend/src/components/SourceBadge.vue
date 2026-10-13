@@ -9,20 +9,18 @@ const props = defineProps({
   }
 })
 
-const ext = computed(() => {
-  const parts = props.source.split('.')
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : ''
-})
+const isPdf = computed(() => /\.pdf(\s*\(p\.\s*\d+\))?$/i.test(props.source))
+const isHtml = computed(() => /\.html?(\s*\(p\.\s*\d+\))?$/i.test(props.source))
 
 const icon = computed(() => {
-  if (ext.value === 'pdf') return FileText
-  if (ext.value === 'html') return FileCode
+  if (isPdf.value) return FileText
+  if (isHtml.value) return FileCode
   return FileImage // txt/other
 })
 
 const colorClass = computed(() => {
-  if (ext.value === 'pdf') return 'text-red-400 bg-red-400/10 border-red-400/20'
-  if (ext.value === 'html') return 'text-orange-400 bg-orange-400/10 border-orange-400/20'
+  if (isPdf.value) return 'text-red-400 bg-red-400/10 border-red-400/20'
+  if (isHtml.value) return 'text-orange-400 bg-orange-400/10 border-orange-400/20'
   return 'text-blue-400 bg-blue-400/10 border-blue-400/20' // txt
 })
 </script>

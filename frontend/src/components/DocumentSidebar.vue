@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle } from 'lucide-vue-next'
+import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink } from 'lucide-vue-next'
 
 const documents = ref([])
 const isUploading = ref(false)
@@ -153,13 +153,23 @@ onMounted(() => {
               <span class="text-[10px] text-slate-500 font-mono">{{ doc.doc_id.split('-')[0] }}...</span>
             </div>
           </div>
-          <button 
-            @click="confirmDelete(doc)"
-            class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-all shrink-0"
-            title="Delete document"
-          >
-            <Trash2 class="w-4 h-4" />
-          </button>
+          <div class="flex items-center gap-1 shrink-0">
+            <a 
+              :href="`/api/documents/${doc.doc_id}/raw`"
+              target="_blank"
+              class="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-all"
+              title="View original document in new tab"
+            >
+              <ExternalLink class="w-4 h-4" />
+            </a>
+            <button 
+              @click="confirmDelete(doc)"
+              class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-all"
+              title="Delete document"
+            >
+              <Trash2 class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

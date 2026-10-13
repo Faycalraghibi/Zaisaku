@@ -97,3 +97,20 @@ class TestDocumentLoaderErrors:
         empty.write_text("")
         doc = DocumentLoader.load(empty)
         assert doc.text == ""
+
+
+class TestDocumentLoaderPages:
+    """Loading documents with page awareness."""
+
+    def test_load_pages_pdf(self):
+        pages = DocumentLoader.load_pages(FIXTURES / "sample.pdf")
+        assert len(pages) >= 1
+        for p in pages:
+            assert "page" in p.metadata
+            assert p.metadata["page"] >= 1
+            assert p.metadata["filetype"] == "pdf"
+
+    def test_load_pages_txt(self):
+        pages = DocumentLoader.load_pages(FIXTURES / "sample.txt")
+        assert len(pages) == 1
+        assert pages[0].metadata["page"] == 1

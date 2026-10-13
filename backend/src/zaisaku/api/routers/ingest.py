@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import shutil
 import uuid
 from pathlib import Path
 from typing import Annotated
@@ -64,18 +65,29 @@ async def ingest_document(
                 buffer.write(chunk)
 
         try:
-            doc = await asyncio.to_thread(DocumentLoader.load, temp_path)
+            pages = await asyncio.to_thread(DocumentLoader.load_pages, temp_path)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Failed to parse document: {str(e)}",
             ) from e
 
-        chunks: list[str] = Chunker.chunk(
-            doc.text,
-            chunk_size=settings.chunk_size,
-            overlap=settings.chunk_overlap,
-        )
+        doc_id = str(uuid.uuid4())
+        chunks: list[str] = []
+        metadatas: list[dict] = []
+
+        for p in pages:
+            p_chunks = Chunker.chunk(
+                p.text,
+                chunk_size=settings.chunk_size,
+                overlap=settings.chunk_overlap,
+            )
+            for c_text in p_chunks:
+                chunks.append(c_text)
+                meta = p.metadata.copy()
+                meta["source"] = file.filename
+                meta["doc_id"] = doc_id
+                metadatas.append(meta)
 
         if not chunks:
             raise HTTPException(
@@ -91,13 +103,6 @@ async def ingest_document(
                 detail=f"Failed to generate embeddings: {str(e)}",
             ) from e
 
-        doc_id = str(uuid.uuid4())
-        metadatas = [doc.metadata.copy() for _ in chunks]
-        
-        # Override source with original filename natively rather than the temp uuid path
-        for m in metadatas:
-            m["source"] = file.filename
-
         try:
             count = await asyncio.to_thread(
                 store.upsert,
@@ -111,6 +116,12 @@ async def ingest_document(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to store vectors: {str(e)}",
             ) from e
+
+        # Persist raw document for viewing and citations
+        storage_dir = Path(settings.upload_dir) / "documents"
+        storage_dir.mkdir(parents=True, exist_ok=True)
+        permanent_path = storage_dir / f"{doc_id}_{safe_filename}"
+        shutil.copyfile(temp_path, permanent_path)
 
         return IngestResponse(
             doc_id=doc_id,
