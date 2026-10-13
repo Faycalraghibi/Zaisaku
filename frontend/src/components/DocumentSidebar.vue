@@ -1,8 +1,9 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink, Globe, GitCompare, Calculator } from 'lucide-vue-next'
+import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink, Globe, GitCompare, Calculator, Radio } from 'lucide-vue-next'
 import FilingDiffModal from './FilingDiffModal.vue'
 import ForensicMScoreModal from './ForensicMScoreModal.vue'
+import ContradictionRadarModal from './ContradictionRadarModal.vue'
 
 const documents = ref([])
 const isUploading = ref(false)
@@ -11,6 +12,7 @@ const errorMsg = ref('')
 
 const showDiffModal = ref(false)
 const showMScoreModal = ref(false)
+const showRadarModal = ref(false)
 
 const showSecModal = ref(false)
 const secTicker = ref('')
@@ -204,6 +206,15 @@ onMounted(() => {
       >
         <Calculator class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
         <span>Forensic M-Score & Notes</span>
+      </button>
+
+      <button
+        type="button"
+        @click="showRadarModal = true"
+        class="w-full py-2.5 px-3 rounded-lg border border-cyan-900/60 bg-cyan-950/20 hover:bg-cyan-900/40 hover:border-cyan-500/50 text-cyan-300 text-xs font-medium flex items-center justify-center gap-2 transition-all shadow-xs group cursor-pointer"
+      >
+        <Radio class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+        <span>Call vs 10-Q Radar</span>
       </button>
 
       <div v-if="errorMsg" class="p-3 rounded bg-red-900/20 border border-red-900/50 text-red-400 text-xs flex gap-2 items-start">
@@ -400,6 +411,12 @@ onMounted(() => {
     <ForensicMScoreModal 
       :is-open="showMScoreModal" 
       @close="showMScoreModal = false" 
+    />
+
+    <!-- Earnings Call vs 10-Q Contradiction Radar Modal -->
+    <ContradictionRadarModal 
+      :is-open="showRadarModal" 
+      @close="showRadarModal = false" 
     />
   </div>
 </template>

@@ -3,6 +3,13 @@
 from __future__ import annotations
 
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics, BeneishResult
+from zaisaku.forensics.contradiction_radar import (
+    ContradictionItem,
+    ContradictionRadar,
+    ContradictionRadarResult,
+    ContradictionSeverity,
+    ContradictionTopic,
+)
 from zaisaku.forensics.diff_engine import DiffEngine, FilingDiffResult, SectionDiff
 from zaisaku.forensics.footnote_scanner import (
     FootnoteFinding,
@@ -16,6 +23,11 @@ __all__ = [
     "BeneishCalculator",
     "BeneishMetrics",
     "BeneishResult",
+    "ContradictionItem",
+    "ContradictionRadar",
+    "ContradictionRadarResult",
+    "ContradictionSeverity",
+    "ContradictionTopic",
     "DiffEngine",
     "FilingDiffResult",
     "FootnoteFinding",
