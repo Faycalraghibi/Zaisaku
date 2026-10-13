@@ -14,6 +14,7 @@ from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
+from zaisaku.forensics.scorecard import ForensicScorecard
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
 
@@ -246,5 +247,50 @@ async def analyze_contradictions(
         request.call_text,
         request.filing_text,
         llm_to_use,
+    )
+    return result.to_dict()
+
+
+class ScorecardRequest(BaseModel):
+    ticker: str = Field(default="CUSTOM", description="Stock ticker symbol")
+    company_name: str = Field(default="", description="Company name")
+    language_drift_score: float = Field(default=0.0, description="Filing Language Drift Score (0-100)")
+    beneish_m_score: float = Field(default=-2.50, description="Beneish M-Score (-3.0 to 0.0)")
+    footnote_hazards_count: int = Field(default=0, description="Number of high-severity footnote risks detected")
+    call_contradictions_score: float = Field(default=0.0, description="Earnings call tone decoupling score (0-100)")
+    contradiction_count: int = Field(default=0, description="Number of call vs 10-Q contradictions flagged")
+
+
+class PillarScoreResponse(BaseModel):
+    name: str
+    weight: float
+    raw_score: float
+    weighted_score: float
+    status: str
+    key_findings: list[str] = []
+
+
+class ScorecardResponse(BaseModel):
+    ticker: str
+    company_name: str
+    composite_ffi: float
+    risk_level: str
+    recommendation: str
+    pillars: dict[str, PillarScoreResponse]
+    red_flags: list[str] = []
+    summary: str
+
+
+@router.post("/scorecard", response_model=ScorecardResponse)
+async def generate_forensic_scorecard(request: ScorecardRequest):
+    """Compute composite Forensic Fragility Index (FFI) synthesizing all 3 forensic intelligence pillars."""
+    result = ForensicScorecard.calculate(
+        ticker=request.ticker,
+        company_name=request.company_name,
+        language_drift_score=request.language_drift_score,
+        beneish_m_score=request.beneish_m_score,
+        footnote_hazards_count=request.footnote_hazards_count,
+        call_contradictions_score=request.call_contradictions_score,
+        contradiction_count=request.contradiction_count,
     )
     return result.to_dict()
