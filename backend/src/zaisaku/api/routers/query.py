@@ -61,7 +61,7 @@ async def query_documents(
                 detail=f"Reranking failed: {str(e)}",
             ) from e
             
-    sources_used = list({c["metadata"].get("source", "Unknown") for c in candidates})
+    sources_used = list(dict.fromkeys(c["metadata"].get("source", "Unknown") for c in candidates))
 
     prompt = build_rag_prompt(q, candidates)
 
@@ -89,9 +89,15 @@ async def query_documents(
             "sources_used": sources_used,
         }
 
+    raw_confidence = parsed.get("confidence", 0.0)
+    try:
+        confidence = float(raw_confidence)
+    except (ValueError, TypeError):
+        confidence = 0.0
+
     return QueryResponse(
         answer=parsed.get("answer", ""),
-        confidence=float(parsed.get("confidence", 0.0)),
+        confidence=confidence,
         sources=parsed.get("sources_used", sources_used),
         model=response_data.get("model", "unknown"),
         env=response_data.get("env", "unknown"),

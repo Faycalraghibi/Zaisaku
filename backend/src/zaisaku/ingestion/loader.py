@@ -48,7 +48,7 @@ class DocumentLoader:
 
     @staticmethod
     def _load_html(path: Path) -> Document:
-        raw = path.read_text(encoding="utf-8")
+        raw = path.read_text(encoding="utf-8-sig", errors="replace")
         soup = BeautifulSoup(raw, "html.parser")
         text = soup.get_text(separator="\n", strip=True)
         return Document(
@@ -58,7 +58,7 @@ class DocumentLoader:
 
     @staticmethod
     def _load_txt(path: Path) -> Document:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig", errors="replace")
         return Document(
             text=text,
             metadata={"source": str(path), "filetype": "txt"},

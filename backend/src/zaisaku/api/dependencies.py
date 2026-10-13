@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 import chromadb
@@ -11,6 +12,8 @@ from zaisaku.generation.llm import LLMBackend, LLMRouter
 from zaisaku.ingestion.embedder import Embedder, SentenceTransformerEmbedder
 from zaisaku.retrieval.reranker import CrossEncoderReranker, Reranker
 from zaisaku.retrieval.store import ChromaVectorStore, VectorStore
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Singleton instances to prevent reloading models per-request
@@ -46,8 +49,7 @@ def get_vector_store(settings: Annotated[Settings, Depends(get_settings)]) -> Ve
                 client.heartbeat()
             except Exception as e:
                 if settings.env == "dev":
-                    import logging
-                    logging.getLogger(__name__).warning(
+                    logger.warning(
                         f"Could not connect to ChromaDB at {settings.chroma_host}:{settings.chroma_port} ({e}). "
                         f"Falling back to local PersistentClient at {settings.chroma_persist_path}."
                     )

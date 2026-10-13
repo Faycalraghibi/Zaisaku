@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     retrieval_top_k: int = 10
     rerank_top_k: int = 3
     upload_dir: str = "uploads"
+    max_upload_size: int = 50 * 1024 * 1024  # 50 MB
+    llm_max_tokens: int = 1024
     secret_key: str = "change-me-in-production"
     cors_origin: str = "http://localhost:5173"
 

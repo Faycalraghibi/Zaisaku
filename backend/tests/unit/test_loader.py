@@ -29,6 +29,14 @@ class TestDocumentLoaderTXT:
         doc = DocumentLoader.load(FIXTURES / "sample.txt")
         assert doc.metadata["filetype"] == "txt"
 
+    def test_loads_txt_with_bom_and_non_utf8(self, tmp_path: Path):
+        file = tmp_path / "bom_encoded.txt"
+        # Write UTF-8 BOM followed by invalid UTF-8 bytes
+        file.write_bytes(b"\xef\xbb\xbfFinancial Report \xff\xfe\x99")
+        doc = DocumentLoader.load(file)
+        assert "Financial Report" in doc.text
+        assert not doc.text.startswith("\ufeff")
+
 
 class TestDocumentLoaderHTML:
     """Loading HTML files — should strip tags and return clean text."""
@@ -46,6 +54,13 @@ class TestDocumentLoaderHTML:
     def test_html_metadata_has_filetype(self):
         doc = DocumentLoader.load(FIXTURES / "sample.html")
         assert doc.metadata["filetype"] == "html"
+
+    def test_loads_html_with_bom(self, tmp_path: Path):
+        file = tmp_path / "bom_encoded.html"
+        file.write_bytes(b"\xef\xbb\xbf<html><body><p>Quarterly Report</p></body></html>")
+        doc = DocumentLoader.load(file)
+        assert "Quarterly Report" in doc.text
+        assert not doc.text.startswith("\ufeff")
 
 
 class TestDocumentLoaderPDF:
