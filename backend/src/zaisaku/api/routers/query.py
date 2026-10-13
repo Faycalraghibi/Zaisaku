@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -72,13 +73,10 @@ async def query_documents(
         ) from e
 
     raw_text = response_data.get("text", "{}").strip()
-    
-    # Sometimes LLMs prepend/append markdown backticks despite instructions.
-    if raw_text.startswith("```json"):
-        raw_text = raw_text[7:]
-    if raw_text.endswith("```"):
-        raw_text = raw_text[:-3]
-    raw_text = raw_text.strip()
+
+    # Extract JSON body if wrapped in markdown code blocks (e.g. ```json ... ``` or ``` ... ```)
+    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
+    raw_text = match.group(1).strip() if match else raw_text.strip("` \n\r\t")
 
     try:
         parsed = json.loads(raw_text)

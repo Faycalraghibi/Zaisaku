@@ -13,6 +13,12 @@ class Chunker:
         if not text.strip():
             return []
 
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be strictly positive")
+
+        if overlap < 0:
+            raise ValueError("overlap must be non-negative")
+
         if overlap >= chunk_size:
             raise ValueError("Overlap must be strictly less than chunk_size")
 

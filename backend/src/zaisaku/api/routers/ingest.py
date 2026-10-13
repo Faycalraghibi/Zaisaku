@@ -36,9 +36,10 @@ async def ingest_document(
             detail=f"Unsupported file type. Must be one of: {DocumentLoader.SUPPORTED_EXTENSIONS}",
         )
 
+    safe_filename = Path(file.filename).name
     upload_dir = Path(settings.upload_dir)
-    upload_dir.mkdir(exist_ok=True)
-    temp_path = upload_dir / f"{uuid.uuid4()}_{file.filename}"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    temp_path = upload_dir / f"{uuid.uuid4()}_{safe_filename}"
 
     try:
         with temp_path.open("wb") as buffer:
