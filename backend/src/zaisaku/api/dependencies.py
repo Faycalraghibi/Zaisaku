@@ -67,6 +67,16 @@ def get_llm_backend(settings: Annotated[Settings, Depends(get_settings)]) -> LLM
     return _llm_backend_instance
 
 
+_llm_router_instance: LLMRouter | None = None
+
+
+def get_llm_router(settings: Annotated[Settings, Depends(get_settings)]) -> LLMRouter:
+    global _llm_router_instance
+    if _llm_router_instance is None:
+        _llm_router_instance = LLMRouter(settings)
+    return _llm_router_instance
+
+
 # ---------------------------------------------------------------------------
 # Annotated type hints for concise dependency injection in routes
 # ---------------------------------------------------------------------------
@@ -75,3 +85,4 @@ EmbedderDep = Annotated[Embedder, Depends(get_embedder)]
 RerankerDep = Annotated[Reranker, Depends(get_reranker)]
 StoreDep = Annotated[VectorStore, Depends(get_vector_store)]
 LLMDep = Annotated[LLMBackend, Depends(get_llm_backend)]
+RouterDep = Annotated[LLMRouter, Depends(get_llm_router)]

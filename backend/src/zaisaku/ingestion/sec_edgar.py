@@ -52,10 +52,12 @@ class SECEdgarClient:
 
         raise ValueError(f"Could not find CIK for ticker '{ticker}'.")
 
-    def fetch_recent_filing(self, ticker: str, form: str = "10-K") -> tuple[str, bytes]:
-        """Fetch the most recent filing of the given form for a ticker.
+    def fetch_consecutive_filings(
+        self, ticker: str, form: str = "10-K", count: int = 2
+    ) -> list[tuple[str, bytes]]:
+        """Fetch the N most recent filings of the given form for a ticker.
 
-        Returns (filename, content_bytes).
+        Returns a list of (filename, content_bytes), newest first.
         """
         ticker = ticker.strip().upper()
         form = form.strip().upper()
@@ -73,25 +75,38 @@ class SECEdgarClient:
         accession_numbers = recent.get("accessionNumber", [])
         primary_docs = recent.get("primaryDocument", [])
 
-        target_idx: int | None = None
+        target_indices: list[int] = []
         for i, f in enumerate(forms):
             if f.upper() == form:
-                target_idx = i
-                break
+                target_indices.append(i)
+                if len(target_indices) >= count:
+                    break
 
-        if target_idx is None:
+        if not target_indices:
             raise ValueError(f"No recent filing with form '{form}' found for {ticker}.")
 
-        acc_num = accession_numbers[target_idx]
-        primary_doc = primary_docs[target_idx]
-        acc_no_dash = acc_num.replace("-", "")
+        results: list[tuple[str, bytes]] = []
+        for idx in target_indices:
+            acc_num = accession_numbers[idx]
+            primary_doc = primary_docs[idx]
+            acc_no_dash = acc_num.replace("-", "")
 
-        doc_url = f"{self.ARCHIVES_URL}/{cik}/{acc_no_dash}/{primary_doc}"
-        logger.info(f"Downloading SEC filing from {doc_url}")
+            doc_url = f"{self.ARCHIVES_URL}/{cik}/{acc_no_dash}/{primary_doc}"
+            logger.info(f"Downloading SEC filing from {doc_url}")
 
-        doc_resp = httpx.get(doc_url, headers=self.headers, timeout=self.timeout)
-        doc_resp.raise_for_status()
+            doc_resp = httpx.get(doc_url, headers=self.headers, timeout=self.timeout)
+            doc_resp.raise_for_status()
 
-        clean_ext = ".htm" if primary_doc.lower().endswith((".htm", ".html")) else ".txt"
-        filename = f"{ticker}_{form}_{acc_num}{clean_ext}"
-        return filename, doc_resp.content
+            clean_ext = ".htm" if primary_doc.lower().endswith((".htm", ".html")) else ".txt"
+            filename = f"{ticker}_{form}_{acc_num}{clean_ext}"
+            results.append((filename, doc_resp.content))
+
+        return results
+
+    def fetch_recent_filing(self, ticker: str, form: str = "10-K") -> tuple[str, bytes]:
+        """Fetch the most recent filing of the given form for a ticker.
+
+        Returns (filename, content_bytes).
+        """
+        filings = self.fetch_consecutive_filings(ticker, form, count=1)
+        return filings[0]
