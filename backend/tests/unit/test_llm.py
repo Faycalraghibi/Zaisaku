@@ -13,12 +13,12 @@ class TestLLMRouterSelection:
     """The router should select the correct backend based on ENV and LLM_PROVIDER."""
 
     def test_routes_to_ollama_in_dev(self):
-        settings = Settings(env="dev")
+        settings = Settings(env="dev", llm_provider="")
         router = LLMRouter(settings)
         assert isinstance(router.backend, _OllamaBackend)
 
     def test_routes_to_openrouter_in_prod(self):
-        settings = Settings(env="prod")
+        settings = Settings(env="prod", llm_provider="")
         router = LLMRouter(settings)
         assert isinstance(router.backend, _OpenRouterBackend)
 
@@ -28,12 +28,12 @@ class TestLLMRouterSelection:
         assert isinstance(router.backend, _OmniRouteBackend)
 
     def test_routes_to_omniroute_via_env(self):
-        settings = Settings(env="omniroute")
+        settings = Settings(env="omniroute", llm_provider="")
         router = LLMRouter(settings)
         assert isinstance(router.backend, _OmniRouteBackend)
 
     def test_invalid_env_raises(self):
-        settings = Settings(env="staging")
+        settings = Settings(env="staging", llm_provider="")
         with pytest.raises(ValueError, match="Unknown LLM provider.*staging"):
             LLMRouter(settings)
 

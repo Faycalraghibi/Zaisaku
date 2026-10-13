@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 import httpx
@@ -12,6 +14,16 @@ import httpx
 from zaisaku.config import Settings
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_container_url(url: str) -> str:
+    """If running inside a container, rewrite localhost/127.0.0.1 to host.docker.internal."""
+    if Path("/.dockerenv").exists() or os.environ.get("DOCKER_CONTAINER"):
+        if "localhost" in url:
+            return url.replace("localhost", "host.docker.internal")
+        if "127.0.0.1" in url:
+            return url.replace("127.0.0.1", "host.docker.internal")
+    return url
 
 
 @runtime_checkable
@@ -26,7 +38,7 @@ class LLMBackend(Protocol):
 class _OllamaBackend:
 
     def __init__(self, config: Settings) -> None:
-        self.base_url = config.ollama_base_url
+        self.base_url = _resolve_container_url(config.ollama_base_url)
         self.model = config.ollama_model
         self.timeout = config.llm_timeout
         self.env = "dev"
@@ -145,7 +157,7 @@ class _OmniRouteBackend:
     def __init__(self, config: Settings) -> None:
         self.api_key = config.omniroute_api_key or "omniroute"
         self.model = config.omniroute_model or "auto"
-        self.base_url = config.omniroute_base_url
+        self.base_url = _resolve_container_url(config.omniroute_base_url)
         self.timeout = config.llm_timeout
         self.env = "omniroute"
 
