@@ -1,9 +1,10 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink, Globe, GitCompare, Calculator, Radio } from 'lucide-vue-next'
+import { UploadCloud, Trash2, File as FileIcon, Loader2, AlertCircle, ExternalLink, Globe, GitCompare, Calculator, Radio, ShieldAlert } from 'lucide-vue-next'
 import FilingDiffModal from './FilingDiffModal.vue'
 import ForensicMScoreModal from './ForensicMScoreModal.vue'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
+import ForensicScorecardModal from './ForensicScorecardModal.vue'
 
 const documents = ref([])
 const isUploading = ref(false)
@@ -13,6 +14,7 @@ const errorMsg = ref('')
 const showDiffModal = ref(false)
 const showMScoreModal = ref(false)
 const showRadarModal = ref(false)
+const showScorecardModal = ref(false)
 
 const showSecModal = ref(false)
 const secTicker = ref('')
@@ -188,6 +190,15 @@ onMounted(() => {
       >
         <Globe class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
         <span>Import from SEC EDGAR</span>
+      </button>
+
+      <button
+        type="button"
+        @click="showScorecardModal = true"
+        class="w-full py-2.5 px-3 rounded-lg border border-rose-900/60 bg-rose-950/30 hover:bg-rose-900/50 hover:border-rose-500/50 text-rose-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs group cursor-pointer"
+      >
+        <ShieldAlert class="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
+        <span>Forensic Risk Scorecard (FFI)</span>
       </button>
 
       <button
@@ -417,6 +428,15 @@ onMounted(() => {
     <ContradictionRadarModal 
       :is-open="showRadarModal" 
       @close="showRadarModal = false" 
+    />
+
+    <!-- Unified Forensic Risk Scorecard Modal -->
+    <ForensicScorecardModal 
+      :is-open="showScorecardModal" 
+      @close="showScorecardModal = false" 
+      @open-diff="showScorecardModal = false; showDiffModal = true"
+      @open-mscore="showScorecardModal = false; showMScoreModal = true"
+      @open-radar="showScorecardModal = false; showRadarModal = true"
     />
   </div>
 </template>
