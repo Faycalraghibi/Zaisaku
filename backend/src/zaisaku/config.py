@@ -21,11 +21,15 @@ class Settings(BaseSettings):
     env: str = "dev"
     app_host: str = "127.0.0.1"
     app_port: int = 8000
+    llm_provider: str = ""
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "mistral:7b"
     openrouter_api_key: str = "sk-or-change-me"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "google/gemini-flash-1.5"
+    omniroute_base_url: str = "http://localhost:20128/v1"
+    omniroute_api_key: str = "omniroute"
+    omniroute_model: str = "auto"
     llm_timeout: float = 60.0
     chroma_host: str = "chromadb"
     chroma_port: int = 8000

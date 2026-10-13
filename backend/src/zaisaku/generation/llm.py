@@ -140,15 +140,72 @@ class _OpenRouterBackend:
             raise RuntimeError(f"OpenRouter error: {e}") from e
 
 
+class _OmniRouteBackend:
+
+    def __init__(self, config: Settings) -> None:
+        self.api_key = config.omniroute_api_key or "omniroute"
+        self.model = config.omniroute_model or "auto"
+        self.base_url = config.omniroute_base_url
+        self.timeout = config.llm_timeout
+        self.env = "omniroute"
+
+        import openai
+        self.client = openai.OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key,
+            timeout=self.timeout,
+        )
+
+    def generate(self, prompt: str, system_prompt: str) -> dict:
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+            )
+            text = response.choices[0].message.content or ""
+            return {
+                "text": text,
+                "model": self.model,
+                "env": "omniroute",
+            }
+        except Exception as e:
+            logger.error(f"OmniRoute generation failed: {e}")
+            raise RuntimeError(f"OmniRoute error: {e}") from e
+
+    def generate_stream(self, prompt: str, system_prompt: str) -> Iterator[str]:
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                stream=True,
+            )
+            for chunk in response:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            logger.error(f"OmniRoute streaming failed: {e}")
+            raise RuntimeError(f"OmniRoute error: {e}") from e
+
+
 class LLMRouter:
 
     def __init__(self, config: Settings) -> None:
-        if config.env == "dev":
+        provider = (config.llm_provider or "").strip().lower()
+        if provider == "omniroute" or config.env == "omniroute":
+            self.backend: LLMBackend = _OmniRouteBackend(config)
+        elif provider == "ollama" or (not provider and config.env == "dev"):
             self.backend: LLMBackend = _OllamaBackend(config)
-        elif config.env == "prod":
+        elif provider == "openrouter" or (not provider and config.env == "prod"):
             self.backend: LLMBackend = _OpenRouterBackend(config)
         else:
-            raise ValueError(f"Unknown ENV: {config.env}")
+            raise ValueError(f"Unknown LLM provider '{provider}' or ENV '{config.env}'")
 
     @property
     def env(self) -> str:

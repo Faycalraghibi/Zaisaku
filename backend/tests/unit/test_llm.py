@@ -6,11 +6,11 @@ import httpx
 import pytest
 
 from zaisaku.config import Settings
-from zaisaku.generation.llm import LLMRouter, _OllamaBackend, _OpenRouterBackend
+from zaisaku.generation.llm import LLMRouter, _OllamaBackend, _OmniRouteBackend, _OpenRouterBackend
 
 
 class TestLLMRouterSelection:
-    """The router should select the correct backend based on ENV."""
+    """The router should select the correct backend based on ENV and LLM_PROVIDER."""
 
     def test_routes_to_ollama_in_dev(self):
         settings = Settings(env="dev")
@@ -22,9 +22,19 @@ class TestLLMRouterSelection:
         router = LLMRouter(settings)
         assert isinstance(router.backend, _OpenRouterBackend)
 
+    def test_routes_to_omniroute_via_provider(self):
+        settings = Settings(llm_provider="omniroute")
+        router = LLMRouter(settings)
+        assert isinstance(router.backend, _OmniRouteBackend)
+
+    def test_routes_to_omniroute_via_env(self):
+        settings = Settings(env="omniroute")
+        router = LLMRouter(settings)
+        assert isinstance(router.backend, _OmniRouteBackend)
+
     def test_invalid_env_raises(self):
         settings = Settings(env="staging")
-        with pytest.raises(ValueError, match="Unknown ENV: staging"):
+        with pytest.raises(ValueError, match="Unknown LLM provider.*staging"):
             LLMRouter(settings)
 
 
@@ -146,3 +156,61 @@ class TestOpenRouterBackend:
         monkeypatch.setattr(backend.client.chat.completions, "create", mock_create)
         tokens = list(backend.generate_stream("Hello", "System"))
         assert tokens == ["OpenRouter ", "stream!"]
+
+
+class TestOmniRouteBackend:
+    """Mocked tests for the OmniRoute backend."""
+
+    def test_generate_success(self, monkeypatch):
+        settings = Settings(omniroute_base_url="http://localhost:20128/v1", omniroute_model="auto")
+        backend = _OmniRouteBackend(settings)
+
+        class MockChoice:
+            class MockMessage:
+                content = '{"answer": "omniroute"}'
+            message = MockMessage()
+
+        class MockCompletion:
+            choices = [MockChoice()]
+
+        def mock_create(*args, **kwargs):
+            return MockCompletion()
+
+        monkeypatch.setattr(backend.client.chat.completions, "create", mock_create)
+
+        res = backend.generate("Hello", "System")
+        assert res["model"] == "auto"
+        assert res["env"] == "omniroute"
+        assert res["text"] == '{"answer": "omniroute"}'
+
+    def test_generate_stream_success(self, monkeypatch):
+        settings = Settings(omniroute_base_url="http://localhost:20128/v1", omniroute_model="auto")
+        backend = _OmniRouteBackend(settings)
+
+        class MockChunk:
+            def __init__(self, text):
+                class MockChoice:
+                    class MockDelta:
+                        def __init__(self, c): self.content = c
+                    def __init__(self, c): self.delta = MockChoice.MockDelta(c)
+                self.choices = [MockChoice(text)]
+
+        def mock_create(*args, **kwargs):
+            return [MockChunk("OmniRoute "), MockChunk("response")]
+
+        monkeypatch.setattr(backend.client.chat.completions, "create", mock_create)
+        tokens = list(backend.generate_stream("Hello", "System"))
+        assert tokens == ["OmniRoute ", "response"]
+
+    def test_generate_error(self, monkeypatch):
+        settings = Settings(omniroute_base_url="http://localhost:20128/v1", omniroute_model="auto")
+        backend = _OmniRouteBackend(settings)
+
+        def mock_create(*args, **kwargs):
+            import openai
+            raise openai.APIError("Connection refused", request=None, body=None)
+
+        monkeypatch.setattr(backend.client.chat.completions, "create", mock_create)
+
+        with pytest.raises(RuntimeError, match="OmniRoute error"):
+            backend.generate("Hello", "System")
