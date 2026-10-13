@@ -50,6 +50,15 @@ class DocumentLoader:
             total = len(doc)
             for idx, page in enumerate(doc, 1):
                 p_text = page.get_text()
+                try:
+                    tabs = page.find_tables()
+                    if tabs and tabs.tables:
+                        table_mds = [t.to_markdown() for t in tabs.tables if t.to_markdown().strip()]
+                        if table_mds:
+                            p_text = f"{p_text}\n\n" + "\n\n".join(table_mds)
+                except Exception:
+                    pass
+
                 if p_text.strip():
                     pages.append(
                         Document(
@@ -80,9 +89,51 @@ class DocumentLoader:
             return [single]
 
     @staticmethod
+    def _table_to_markdown(table_tag) -> str:
+        rows = table_tag.find_all("tr")
+        if not rows:
+            return ""
+
+        table_data = []
+        for tr in rows:
+            cells = [
+                c.get_text(strip=True).replace("\n", " ").replace("|", "/")
+                for c in tr.find_all(["th", "td"])
+            ]
+            if cells:
+                table_data.append(cells)
+
+        if not table_data:
+            return ""
+
+        max_cols = max(len(r) for r in table_data)
+        normalized = [r + [""] * (max_cols - len(r)) for r in table_data]
+
+        header = normalized[0]
+        md_lines = ["\n| " + " | ".join(header) + " |"]
+        md_lines.append("| " + " | ".join(["---"] * max_cols) + " |")
+        for row in normalized[1:]:
+            md_lines.append("| " + " | ".join(row) + " |")
+        md_lines.append("\n")
+        return "\n".join(md_lines)
+
+    @staticmethod
     def _load_pdf(path: Path) -> Document:
         doc = fitz.open(str(path))
-        text = "\n".join(page.get_text() for page in doc)
+        page_texts = []
+        for page in doc:
+            t = page.get_text()
+            try:
+                tabs = page.find_tables()
+                if tabs and tabs.tables:
+                    table_mds = [tab.to_markdown() for tab in tabs.tables if tab.to_markdown().strip()]
+                    if table_mds:
+                        t = f"{t}\n\n" + "\n\n".join(table_mds)
+            except Exception:
+                pass
+            page_texts.append(t)
+
+        text = "\n".join(page_texts)
         metadata = {
             "source": str(path),
             "filetype": "pdf",
@@ -95,6 +146,10 @@ class DocumentLoader:
     def _load_html(path: Path) -> Document:
         raw = path.read_text(encoding="utf-8-sig", errors="replace")
         soup = BeautifulSoup(raw, "html.parser")
+        for table in soup.find_all("table"):
+            md = DocumentLoader._table_to_markdown(table)
+            if md:
+                table.replace_with(soup.new_string(md))
         text = soup.get_text(separator="\n", strip=True)
         return Document(
             text=text,
