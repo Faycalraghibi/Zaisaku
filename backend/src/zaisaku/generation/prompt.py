@@ -14,6 +14,13 @@ If the context does not contain the answer, say 'I cannot answer this based on t
 Do not include markdown blocks around the JSON (e.g. ```json). Output raw JSON only.
 """
 
+STREAM_SYSTEM_PROMPT = """You are Zaisaku, a precise financial AI assistant designed to answer questions
+based *only* on the provided context documents.
+Synthesize the context to provide a clear, professional answer. Do not use outside knowledge.
+If the context does not contain the answer, say "I cannot answer this based on the provided documents."
+Answer directly in clear natural language or markdown without wrapping in JSON.
+"""
+
 
 def build_rag_prompt(query: str, chunks: list[dict]) -> str:
     if not chunks:

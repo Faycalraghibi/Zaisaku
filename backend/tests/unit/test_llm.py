@@ -66,6 +66,28 @@ class TestOllamaBackend:
         with pytest.raises(RuntimeError, match="Ollama error"):
             backend.generate("Hello", "System")
 
+    def test_generate_stream_success(self, monkeypatch):
+        settings = Settings(ollama_base_url="http://test:11434", ollama_model="test-model")
+        backend = _OllamaBackend(settings)
+
+        class MockStreamResponse:
+            def raise_for_status(self):
+                pass
+            def iter_lines(self):
+                yield '{"message": {"content": "chunk 1 "}}'
+                yield '{"message": {"content": "chunk 2"}}'
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+
+        def mock_stream(*args, **kwargs):
+            return MockStreamResponse()
+
+        monkeypatch.setattr("httpx.stream", mock_stream)
+        tokens = list(backend.generate_stream("Hello", "System"))
+        assert tokens == ["chunk 1 ", "chunk 2"]
+
 
 class TestOpenRouterBackend:
     """Mocked tests for the OpenRouter backend."""
@@ -105,3 +127,22 @@ class TestOpenRouterBackend:
 
         with pytest.raises(RuntimeError, match="OpenRouter error"):
             backend.generate("Hello", "System")
+
+    def test_generate_stream_success(self, monkeypatch):
+        settings = Settings(openrouter_api_key="sk-test", openrouter_model="test-model")
+        backend = _OpenRouterBackend(settings)
+
+        class MockChunk:
+            def __init__(self, text):
+                class MockChoice:
+                    class MockDelta:
+                        def __init__(self, c): self.content = c
+                    def __init__(self, c): self.delta = MockChoice.MockDelta(c)
+                self.choices = [MockChoice(text)]
+
+        def mock_create(*args, **kwargs):
+            return [MockChunk("OpenRouter "), MockChunk("stream!")]
+
+        monkeypatch.setattr(backend.client.chat.completions, "create", mock_create)
+        tokens = list(backend.generate_stream("Hello", "System"))
+        assert tokens == ["OpenRouter ", "stream!"]
