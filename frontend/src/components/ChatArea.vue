@@ -22,6 +22,7 @@ const messages = ref([
 
 const query = ref('')
 const isQuerying = ref(false)
+const currentStage = ref('')
 const chatContainer = ref(null)
 
 const scrollToBottom = async () => {
@@ -45,41 +46,112 @@ const sendQuery = async () => {
   scrollToBottom()
   
   isQuerying.value = true
+  currentStage.value = 'Searching indexed documents...'
+
+  let assistantMsg = null
 
   try {
-    const res = await fetch('/api/query', {
+    const res = await fetch('/api/query/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question: userQuestion }),
-      signal: AbortSignal.timeout(60000)
+      signal: AbortSignal.timeout(90000)
     })
 
     if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.detail || 'Failed to get answer')
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail || `Server returned ${res.status}`)
     }
 
-    const data = await res.json()
-    
-    messages.value.push({
-      role: 'assistant',
-      text: data.answer,
-      sources: data.sources || [],
-      confidence: data.confidence,
-      model: data.model,
-      env: data.env
-    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const parts = buffer.split('\n\n')
+      buffer = parts.pop() || ''
+
+      for (const part of parts) {
+        if (!part.trim()) continue
+        let event = 'message'
+        let dataStr = ''
+        for (const line of part.split('\n')) {
+          if (line.startsWith('event: ')) {
+            event = line.slice(7).trim()
+          } else if (line.startsWith('data: ')) {
+            dataStr = line.slice(6).trim()
+          }
+        }
+        if (!dataStr) continue
+        try {
+          const payload = JSON.parse(dataStr)
+          if (event === 'stage') {
+            currentStage.value = payload.message || payload.stage
+          } else if (event === 'sources') {
+            if (assistantMsg) assistantMsg.sources = payload.sources
+          } else if (event === 'token') {
+            if (!assistantMsg) {
+              assistantMsg = {
+                role: 'assistant',
+                text: '',
+                sources: [],
+                confidence: null,
+                model: null,
+                env: null,
+                isStreaming: true
+              }
+              messages.value.push(assistantMsg)
+            }
+            assistantMsg.text += payload.token
+            scrollToBottom()
+          } else if (event === 'complete') {
+            if (!assistantMsg) {
+              assistantMsg = {
+                role: 'assistant',
+                text: payload.answer || '',
+                sources: payload.sources || [],
+                confidence: payload.confidence,
+                model: payload.model,
+                env: payload.env
+              }
+              messages.value.push(assistantMsg)
+            } else {
+              assistantMsg.confidence = payload.confidence
+              assistantMsg.sources = payload.sources || assistantMsg.sources
+              assistantMsg.model = payload.model
+              assistantMsg.env = payload.env
+              assistantMsg.isStreaming = false
+            }
+          } else if (event === 'error') {
+            throw new Error(payload.detail || 'Streaming failed')
+          }
+        } catch (parseErr) {
+          if (event === 'error') throw parseErr
+        }
+      }
+    }
   } catch (err) {
     const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError'
-    messages.value.push({
-      role: 'assistant',
-      text: isTimeout 
-        ? 'Request timed out after 60 seconds. The model took too long to respond.' 
-        : `Error: ${err.message}`,
-      isError: true
-    })
+    const errorText = isTimeout 
+      ? 'Request timed out after 90 seconds. The model took too long to respond.' 
+      : `Error: ${err.message}`
+    if (assistantMsg) {
+      assistantMsg.text += `\n\n[${errorText}]`
+      assistantMsg.isError = true
+      assistantMsg.isStreaming = false
+    } else {
+      messages.value.push({
+        role: 'assistant',
+        text: errorText,
+        isError: true
+      })
+    }
   } finally {
     isQuerying.value = false
+    currentStage.value = ''
     scrollToBottom()
   }
 }
@@ -128,11 +200,12 @@ const confidenceColor = (score) => {
             :class="[
               msg.role === 'user' 
                 ? 'bg-blue-600 text-white rounded-tr-sm' 
-                : 'bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700 leading-relaxed',
+                : 'bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700 leading-relaxed whitespace-pre-wrap',
               msg.isError ? 'bg-red-900/50 border-red-500 text-red-200' : ''
             ]"
           >
             {{ msg.text }}
+            <span v-if="msg.isStreaming" class="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle"></span>
           </div>
 
           <div v-if="msg.role === 'assistant' && (msg.sources?.length > 0 || msg.model)" class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1 px-1">
@@ -153,7 +226,7 @@ const confidenceColor = (score) => {
         </div>
       </div>
 
-      <div v-if="isQuerying" class="flex gap-4 max-w-4xl mx-auto">
+      <div v-if="isQuerying && !messages.some(m => m.isStreaming)" class="flex gap-4 max-w-4xl mx-auto">
         <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
           <Bot class="w-4 h-4 text-white" />
         </div>
@@ -163,7 +236,7 @@ const confidenceColor = (score) => {
             <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
             <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce"></div>
           </div>
-          <span class="text-sm text-slate-400 font-medium">Analyzing documents...</span>
+          <span class="text-sm text-slate-400 font-medium">{{ currentStage || 'Analyzing documents...' }}</span>
         </div>
       </div>
     </div>

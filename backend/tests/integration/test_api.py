@@ -163,3 +163,29 @@ def test_ingest_file_exceeds_max_size(client, app, test_settings):
     response = client.post("/api/ingest", files=files)
     assert response.status_code == 413
     assert "File exceeds maximum allowed upload size" in response.json()["detail"]
+
+
+def test_query_stream_empty_question(client):
+    response = client.post("/api/query/stream", json={"question": ""})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Question cannot be empty."
+
+
+def test_query_stream_success(client, app):
+    from zaisaku.api.dependencies import get_llm_backend
+
+    class StreamingMockLLM:
+        def generate_stream(self, prompt, system_prompt):
+            yield "Revenue was "
+            yield "$100 million."
+
+    app.dependency_overrides[get_llm_backend] = lambda: StreamingMockLLM()
+    response = client.post("/api/query/stream", json={"question": "What is revenue?"})
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    body = response.text
+    assert "event: stage" in body
+    assert "event: token" in body
+    assert "Revenue was " in body
+    assert "$100 million." in body
+    assert "event: complete" in body
