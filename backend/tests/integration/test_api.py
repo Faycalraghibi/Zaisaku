@@ -151,3 +151,15 @@ def test_query_non_numeric_confidence(client, app):
     data = response.json()
     assert data["answer"] == "fallback confidence"
     assert data["confidence"] == 0.0
+
+
+def test_ingest_file_exceeds_max_size(client, app, test_settings):
+    from zaisaku.api.dependencies import get_settings
+
+    custom_settings = test_settings.model_copy(update={"max_upload_size": 10})
+    app.dependency_overrides[get_settings] = lambda: custom_settings
+
+    files = {"file": ("oversized.txt", b"This file content definitely exceeds 10 bytes.", "text/plain")}
+    response = client.post("/api/ingest", files=files)
+    assert response.status_code == 413
+    assert "File exceeds maximum allowed upload size" in response.json()["detail"]

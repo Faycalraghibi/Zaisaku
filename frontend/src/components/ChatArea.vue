@@ -50,7 +50,8 @@ const sendQuery = async () => {
     const res = await fetch('/api/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: userQuestion })
+      body: JSON.stringify({ question: userQuestion }),
+      signal: AbortSignal.timeout(60000)
     })
 
     if (!res.ok) {
@@ -69,9 +70,12 @@ const sendQuery = async () => {
       env: data.env
     })
   } catch (err) {
+    const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError'
     messages.value.push({
       role: 'assistant',
-      text: `Error: ${err.message}`,
+      text: isTimeout 
+        ? 'Request timed out after 60 seconds. The model took too long to respond.' 
+        : `Error: ${err.message}`,
       isError: true
     })
   } finally {

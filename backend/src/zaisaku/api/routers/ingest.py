@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import shutil
 import uuid
 from pathlib import Path
 from typing import Annotated
@@ -37,14 +36,32 @@ async def ingest_document(
             detail=f"Unsupported file type. Must be one of: {DocumentLoader.SUPPORTED_EXTENSIONS}",
         )
 
+    if file.size is not None and file.size > settings.max_upload_size:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=f"File exceeds maximum allowed upload size of {settings.max_upload_size} bytes.",
+        )
+
     safe_filename = Path(file.filename).name
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
     temp_path = upload_dir / f"{uuid.uuid4()}_{safe_filename}"
 
     try:
+        total_bytes = 0
+        chunk_buffer_size = 1024 * 1024  # 1MB
         with temp_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            while True:
+                chunk = await file.read(chunk_buffer_size)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > settings.max_upload_size:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                        detail=f"File exceeds maximum allowed upload size of {settings.max_upload_size} bytes.",
+                    )
+                buffer.write(chunk)
 
         try:
             doc = await asyncio.to_thread(DocumentLoader.load, temp_path)
