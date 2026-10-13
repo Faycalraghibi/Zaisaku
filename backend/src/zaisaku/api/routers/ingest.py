@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import shutil
 import uuid
@@ -46,7 +47,7 @@ async def ingest_document(
             shutil.copyfileobj(file.file, buffer)
 
         try:
-            doc = DocumentLoader.load(temp_path)
+            doc = await asyncio.to_thread(DocumentLoader.load, temp_path)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -66,7 +67,7 @@ async def ingest_document(
             )
 
         try:
-            embeddings = embedder.embed(chunks)
+            embeddings = await asyncio.to_thread(embedder.embed, chunks)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -81,7 +82,8 @@ async def ingest_document(
             m["source"] = file.filename
 
         try:
-            count = store.upsert(
+            count = await asyncio.to_thread(
+                store.upsert,
                 doc_id=doc_id,
                 chunks=chunks,
                 embeddings=embeddings,

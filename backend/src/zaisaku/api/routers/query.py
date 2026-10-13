@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 
@@ -36,7 +37,7 @@ async def query_documents(
         )
 
     try:
-        q_vec = embedder.embed_one(q)
+        q_vec = await asyncio.to_thread(embedder.embed_one, q)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -44,7 +45,7 @@ async def query_documents(
         ) from e
 
     try:
-        candidates = store.search(q_vec, top_k=settings.retrieval_top_k)
+        candidates = await asyncio.to_thread(store.search, q_vec, top_k=settings.retrieval_top_k)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -53,7 +54,7 @@ async def query_documents(
 
     if candidates:
         try:
-            candidates = reranker.rerank(q, candidates, top_k=settings.rerank_top_k)
+            candidates = await asyncio.to_thread(reranker.rerank, q, candidates, top_k=settings.rerank_top_k)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -65,7 +66,7 @@ async def query_documents(
     prompt = build_rag_prompt(q, candidates)
 
     try:
-        response_data = llm.generate(prompt=prompt, system_prompt=SYSTEM_PROMPT)
+        response_data = await asyncio.to_thread(llm.generate, prompt=prompt, system_prompt=SYSTEM_PROMPT)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
