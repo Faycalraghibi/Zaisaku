@@ -24,16 +24,19 @@ services:
     ports:
       # Expose if you want to reach the API directly bypassing nginx
       - "8080:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - ENV=prod
+      - DOCKER_CONTAINER=1
       - CHROMA_HOST=chromadb
       - CHROMA_PORT=8000
       - LLM_MAX_TOKENS=1024
-      - LLM_PROVIDER=${LLM_PROVIDER:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-omniroute}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      # Default to local Ollama if host.docker.internal works, else configure OpenRouter or OmniRoute
+      # Default to host.docker.internal for host-level services
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL:-http://host.docker.internal:20128/v1}
+      - OMNIROUTE_BASE_URL=http://host.docker.internal:20128/v1
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY:-omniroute}
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto}
     depends_on:
