@@ -10,7 +10,9 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RouterDep
+from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.diff_engine import DiffEngine
+from zaisaku.forensics.footnote_scanner import FootnoteScanner
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
 
@@ -134,3 +136,71 @@ async def compare_raw_texts(
         prior_name="Prior Text",
     )
     return diff_result.to_dict()
+
+
+class BeneishRequest(BaseModel):
+    sales_t: float = Field(..., description="Sales for current period t")
+    sales_t_prev: float = Field(..., description="Sales for previous period t-1")
+    cogs_t: float = Field(..., description="Cost of Goods Sold for current period t")
+    cogs_t_prev: float = Field(..., description="Cost of Goods Sold for previous period t-1")
+    receivables_t: float = Field(..., description="Accounts Receivable for period t")
+    receivables_t_prev: float = Field(..., description="Accounts Receivable for period t-1")
+    current_assets_t: float = Field(..., description="Current Assets for period t")
+    current_assets_t_prev: float = Field(..., description="Current Assets for period t-1")
+    ppe_t: float = Field(..., description="Property, Plant & Equipment (net) for period t")
+    ppe_t_prev: float = Field(..., description="Property, Plant & Equipment (net) for period t-1")
+    total_assets_t: float = Field(..., description="Total Assets for period t")
+    total_assets_t_prev: float = Field(..., description="Total Assets for period t-1")
+    depreciation_t: float = Field(..., description="Depreciation expense for period t")
+    depreciation_t_prev: float = Field(..., description="Depreciation expense for period t-1")
+    sga_t: float = Field(..., description="SG&A expense for period t")
+    sga_t_prev: float = Field(..., description="SG&A expense for period t-1")
+    long_term_debt_t: float = Field(..., description="Long-term debt for period t")
+    long_term_debt_t_prev: float = Field(..., description="Long-term debt for period t-1")
+    net_income_t: float = Field(..., description="Net Income for period t")
+    operating_cash_flow_t: float = Field(..., description="Operating Cash Flow for period t")
+
+
+class BeneishResponse(BaseModel):
+    m_score: float
+    is_manipulator_probable: bool
+    risk_level: str
+    indices: dict[str, float]
+    flagged_indices: list[str] = []
+    interpretation: str
+
+
+@router.post("/mscore", response_model=BeneishResponse)
+async def calculate_beneish_mscore(request: BeneishRequest):
+    """Calculate the 8-variable Beneish M-Score to detect earnings manipulation probability."""
+    metrics = BeneishMetrics(**request.model_dump())
+    result = BeneishCalculator.calculate(metrics)
+    return result.to_dict()
+
+
+class FootnoteScanRequest(BaseModel):
+    text: str = Field(..., description="Financial filing text, footnote disclosures, or auditor notes")
+
+
+class FootnoteFindingResponse(BaseModel):
+    category: str
+    title: str
+    severity: str
+    matched_phrase: str
+    excerpt: str
+    explanation: str
+
+
+class FootnoteScanResponse(BaseModel):
+    total_findings: int
+    high_risk_count: int
+    medium_risk_count: int
+    findings: list[FootnoteFindingResponse]
+    summary: str
+
+
+@router.post("/footnotes/scan", response_model=FootnoteScanResponse)
+async def scan_footnotes(request: FootnoteScanRequest):
+    """Scan financial text for 5 high-impact accounting hazards and buried footnote risks."""
+    result = FootnoteScanner.scan(request.text)
+    return result.to_dict()
