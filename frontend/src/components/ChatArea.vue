@@ -1,6 +1,6 @@
 <script setup>
 import { ref, nextTick, computed } from 'vue'
-import { Send, Bot, User, Loader2, Sparkles } from 'lucide-vue-next'
+import { Send, Bot, User, Loader2, Sparkles, Table as TableIcon } from 'lucide-vue-next'
 import SourceBadge from './SourceBadge.vue'
 
 const props = defineProps({
@@ -161,6 +161,55 @@ const confidenceColor = (score) => {
   if (score >= 0.5) return 'text-yellow-400'
   return 'text-red-400'
 }
+
+const hasTable = (text) => {
+  return Boolean(text && /\|.+\|\n\|[-:\s|]+\|/m.test(text))
+}
+
+const exportTableToCsv = (text) => {
+  if (!text) return
+  const lines = text.split('\n')
+  const csvRows = []
+  let inTable = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      if (/^\|[-:\s|]+\|$/.test(trimmed)) {
+        inTable = true
+        continue
+      }
+      inTable = true
+      const cells = trimmed
+        .slice(1, -1)
+        .split('|')
+        .map(cell => {
+          let c = cell.trim()
+          if (c.includes('"') || c.includes(',') || c.includes('\n')) {
+            c = `"${c.replace(/"/g, '""')}"`
+          }
+          return c
+        })
+      csvRows.push(cells.join(','))
+    } else if (inTable && csvRows.length > 0) {
+      inTable = false
+      csvRows.push('')
+    }
+  }
+
+  const csvContent = csvRows.filter((r, idx, arr) => !(r === '' && arr[idx - 1] === '')).join('\n').trim()
+  if (!csvContent) return
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.setAttribute('href', url)
+  link.setAttribute('download', `financial_table_${Date.now()}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
@@ -208,7 +257,7 @@ const confidenceColor = (score) => {
             <span v-if="msg.isStreaming" class="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle"></span>
           </div>
 
-          <div v-if="msg.role === 'assistant' && (msg.sources?.length > 0 || msg.model)" class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1 px-1">
+          <div v-if="msg.role === 'assistant' && (msg.sources?.length > 0 || msg.model || hasTable(msg.text))" class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1 px-1">
             <div v-if="msg.confidence !== null" class="flex items-center gap-1.5 text-xs font-medium bg-slate-800/80 px-2 py-1 rounded border border-slate-700/50">
               <span class="text-slate-400">Confidence:</span>
               <span :class="confidenceColor(msg.confidence)">{{ (msg.confidence * 100).toFixed(1) }}%</span>
@@ -217,6 +266,16 @@ const confidenceColor = (score) => {
             <div v-if="msg.model" class="flex items-center gap-1.5 text-xs font-mono bg-slate-800/80 px-2 py-1 rounded border border-slate-700/50 text-slate-400">
                {{ msg.model }} <span class="text-slate-600">|</span> <span class="text-blue-400">{{ msg.env }}</span>
             </div>
+
+            <button
+              v-if="hasTable(msg.text)"
+              @click="exportTableToCsv(msg.text)"
+              class="flex items-center gap-1.5 text-xs font-medium bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/60 px-2.5 py-1 rounded border border-emerald-800/60 transition-colors cursor-pointer"
+              title="Export tables in this response to CSV"
+            >
+              <TableIcon class="w-3.5 h-3.5" />
+              <span>Export CSV</span>
+            </button>
 
             <div v-if="msg.sources?.length > 0" class="flex flex-wrap gap-2 items-center w-full mt-1.5">
               <span class="text-xs text-slate-500">Sources:</span>

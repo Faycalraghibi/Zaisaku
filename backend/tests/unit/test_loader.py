@@ -62,6 +62,23 @@ class TestDocumentLoaderHTML:
         assert "Quarterly Report" in doc.text
         assert not doc.text.startswith("\ufeff")
 
+    def test_loads_html_table_as_markdown(self, tmp_path: Path):
+        html_file = tmp_path / "table.html"
+        html_file.write_text(
+            "<html><body>"
+            "<table>"
+            "<tr><th>Metric</th><th>FY2023</th><th>FY2024</th></tr>"
+            "<tr><td>Revenue</td><td>$100M</td><td>$125M</td></tr>"
+            "<tr><td>Net Income</td><td>$20M</td><td>$28M</td></tr>"
+            "</table>"
+            "</body></html>",
+            encoding="utf-8",
+        )
+        doc = DocumentLoader.load(html_file)
+        assert "| Metric | FY2023 | FY2024 |" in doc.text
+        assert "| Revenue | $100M | $125M |" in doc.text
+        assert "| Net Income | $20M | $28M |" in doc.text
+
 
 class TestDocumentLoaderPDF:
     """Loading PDF files."""
