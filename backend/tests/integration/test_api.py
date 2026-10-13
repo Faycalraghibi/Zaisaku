@@ -132,3 +132,22 @@ def test_query_unadorned_backticks_json(client, app):
     data = response.json()
     assert data["answer"] == "unadorned answer"
     assert data["confidence"] == 0.85
+
+
+def test_query_non_numeric_confidence(client, app):
+    from zaisaku.api.dependencies import get_llm_backend
+
+    class NonNumericConfidenceLLM:
+        def generate(self, prompt, system_prompt):
+            return {
+                "text": '{"answer": "fallback confidence", "confidence": "high", "sources_used": ["doc1.txt"]}',
+                "model": "mock",
+                "env": "test",
+            }
+
+    app.dependency_overrides[get_llm_backend] = lambda: NonNumericConfidenceLLM()
+    response = client.post("/api/query", json={"question": "What is net income?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["answer"] == "fallback confidence"
+    assert data["confidence"] == 0.0

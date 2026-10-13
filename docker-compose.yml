@@ -25,12 +25,13 @@ services:
       # Expose if you want to reach the API directly bypassing nginx
       - "8080:8000"
     environment:
-      - ZAISAKU_ENV=prod
-      - ZAISAKU_CHROMA_HOST=chromadb
-      - ZAISAKU_CHROMA_PORT=8000
-      - ZAISAKU_LLM_MAX_TOKENS=1024
+      - ENV=prod
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - LLM_MAX_TOKENS=1024
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       # Default to local Ollama if host.docker.internal works, else configure OpenRouter
-      - ZAISAKU_OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
     depends_on:
       - chromadb
     volumes:
