@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RouterDep
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
+from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
 from zaisaku.ingestion.loader import DocumentLoader
@@ -203,4 +204,47 @@ class FootnoteScanResponse(BaseModel):
 async def scan_footnotes(request: FootnoteScanRequest):
     """Scan financial text for 5 high-impact accounting hazards and buried footnote risks."""
     result = FootnoteScanner.scan(request.text)
+    return result.to_dict()
+
+
+class ContradictionRequest(BaseModel):
+    ticker: str = Field(default="CUSTOM", description="Stock ticker symbol")
+    call_text: str = Field(..., description="Earnings call transcript or management prepared remarks")
+    filing_text: str = Field(..., description="SEC 10-Q/10-K filing text or MD&A / Risk disclosures")
+    use_llm: bool = Field(default=False, description="Whether to invoke LLM for semantic contradiction detection")
+
+
+class ContradictionItemResponse(BaseModel):
+    topic: str
+    severity: str
+    call_statement: str
+    filing_statement: str
+    divergence_analysis: str
+
+
+class ContradictionResponse(BaseModel):
+    ticker: str
+    tone_divergence_score: float
+    call_sentiment: str
+    filing_sentiment: str
+    divergence_severity: str
+    contradictions_count: int
+    contradictions: list[ContradictionItemResponse]
+    executive_summary: str
+
+
+@router.post("/contradictions", response_model=ContradictionResponse)
+async def analyze_contradictions(
+    request: ContradictionRequest,
+    llm: RouterDep,
+):
+    """Detect tone decoupling and semantic contradictions between spoken earnings calls and written 10-Q filings."""
+    llm_to_use = llm if request.use_llm else None
+    result = await asyncio.to_thread(
+        ContradictionRadar.analyze,
+        request.ticker,
+        request.call_text,
+        request.filing_text,
+        llm_to_use,
+    )
     return result.to_dict()
