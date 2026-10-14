@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
+from zaisaku.forensics.call_simulator import CallSimulator, EarningsCallSession
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
@@ -405,6 +406,14 @@ async def get_financial_tables(ticker: str):
     """Retrieve structured financial statements with YoY variance calculations."""
     extractor = TableExtractor()
     return extractor.extract_tables(ticker)
+
+
+@router.get("/calls/{ticker}", response_model=EarningsCallSession)
+async def get_earnings_call(ticker: str):
+    """Retrieve simulated multimodal earnings call audio session and synchronized transcript."""
+    simulator = CallSimulator()
+    return simulator.get_call_session(ticker)
+
 
 
 
