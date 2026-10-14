@@ -21,6 +21,12 @@ from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.sandbox import BenchmarkRequest, BenchmarkResponse, SandboxBenchmark
 from zaisaku.forensics.scorecard import ForensicScorecard
+from zaisaku.forensics.stress_tester import (
+    MacroShockPreset,
+    ScenarioStressTester,
+    StressSimulationRequest,
+    StressSimulationResponse,
+)
 from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
 from zaisaku.ingestion.loader import DocumentLoader
@@ -421,6 +427,21 @@ async def run_sandbox_benchmark(request: BenchmarkRequest):
     """Execute AI prompt and RAG benchmark across frontier LLM architectures."""
     benchmark = SandboxBenchmark()
     return benchmark.run_benchmark(request)
+
+
+@router.get("/stress/presets", response_model=list[MacroShockPreset])
+async def get_stress_presets():
+    """Retrieve pre-configured macro shock scenarios for institutional stress testing."""
+    tester = ScenarioStressTester()
+    return tester.get_presets()
+
+
+@router.post("/stress/simulate", response_model=StressSimulationResponse)
+async def simulate_stress_scenario(request: StressSimulationRequest):
+    """Simulate macro stress shock with pro-forma financial recalculation and Monte Carlo VaR."""
+    tester = ScenarioStressTester()
+    return tester.simulate(request)
+
 
 
 
