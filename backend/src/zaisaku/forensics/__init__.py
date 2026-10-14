@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from zaisaku.forensics.auditor_inquiry import (
+    AuditorCrossExaminer,
+    AuditorCrossExamineResponse,
+    AuditorQuestion,
+    CrossExamineRequest,
+)
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics, BeneishResult
 from zaisaku.forensics.contradiction_radar import (
     ContradictionItem,
@@ -28,8 +34,17 @@ from zaisaku.forensics.stress_tester import (
     StressSimulationRequest,
     StressSimulationResponse,
 )
+from zaisaku.forensics.visual_extractor import (
+    FilingVisualExtractor,
+    FilingVisualsResponse,
+    VisualExhibit,
+    WaterfallStep,
+)
 
 __all__ = [
+    "AuditorCrossExaminer",
+    "AuditorCrossExamineResponse",
+    "AuditorQuestion",
     "BeneishCalculator",
     "BeneishMetrics",
     "BeneishResult",
@@ -38,8 +53,11 @@ __all__ = [
     "ContradictionRadarResult",
     "ContradictionSeverity",
     "ContradictionTopic",
+    "CrossExamineRequest",
     "DiffEngine",
     "FilingDiffResult",
+    "FilingVisualExtractor",
+    "FilingVisualsResponse",
     "FootnoteFinding",
     "FootnoteRiskCategory",
     "FootnoteScanResult",
@@ -56,4 +74,7 @@ __all__ = [
     "SectionExtractor",
     "StressSimulationRequest",
     "StressSimulationResponse",
+    "VisualExhibit",
+    "WaterfallStep",
 ]
+

@@ -29,7 +29,8 @@ import {
   Terminal,
   Play,
   BookOpen,
-  Cpu
+  Cpu,
+  Scale
 } from 'lucide-vue-next'
 
 import FilingDiffModal from './FilingDiffModal.vue'
@@ -46,6 +47,8 @@ import AudioCallSimulator from './AudioCallSimulator.vue'
 import ForensicSandboxModal from './ForensicSandboxModal.vue'
 import InstitutionalReportModal from './InstitutionalReportModal.vue'
 import ScenarioStressTester from './ScenarioStressTester.vue'
+import FilingVisualExtractor from './FilingVisualExtractor.vue'
+import AuditorCrossExaminerModal from './AuditorCrossExaminerModal.vue'
 
 const emit = defineEmits(['open-chat', 'document-count-change'])
 
@@ -61,6 +64,7 @@ const showInvestigationRunner = ref(false)
 const showTechStackDrawer = ref(false)
 const showSandboxModal = ref(false)
 const showInstitutionalReportModal = ref(false)
+const showAuditorModal = ref(false)
 const selectedDocForViewer = ref(null)
 
 const openFilingViewer = (doc = null) => {
@@ -523,6 +527,15 @@ onMounted(() => {
         </button>
 
         <button
+          @click="showAuditorModal = true"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-rose-500/30 bg-rose-950/20 hover:bg-rose-900/40 text-rose-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="Adversarial SEC Enforcement & Big 4 Auditor Cross-Examination"
+        >
+          <Scale class="w-3.5 h-3.5 text-rose-400" />
+          <span class="hidden md:inline">Auditor Cross-Examine</span>
+        </button>
+
+        <button
           @click="showSecModal = true"
           class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
           title="Import consecutive filings from SEC EDGAR"
@@ -637,6 +650,15 @@ onMounted(() => {
               <Terminal class="w-3.5 h-3.5" />
               <span>Launch Multi-Agent Audit</span>
               <ArrowRight class="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              @click="showAuditorModal = true"
+              class="apple-press w-full py-2 px-4 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-xs font-semibold text-rose-300 hover:text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <Scale class="w-3.5 h-3.5 text-rose-400" />
+              <span>Adversarial Cross-Examination</span>
+              <ArrowRight class="w-3.5 h-3.5 text-rose-400" />
             </button>
 
             <button
@@ -855,6 +877,14 @@ onMounted(() => {
         />
       </section>
 
+      <!-- SEC Visual Exhibit & Reconciliation Studio -->
+      <section>
+        <FilingVisualExtractor 
+          :ticker="currentCompany.ticker" 
+          :company-name="currentCompany.name" 
+        />
+      </section>
+
       <!-- AI Macro Scenario Stress-Tester & Monte Carlo Risk Engine -->
       <section>
         <ScenarioStressTester 
@@ -1036,6 +1066,12 @@ onMounted(() => {
       :company-name="currentCompany.name" 
       :profile="currentCompany" 
       @close="showInstitutionalReportModal = false" 
+    />
+    <AuditorCrossExaminerModal
+      :show="showAuditorModal"
+      :ticker="currentCompany.ticker"
+      :company-name="currentCompany.name"
+      @close="showAuditorModal = false"
     />
 
     <!-- SEC EDGAR Ingestion Modal -->
