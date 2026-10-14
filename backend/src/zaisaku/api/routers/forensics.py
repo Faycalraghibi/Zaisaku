@@ -14,6 +14,7 @@ from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
+from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
@@ -372,4 +373,12 @@ async def get_company_trends(ticker: str):
     """Retrieve multi-year financial trends and AI-detected accrual anomaly flags."""
     analyzer = TrendsAnalyzer()
     return analyzer.analyze(ticker)
+
+
+@router.get("/peers/{ticker}", response_model=PeerComparisonResponse)
+async def get_sector_peers(ticker: str):
+    """Retrieve sector peer comparative risk matrix and benchmark commentary."""
+    analyzer = PeerAnalyzer()
+    return analyzer.benchmark(ticker)
+
 
