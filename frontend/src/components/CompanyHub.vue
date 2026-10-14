@@ -45,6 +45,7 @@ import FinancialTableExtractor from './FinancialTableExtractor.vue'
 import AudioCallSimulator from './AudioCallSimulator.vue'
 import ForensicSandboxModal from './ForensicSandboxModal.vue'
 import InstitutionalReportModal from './InstitutionalReportModal.vue'
+import ScenarioStressTester from './ScenarioStressTester.vue'
 
 const emit = defineEmits(['open-chat', 'document-count-change'])
 
@@ -849,6 +850,14 @@ onMounted(() => {
       <!-- Multimodal Earnings Call Audio & Synchronized Transcript Simulator -->
       <section>
         <AudioCallSimulator 
+          :ticker="currentCompany.ticker" 
+          :company-name="currentCompany.name" 
+        />
+      </section>
+
+      <!-- AI Macro Scenario Stress-Tester & Monte Carlo Risk Engine -->
+      <section>
+        <ScenarioStressTester 
           :ticker="currentCompany.ticker" 
           :company-name="currentCompany.name" 
         />

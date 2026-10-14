@@ -20,6 +20,14 @@ from zaisaku.forensics.footnote_scanner import (
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard, PillarScore, ScorecardResult
 from zaisaku.forensics.section_extractor import SectionExtractor
+from zaisaku.forensics.stress_tester import (
+    MacroShockPreset,
+    MonteCarloResult,
+    ProFormaMetrics,
+    ScenarioStressTester,
+    StressSimulationRequest,
+    StressSimulationResponse,
+)
 
 __all__ = [
     "BeneishCalculator",
@@ -38,8 +46,14 @@ __all__ = [
     "FootnoteScanner",
     "ForensicReportGenerator",
     "ForensicScorecard",
+    "MacroShockPreset",
+    "MonteCarloResult",
     "PillarScore",
+    "ProFormaMetrics",
+    "ScenarioStressTester",
     "ScorecardResult",
     "SectionDiff",
     "SectionExtractor",
+    "StressSimulationRequest",
+    "StressSimulationResponse",
 ]
