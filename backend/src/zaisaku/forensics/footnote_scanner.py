@@ -65,8 +65,8 @@ class FootnoteScanner:
             "title": "Severe Customer Revenue Concentration",
             "severity": "HIGH",
             "patterns": [
-                r"(?:accounted\s+for|represented|generated)\s+(?:approximately\s+)?(?:\d{1,2}(?:\.\d+)?%|(?:ten|fifteen|twenty|twenty-five|thirty|forty|fifty)\s+percent)\s+of\s+(?:our\s+)?(?:total\s+)?(?:consolidated\s+)?(?:net\s+)?(?:revenue|sales)",
-                r"(?:single|major|significant|one|two|three)\s+customers?\s+(?:account(?:ed)?\s+for|represent(?:ed)?)\s+(?:more\s+than|\d{1,2}%|ten\s+percent)",
+                r"(?:accounted\s+for|represented|generated)\s+(?:approximately\s+)?(?:\b[1-9]\d(?:\.\d+)?%|100%|(?:ten|fifteen|twenty|twenty-five|thirty|forty|fifty)\s+percent)\s+of\s+(?:our\s+)?(?:total\s+)?(?:consolidated\s+)?(?:net\s+)?(?:revenue|sales)",
+                r"(?:single|major|significant|one|two|three)\s+customers?\s+(?:account(?:ed)?\s+for|represent(?:ed)?)\s+(?:more\s+than\s+(?:10%|ten\s+percent)|\b[1-9]\d(?:\.\d+)?%|ten\s+percent)",
                 r"\bconcentration\s+of\s+credit\s+risk\b",
                 r"\bcustomers?\s+represented\s+greater\s+than\s+10\s*%\b",
             ],
@@ -96,7 +96,7 @@ class FootnoteScanner:
             "title": "Goodwill Impairment & Valuation Fragility",
             "severity": "MEDIUM",
             "patterns": [
-                r"\bgoodwill\s+impairment\s+(?:charge|charges|test|testing|loss|losses|risk)\b",
+                r"\bgoodwill\s+impairment\s+(?:charge|charges|loss|losses|risk)\b",
                 r"(?:carrying\s+value|carrying\s+amount)\s+of\s+goodwill\s+exceeded\s+(?:its\s+)?implied\s+fair\s+value",
                 r"\breporting\s+units?\s+(?:at\s+risk\s+of\s+impairment|fair\s+value\s+approximated\s+carrying\s+value)\b",
                 r"\bquantitative\s+goodwill\s+impairment\b",
@@ -151,6 +151,12 @@ class FootnoteScanner:
                         matched_str = match.group(0)
                         start_pos = match.start()
                         end_pos = match.end()
+
+                        # Filter out explicit negations like "no material weakness", "no disagreements"
+                        preceding_text = para[max(0, start_pos - 40):start_pos].lower()
+                        neg_pat = r"\b(?:no|none|without|did\s+not\s+identify|not\s+aware\s+of)\s+(?:any\s+)?$"
+                        if re.search(neg_pat, preceding_text):
+                            continue
 
                         # Extract surrounding sentence or context
                         left_bound = max(0, start_pos - 120)

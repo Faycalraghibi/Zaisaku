@@ -12,15 +12,15 @@ class SectionExtractor:
     PATTERNS = {
         "item_1a_risk_factors": (
             r"(?:item\s+1a[\.\:\s\-\—]+risk\s+factors)",
-            r"(?:item\s+1b[\.\:\s\-\—]+unresolved|item\s+2[\.\:\s\-\—]+properties|part\s+ii|item\s+1b)",
+            r"(?:item\s+1b[\.\:\s\-\—]+unresolved|item\s+2[\.\:\s\-\—]+(?:properties|unregistered)|part\s+ii|item\s+1b)",
         ),
         "item_7_mda": (
-            r"(?:item\s+7[\.\:\s\-\—]+management(?:[\'’]s)?\s+discussion\s+and\s+analysis)",
-            r"(?:item\s+7a[\.\:\s\-\—]+quantitative|item\s+8[\.\:\s\-\—]+financial\s+statements)",
+            r"(?:item\s+(?:7|2)[\.\:\s\-\—]+management(?:[\'’]s)?\s+discussion\s+and\s+analysis)",
+            r"(?:item\s+(?:7a|3)[\.\:\s\-\—]+quantitative|item\s+8[\.\:\s\-\—]+financial|item\s+4[\.\:\s\-\—]+controls)",
         ),
         "item_3_legal": (
-            r"(?:item\s+3[\.\:\s\-\—]+legal\s+proceedings)",
-            r"(?:item\s+4[\.\:\s\-\—]+mine\s+safety|item\s+4[\.\:\s\-\—]+[a-z]+|part\s+ii)",
+            r"(?:item\s+(?:3|1)[\.\:\s\-\—]+legal\s+proceedings)",
+            r"(?:item\s+4[\.\:\s\-\—]+mine\s+safety|item\s+(?:4|1a)[\.\:\s\-\—]+[a-z]+|part\s+ii)",
         ),
     }
 
@@ -58,7 +58,9 @@ class SectionExtractor:
             end_match = re.search(end_pat, remainder, flags=re.IGNORECASE)
             extracted = remainder[: end_match.start()] if end_match else remainder[:80000]
             cleaned = cls.clean_boilerplate(extracted)
-            if len(cleaned) >= 20:
+            # Ignore TOC lines with dots or tiny stubs
+            is_toc = match.start() < 20000 and (cleaned.count("...") > 4 or cleaned.count(". . .") > 4)
+            if len(cleaned) >= 40 and not is_toc:
                 candidates.append(cleaned)
 
         if not candidates:

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import {
   ShieldAlert,
   GitCompare,
@@ -38,6 +38,12 @@ const form = reactive({
 const isLoading = ref(false)
 const errorMsg = ref('')
 const scorecardResult = ref(null)
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal && !scorecardResult.value) {
+    calculateScorecard()
+  }
+})
 
 const presets = {
   clean: {

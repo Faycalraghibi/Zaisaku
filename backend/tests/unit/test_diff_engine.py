@@ -51,6 +51,31 @@ class TestSectionExtractor:
         sample = "Short text with no standard SEC items."
         assert SectionExtractor.extract_section(sample, "item_3_legal") == ""
 
+    def test_extract_10q_sections(self):
+        sample = (
+            "PART I - FINANCIAL INFORMATION\n"
+            "ITEM 1. FINANCIAL STATEMENTS\n"
+            "Balance sheets and income statements.\n\n"
+            "ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION\n"
+            "Quarterly revenue exceeded our previous expectations due to enterprise expansion.\n"
+            "Operating margins reached 32%.\n\n"
+            "ITEM 3. QUANTITATIVE AND QUALITATIVE DISCLOSURES\n"
+            "Interest rate risk.\n\n"
+            "PART II - OTHER INFORMATION\n"
+            "ITEM 1. LEGAL PROCEEDINGS\n"
+            "The Company is subject to routine employment arbitration.\n\n"
+            "ITEM 1A. RISK FACTORS\n"
+            "Our cloud infrastructure requires significant capital commitments.\n\n"
+            "ITEM 2. UNREGISTERED SALES OF EQUITY SECURITIES\n"
+            "None."
+        )
+        mda = SectionExtractor.extract_section(sample, "item_7_mda")
+        assert "Quarterly revenue exceeded" in mda
+        legal = SectionExtractor.extract_section(sample, "item_3_legal")
+        assert "employment arbitration" in legal
+        risks = SectionExtractor.extract_section(sample, "item_1a_risk_factors")
+        assert "cloud infrastructure requires" in risks
+
 
 class TestDiffEngine:
     """Testing DiffEngine semantic comparison and drift scoring."""

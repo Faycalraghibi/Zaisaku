@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zaisaku.llm.protocols import LLMRouter
+    from zaisaku.generation.llm import LLMRouter
 
 
 class ContradictionTopic(StrEnum):
@@ -284,7 +284,7 @@ class ContradictionRadar:
         divergence_pct = round(divergence_delta * 100.0, 1)
 
         call_sent = "BULLISH" if call_score > 0.2 else ("CAUTIOUS" if call_score < -0.2 else "NEUTRAL")
-        filing_sent = "CAUTIOUS" if filing_score < -0.1 else ("BEARISH" if filing_score < -0.4 else "NEUTRAL")
+        filing_sent = "BEARISH" if filing_score < -0.4 else ("CAUTIOUS" if filing_score < -0.1 else "NEUTRAL")
 
         if divergence_pct >= 50.0:
             severity = "CRITICAL"
@@ -312,12 +312,10 @@ class ContradictionRadar:
                     f"--- EARNINGS CALL TRANSCRIPT EXCERPT ---\n{call_text[:2000]}\n\n"
                     f"--- SEC 10-Q FILING EXCERPT ---\n{filing_text[:2000]}"
                 )
-                raw_resp = llm.generate([
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_msg},
-                ])
+                raw_resp = llm.generate(prompt=user_msg, system_prompt=system_prompt)
+                raw_text = raw_resp.get("text", "") if isinstance(raw_resp, dict) else str(raw_resp)
                 # Attempt to parse json
-                json_match = re.search(r"\[\s*\{.*\}\s*\]", raw_resp, re.DOTALL)
+                json_match = re.search(r"\[\s*\{.*\}\s*\]", raw_text, re.DOTALL)
                 if json_match:
                     parsed = json.loads(json_match.group(0))
                     for item in parsed:
