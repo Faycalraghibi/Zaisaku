@@ -168,19 +168,32 @@ const animationLoop = (now = performance.now()) => {
   animationFrameId = requestAnimationFrame(animationLoop)
 }
 
-// Canvas Waveform Drawing
+// Canvas Waveform Drawing with High-DPI support
 const drawWaveform = () => {
   const canvas = canvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const width = canvas.width
-  const height = canvas.height
-  ctx.clearRect(0, 0, width, height)
+  const dpr = window.devicePixelRatio || 1
+  const rect = canvas.getBoundingClientRect()
+  const displayWidth = rect.width || 680
+  const displayHeight = rect.height || 80
+
+  const physicalWidth = Math.floor(displayWidth * dpr)
+  const physicalHeight = Math.floor(displayHeight * dpr)
+
+  if (canvas.width !== physicalWidth || canvas.height !== physicalHeight) {
+    canvas.width = physicalWidth
+    canvas.height = physicalHeight
+  }
+
+  ctx.save()
+  ctx.scale(dpr, dpr)
+  ctx.clearRect(0, 0, displayWidth, displayHeight)
 
   const numBars = 70
-  const barWidth = width / numBars - 2
+  const barWidth = displayWidth / numBars - 2
   const progressRatio = currentTime.value / Math.max(totalDuration.value, 1.0)
   const activeBarIndex = Math.floor(progressRatio * numBars)
 
@@ -195,8 +208,8 @@ const drawWaveform = () => {
     const baseVal = Math.sin(normalizedPos * Math.PI * 4 + timeOffset) * 0.3 + 0.4
     const jitter = isPlaying.value && i <= activeBarIndex ? Math.sin(i * 1.5 + timeOffset * 2) * 0.2 : 0
     const barHeightNorm = Math.min(1.0, Math.max(0.12, baseVal + jitter))
-    const barHeight = barHeightNorm * (height - 16)
-    const y = (height - barHeight) / 2
+    const barHeight = barHeightNorm * (displayHeight - 16)
+    const y = (displayHeight - barHeight) / 2
 
     // Color gradient
     if (i <= activeBarIndex) {
@@ -213,11 +226,31 @@ const drawWaveform = () => {
     ctx.roundRect(x, y, barWidth, barHeight, 2)
     ctx.fill()
   }
+
+  ctx.restore()
+}
+
+const handleKeydown = (e) => {
+  if (['input', 'textarea'].includes(document.activeElement?.tagName?.toLowerCase())) return
+  if (e.code === 'Space') {
+    e.preventDefault()
+    togglePlay()
+  } else if (e.code === 'ArrowRight') {
+    e.preventDefault()
+    seekTo(currentTime.value + 5.0)
+  } else if (e.code === 'ArrowLeft') {
+    e.preventDefault()
+    seekTo(currentTime.value - 5.0)
+  } else if (e.key === 'j' || e.key === 'J') {
+    e.preventDefault()
+    jumpToNextDiscrepancy()
+  }
 }
 
 onMounted(() => {
   fetchCallSession()
   window.addEventListener('resize', drawWaveform)
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onBeforeUnmount(() => {
@@ -225,6 +258,7 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(animationFrameId)
   }
   window.removeEventListener('resize', drawWaveform)
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
