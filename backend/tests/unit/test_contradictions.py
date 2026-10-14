@@ -105,3 +105,37 @@ def test_contradictions_api_endpoint():
     assert data["contradictions_count"] >= 1
     assert "Demand" in data["contradictions"][0]["topic"]
     assert data["tone_divergence_score"] > 0.0
+
+
+def test_bearish_filing_sentiment_reachability():
+    call_text = "We remain optimistic about our market position."
+    filing_text = (
+        "Material adverse effect on our business. Decreased gross margins, margin compression, "
+        "severe cancellations, pushouts, supply shortages, and massive asset impairments."
+    )
+    res = ContradictionRadar.analyze("RISK", call_text, filing_text)
+    assert res.filing_sentiment == "BEARISH"
+
+
+def test_contradiction_radar_with_mocked_llm():
+    class MockLLMRouter:
+        def generate(self, prompt: str, system_prompt: str) -> dict:
+            assert "system_prompt" in system_prompt.lower() or "forensic" in system_prompt.lower()
+            assert "EXCERPT" in prompt
+            return {
+                "text": (
+                    '[{"topic": "Custom Guidance Mismatch", "severity": "HIGH", '
+                    '"call_statement": "Growth is steady.", "filing_statement": "Sales dropped.", '
+                    '"divergence_analysis": "Management claimed growth while filing disclosed drop."}]'
+                )
+            }
+
+    # Text that produces 0 deterministic contradictions
+    call_text = "General remarks about our cloud operations."
+    filing_text = "General corporate reporting disclosures."
+    res = ContradictionRadar.analyze("MOCK", call_text, filing_text, llm=MockLLMRouter())
+
+    assert res.contradictions_count == 1
+    assert res.contradictions[0].topic == "Custom Guidance Mismatch"
+    assert res.contradictions[0].severity == "HIGH"
+

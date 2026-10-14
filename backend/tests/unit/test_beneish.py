@@ -172,6 +172,20 @@ def test_footnote_scanner_clean_text():
     assert "No critical footnote hazards" in res.summary
 
 
+def test_footnote_scanner_negations_and_thresholds():
+    compliant_filing = """
+    Item 9A. Controls and Procedures
+    Management evaluated internal controls and concluded that no material weakness in internal control
+    over financial reporting was identified.
+    Separately, there were no disagreements with former accountants on any matter of accounting principles.
+    In addition, one customer accounted for 3.5% of net sales during the fiscal year.
+    The company performed its annual goodwill impairment test in the fourth quarter.
+    """
+    res = FootnoteScanner.scan(compliant_filing)
+    assert res.total_findings == 0
+    assert res.high_risk_count == 0
+
+
 def test_beneish_api_endpoint(clean_metrics: BeneishMetrics):
     from dataclasses import asdict
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import difflib
+import re
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING
 
@@ -49,7 +50,7 @@ class DiffEngine:
     @staticmethod
     def _split_paragraphs(text: str) -> list[str]:
         """Split text into substantive paragraphs (filtering out titles and noise)."""
-        raw = [p.strip() for p in text.split("\n\n")]
+        raw = [p.strip() for p in re.split(r"\n\s*\n|\n(?=[A-Z0-9\(\[\"\'])", text)]
         return [p for p in raw if len(p) >= 40]
 
     @classmethod
@@ -100,12 +101,14 @@ class DiffEngine:
             best_sim = 0.0
             best_idx = -1
             for idx, prior_p in enumerate(prior_paras):
+                if idx in matched_prior_indices:
+                    continue
                 sim = difflib.SequenceMatcher(None, curr_p, prior_p).ratio()
                 if sim > best_sim:
                     best_sim = sim
                     best_idx = idx
 
-            if best_sim >= 0.95:
+            if best_sim >= 0.92:
                 # Virtually unchanged
                 if best_idx >= 0:
                     matched_prior_indices.add(best_idx)
