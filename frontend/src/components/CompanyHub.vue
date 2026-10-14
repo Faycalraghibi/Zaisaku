@@ -24,13 +24,22 @@ import {
   FileCheck,
   Building2,
   Calendar,
-  X
+  X,
+  Code2,
+  Terminal,
+  Play,
+  BookOpen
 } from 'lucide-vue-next'
 
 import FilingDiffModal from './FilingDiffModal.vue'
 import ForensicMScoreModal from './ForensicMScoreModal.vue'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
 import ForensicScorecardModal from './ForensicScorecardModal.vue'
+import FinancialTrendsChart from './FinancialTrendsChart.vue'
+import FilingViewerModal from './FilingViewerModal.vue'
+import ForensicInvestigationRunner from './ForensicInvestigationRunner.vue'
+import PeerComparisonMatrix from './PeerComparisonMatrix.vue'
+import TechStackDrawer from './TechStackDrawer.vue'
 
 const emit = defineEmits(['open-chat', 'document-count-change'])
 
@@ -41,6 +50,15 @@ const showRadarModal = ref(false)
 const showScorecardModal = ref(false)
 const showSecModal = ref(false)
 const showDeleteModal = ref(false)
+const showFilingViewerModal = ref(false)
+const showInvestigationRunner = ref(false)
+const showTechStackDrawer = ref(false)
+const selectedDocForViewer = ref(null)
+
+const openFilingViewer = (doc = null) => {
+  selectedDocForViewer.value = doc
+  showFilingViewerModal.value = true
+}
 
 // --- Active Company State & Presets ---
 const searchInput = ref('NVDA')
@@ -459,20 +477,38 @@ onMounted(() => {
       </div>
 
       <!-- Primary Actions -->
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
+        <button
+          @click="showInvestigationRunner = true"
+          class="apple-press text-xs font-semibold px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/50 text-purple-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="Run Autonomous Multi-Agent Forensic Investigation"
+        >
+          <Terminal class="w-3.5 h-3.5 text-purple-400" />
+          <span class="hidden lg:inline">Multi-Agent Audit</span>
+        </button>
+
+        <button
+          @click="showTechStackDrawer = true"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 hover:bg-cyan-900/40 text-cyan-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="View Engineering Architecture Blueprint"
+        >
+          <Code2 class="w-3.5 h-3.5 text-cyan-400" />
+          <span class="hidden lg:inline">Architecture</span>
+        </button>
+
         <button
           @click="showSecModal = true"
           class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
           title="Import consecutive filings from SEC EDGAR"
         >
           <Globe class="w-3.5 h-3.5 text-emerald-400" />
-          <span class="hidden md:inline">Import SEC Filing</span>
+          <span class="hidden md:inline">Import SEC</span>
         </button>
 
         <button
           @click="exportDueDiligenceMemo"
           :disabled="isExportingMemo"
-          class="apple-press text-xs font-medium px-3.5 py-1.5 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-100 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-100 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           title="Generate Institutional Due Diligence Memo"
         >
           <Loader2 v-if="isExportingMemo" class="w-3.5 h-3.5 animate-spin text-emerald-400" />
@@ -482,11 +518,11 @@ onMounted(() => {
 
         <button
           @click="emit('open-chat')"
-          class="apple-press text-xs font-semibold px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          class="apple-press text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           title="Open AI Co-Analyst Drawer (Ctrl + K)"
         >
           <Sparkles class="w-3.5 h-3.5" />
-          <span>Ask Co-Analyst</span>
+          <span>Co-Analyst</span>
           <kbd class="text-[9px] font-mono bg-slate-950/20 px-1 py-0.5 rounded border border-black/20 ml-1 hidden sm:inline">Ctrl+K</kbd>
         </button>
       </div>
@@ -567,6 +603,15 @@ onMounted(() => {
                 Drift 30% · M-Score 40% · Contradictions 30%
               </p>
             </div>
+
+            <button
+              @click="showInvestigationRunner = true"
+              class="apple-press w-full py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <Terminal class="w-3.5 h-3.5" />
+              <span>Launch Multi-Agent Audit</span>
+              <ArrowRight class="w-3.5 h-3.5" />
+            </button>
 
             <button
               @click="showScorecardModal = true"
@@ -752,6 +797,22 @@ onMounted(() => {
         </div>
       </section>
 
+      <!-- Multi-Year Accrual & Financial Trends -->
+      <section>
+        <FinancialTrendsChart 
+          :ticker="currentCompany.ticker" 
+          @open-chat="emit('open-chat', $event)" 
+        />
+      </section>
+
+      <!-- Sector Peer Comparative Risk Matrix & Heatmap -->
+      <section>
+        <PeerComparisonMatrix 
+          :ticker="currentCompany.ticker" 
+          @select-ticker="selectCompany" 
+        />
+      </section>
+
       <!-- Indexed SEC Filings & Evidence Room -->
       <section class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -827,6 +888,15 @@ onMounted(() => {
                   <td class="py-3.5 px-4 text-right">
                     <div class="flex items-center justify-end gap-2">
                       <button
+                        @click="openFilingViewer(doc)"
+                        class="apple-press px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Open interactive SEC document & AI annotation viewer"
+                      >
+                        <BookOpen class="w-3 h-3" />
+                        <span>AI Studio</span>
+                      </button>
+
+                      <button
                         @click="askAiAboutDoc(doc)"
                         class="apple-press px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
                         title="Query AI Co-Analyst on this document"
@@ -885,6 +955,25 @@ onMounted(() => {
       @open-diff="showScorecardModal = false; showDiffModal = true"
       @open-mscore="showScorecardModal = false; showMScoreModal = true"
       @open-radar="showScorecardModal = false; showRadarModal = true"
+    />
+
+    <!-- Advanced Modals -->
+    <FilingViewerModal 
+      :is-open="showFilingViewerModal" 
+      :ticker="currentCompany.ticker" 
+      :initial-doc="selectedDocForViewer" 
+      @close="showFilingViewerModal = false" 
+      @open-chat="emit('open-chat', $event)" 
+    />
+    <ForensicInvestigationRunner 
+      :is-open="showInvestigationRunner" 
+      :ticker="currentCompany.ticker" 
+      @close="showInvestigationRunner = false" 
+      @open-chat="emit('open-chat', $event)" 
+    />
+    <TechStackDrawer 
+      :is-open="showTechStackDrawer" 
+      @close="showTechStackDrawer = false" 
     />
 
     <!-- SEC EDGAR Ingestion Modal -->
