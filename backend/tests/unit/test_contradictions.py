@@ -139,3 +139,35 @@ def test_contradiction_radar_with_mocked_llm():
     assert res.contradictions[0].topic == "Custom Guidance Mismatch"
     assert res.contradictions[0].severity == "HIGH"
 
+
+def test_score_semantic_contradiction_cross_encoder():
+    class MockReranker:
+        def score_pair(self, text_a: str, text_b: str) -> float:
+            return 0.85
+
+    score = ContradictionRadar.score_semantic_contradiction(
+        "Demand is growing exponentially.",
+        "Significant order pushouts and cancellations.",
+        reranker=MockReranker(),
+    )
+    assert score == 0.85
+
+
+def test_contradiction_radar_with_cross_encoder():
+    class MockReranker:
+        def score_pair(self, text_a: str, text_b: str) -> float:
+            # High semantic contradiction score when matched against cancellation passage
+            if "cancellation" in text_b.lower() or "pushouts" in text_b.lower():
+                return 0.92
+            return 0.15
+
+    call_text = "Executive speech: Demand visibility is unprecedented with record bookings."
+    filing_text = (
+        "Item 7 MD&A: During the period, we witnessed accelerated cancellation rates "
+        "and client order pushouts across all business segments."
+    )
+
+    res = ContradictionRadar.analyze("MOCK", call_text, filing_text, reranker=MockReranker())
+    assert res.contradictions_count >= 1
+    assert any("Demand" in c.topic or "Order" in c.divergence_analysis for c in res.contradictions)
+

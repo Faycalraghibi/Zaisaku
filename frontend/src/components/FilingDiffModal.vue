@@ -249,6 +249,23 @@ const formatSectionTitle = (key) => {
                 <div>Drift Severity: <span class="font-semibold uppercase" :class="severityColor(diffResult.sections[activeSection].severity)">{{ diffResult.sections[activeSection].severity }}</span></div>
               </div>
 
+              <!-- Opcode Sequence Alignment Summary -->
+              <div v-if="diffResult.sections[activeSection].opcodes?.length > 0" class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 py-1 border-y border-slate-800/60">
+                <span class="text-slate-400 font-medium">Opcode Alignment:</span>
+                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                  {{ diffResult.sections[activeSection].opcodes.filter(o => o.tag === 'equal').length }} unchanged
+                </span>
+                <span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-800/40 font-mono">
+                  +{{ diffResult.sections[activeSection].opcodes.filter(o => o.tag === 'insert').length }} inserted
+                </span>
+                <span class="px-2 py-0.5 rounded bg-rose-950/40 text-rose-400 border border-rose-800/40 font-mono">
+                  -{{ diffResult.sections[activeSection].opcodes.filter(o => o.tag === 'delete').length }} deleted
+                </span>
+                <span class="px-2 py-0.5 rounded bg-amber-950/40 text-amber-400 border border-amber-800/40 font-mono">
+                  ~{{ diffResult.sections[activeSection].opcodes.filter(o => o.tag === 'replace').length }} replaced
+                </span>
+              </div>
+
               <!-- Added Paragraphs (Stealth New Risks) -->
               <div v-if="diffResult.sections[activeSection].added_paragraphs?.length > 0" class="space-y-2">
                 <div class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">

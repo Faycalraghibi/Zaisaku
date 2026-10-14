@@ -134,6 +134,22 @@ class TestDiffEngine:
         assert res.overall_drift_score > 0.0
         assert "TEST" in res.forensic_summary
 
+    def test_compare_sections_opcodes(self):
+        prior = (
+            "We rely on a single third-party foundry for manufacturing wafers.\n\n"
+            "We have guaranteed customer warranty obligations for five years."
+        )
+        current = (
+            "We rely on a single third-party foundry for manufacturing wafers.\n\n"
+            "We are subject to newly introduced export control restrictions on advanced accelerators."
+        )
+        diff = DiffEngine.compare_sections(current, prior, "item_1a_risk_factors")
+        assert hasattr(diff, "opcodes")
+        assert len(diff.opcodes) > 0
+        tags = [op["tag"] for op in diff.opcodes]
+        assert "equal" in tags
+        assert "replace" in tags or "insert" in tags
+
 
 class TestForensicsAPI:
     """Testing forensics API endpoints."""

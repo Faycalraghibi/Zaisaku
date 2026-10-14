@@ -5,7 +5,7 @@ from __future__ import annotations
 import difflib
 import re
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from zaisaku.forensics.section_extractor import SectionExtractor
 
@@ -22,6 +22,7 @@ class SectionDiff:
     added_paragraphs: list[str] = field(default_factory=list)
     removed_paragraphs: list[str] = field(default_factory=list)
     modified_paragraphs: list[dict[str, str]] = field(default_factory=list)
+    opcodes: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -65,15 +66,24 @@ class DiffEngine:
                 similarity_ratio=1.0,
                 drift_score=0.0,
                 severity="LOW",
+                opcodes=[{"tag": "equal", "old_slice": [0, 0], "new_slice": [0, 0]}],
             )
         if not clean_current or not clean_prior:
+            added = cls._split_paragraphs(clean_current) if clean_current else []
+            removed = cls._split_paragraphs(clean_prior) if clean_prior else []
+            opcodes = (
+                [{"tag": "insert", "old_slice": [0, 0], "new_slice": [0, len(added)]}]
+                if clean_current
+                else [{"tag": "delete", "old_slice": [0, len(removed)], "new_slice": [0, 0]}]
+            )
             return SectionDiff(
                 section_name=section_name,
                 similarity_ratio=0.0,
                 drift_score=100.0,
                 severity="CRITICAL",
-                added_paragraphs=cls._split_paragraphs(clean_current) if clean_current else [],
-                removed_paragraphs=cls._split_paragraphs(clean_prior) if clean_prior else [],
+                added_paragraphs=added,
+                removed_paragraphs=removed,
+                opcodes=opcodes,
             )
 
         # Overall section ratio
@@ -93,38 +103,44 @@ class DiffEngine:
         curr_paras = cls._split_paragraphs(clean_current)
         prior_paras = cls._split_paragraphs(clean_prior)
 
+        # SequenceMatcher paragraph opcode alignment
+        para_matcher = difflib.SequenceMatcher(None, prior_paras, curr_paras)
+        opcodes: list[dict[str, Any]] = []
         added: list[str] = []
+        removed: list[str] = []
         modified: list[dict[str, str]] = []
-        matched_prior_indices: set[int] = set()
 
-        for curr_p in curr_paras:
-            best_sim = 0.0
-            best_idx = -1
-            for idx, prior_p in enumerate(prior_paras):
-                if idx in matched_prior_indices:
-                    continue
-                sim = difflib.SequenceMatcher(None, curr_p, prior_p).ratio()
-                if sim > best_sim:
-                    best_sim = sim
-                    best_idx = idx
-
-            if best_sim >= 0.92:
-                # Virtually unchanged
-                if best_idx >= 0:
-                    matched_prior_indices.add(best_idx)
-            elif best_sim >= 0.60:
-                # Substantive modification
-                if best_idx >= 0:
-                    matched_prior_indices.add(best_idx)
-                    modified.append({"old": prior_paras[best_idx], "new": curr_p})
-            else:
-                # Completely new paragraph
-                added.append(curr_p)
-
-        # Removed paragraphs: prior paragraphs that found no match in current
-        removed: list[str] = [
-            prior_p for idx, prior_p in enumerate(prior_paras) if idx not in matched_prior_indices
-        ]
+        for tag, i1, i2, j1, j2 in para_matcher.get_opcodes():
+            opcodes.append({
+                "tag": tag,
+                "old_slice": [i1, i2],
+                "new_slice": [j1, j2],
+            })
+            if tag == "equal":
+                continue
+            if tag == "delete":
+                for idx in range(i1, i2):
+                    removed.append(prior_paras[idx])
+            elif tag == "insert":
+                for idx in range(j1, j2):
+                    added.append(curr_paras[idx])
+            elif tag == "replace":
+                old_chunk = prior_paras[i1:i2]
+                new_chunk = curr_paras[j1:j2]
+                min_len = min(len(old_chunk), len(new_chunk))
+                for k in range(min_len):
+                    old_p = old_chunk[k]
+                    new_p = new_chunk[k]
+                    p_sim = difflib.SequenceMatcher(None, old_p, new_p).ratio()
+                    if p_sim >= 0.50:
+                        modified.append({"old": old_p, "new": new_p})
+                    else:
+                        removed.append(old_p)
+                        added.append(new_p)
+                if len(old_chunk) > min_len:
+                    removed.extend(old_chunk[min_len:])
+                elif len(new_chunk) > min_len:
+                    added.extend(new_chunk[min_len:])
 
         return SectionDiff(
             section_name=section_name,
@@ -134,6 +150,7 @@ class DiffEngine:
             added_paragraphs=added[:15],  # Keep top substantive items
             removed_paragraphs=removed[:15],
             modified_paragraphs=modified[:15],
+            opcodes=opcodes,
         )
 
     @classmethod
