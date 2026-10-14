@@ -235,3 +235,41 @@ def test_sec_ingest_success(client, monkeypatch):
     assert data["status"] == "indexed"
     assert data["filename"] == "NVDA_10-K.htm"
     assert data["chunks"] >= 1
+
+
+def test_forensic_report_generate_endpoint(client):
+    payload = {
+        "ticker": "TSLA",
+        "company_name": "Tesla, Inc.",
+        "scorecard": {
+            "composite_ffi": 42.5,
+            "risk_level": "WATCHLIST",
+            "recommendation": "MONITOR_CLOSELY",
+            "summary": "Tesla exhibits moderate language drift.",
+            "pillars": {
+                "language_drift": {"raw_score": 35.0, "weighted_score": 10.5, "status": "ELEVATED"},
+                "forensic_accounting": {"raw_score": 25.0, "weighted_score": 10.0, "status": "CLEAN"},
+                "call_contradictions": {"raw_score": 40.0, "weighted_score": 12.0, "status": "ELEVATED"},
+            },
+        },
+    }
+    response = client.post("/api/forensics/report/generate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["ticker"] == "TSLA"
+    assert data["company_name"] == "Tesla, Inc."
+    assert "FORENSIC FINANCIAL DUE DILIGENCE MEMORANDUM" in data["markdown"]
+    assert data["composite_ffi"] == 42.5
+    assert data["risk_level"] == "WATCHLIST"
+
+
+def test_forensic_report_download_endpoint(client):
+    payload = {
+        "ticker": "AAPL",
+        "company_name": "Apple Inc.",
+    }
+    response = client.post("/api/forensics/report/download", json=payload)
+    assert response.status_code == 200
+    assert "attachment; filename=\"forensic_due_diligence_aapl.md\"" in response.headers["content-disposition"]
+    assert b"FORENSIC FINANCIAL DUE DILIGENCE MEMORANDUM" in response.content
+    assert b"Apple Inc. (AAPL)" in response.content

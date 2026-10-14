@@ -44,6 +44,10 @@ class TestSettingsDefaults:
         assert isinstance(s.chroma_port, int)
         assert s.chroma_port == 8000
 
+    def test_default_sec_edgar_user_agent(self):
+        s = Settings()
+        assert "ZaisakuFinancialBot" in s.sec_edgar_user_agent
+
 
 class TestSettingsOverrides:
     """Environment variables should override defaults."""

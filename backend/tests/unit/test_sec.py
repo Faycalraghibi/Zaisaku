@@ -12,6 +12,14 @@ class TestSECEdgarClient:
         assert client.get_cik("NVDA") == 1045810
         assert client.get_cik("msft") == 789019
 
+    def test_user_agent_header(self, monkeypatch):
+        client = SECEdgarClient()
+        assert "User-Agent" in client.headers
+        assert "ZaisakuFinancialBot" in client.headers["User-Agent"]
+
+        custom_client = SECEdgarClient(user_agent="CustomFirmBot/1.0 (firm@audit.com)")
+        assert custom_client.headers["User-Agent"] == "CustomFirmBot/1.0 (firm@audit.com)"
+
     def test_get_cik_unknown_raises(self, monkeypatch):
         client = SECEdgarClient()
 

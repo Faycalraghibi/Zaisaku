@@ -29,9 +29,17 @@ class SECEdgarClient:
         "WMT": 104169,
     }
 
-    def __init__(self, timeout: float = 20.0) -> None:
+    def __init__(self, timeout: float = 20.0, user_agent: str | None = None) -> None:
         self.timeout = timeout
-        self.headers = {"User-Agent": self.USER_AGENT, "Accept-Encoding": "gzip, deflate"}
+        if user_agent is not None:
+            ua = user_agent
+        else:
+            try:
+                from zaisaku.config import get_settings
+                ua = get_settings().sec_edgar_user_agent
+            except Exception:
+                ua = self.USER_AGENT
+        self.headers = {"User-Agent": ua, "Accept-Encoding": "gzip, deflate"}
 
     def get_cik(self, ticker: str) -> int:
         ticker = ticker.strip().upper()

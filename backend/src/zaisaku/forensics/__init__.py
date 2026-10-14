@@ -17,6 +17,7 @@ from zaisaku.forensics.footnote_scanner import (
     FootnoteScanner,
     FootnoteScanResult,
 )
+from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard, PillarScore, ScorecardResult
 from zaisaku.forensics.section_extractor import SectionExtractor
 
@@ -35,6 +36,7 @@ __all__ = [
     "FootnoteRiskCategory",
     "FootnoteScanResult",
     "FootnoteScanner",
+    "ForensicReportGenerator",
     "ForensicScorecard",
     "PillarScore",
     "ScorecardResult",
