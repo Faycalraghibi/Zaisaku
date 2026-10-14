@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from zaisaku.generation.llm import LLMRouter
@@ -268,12 +268,36 @@ class ContradictionRadar:
         return items
 
     @classmethod
+    def score_semantic_contradiction(
+        cls,
+        statement_a: str,
+        statement_b: str,
+        reranker: Any | None = None,
+    ) -> float:
+        """Compute the semantic cross-attention score between an executive claim and a filing passage."""
+        if not statement_a or not statement_b:
+            return 0.0
+        if reranker is not None and hasattr(reranker, "score_pair"):
+            return float(reranker.score_pair(statement_a, statement_b))
+        if reranker is not None and hasattr(reranker, "rerank"):
+            res = reranker.rerank(statement_a, [{"text": statement_b}], top_k=1)
+            if res:
+                return float(res[0].get("rerank_score", 0.0))
+        # Fallback to word overlap if no ML reranker
+        words_a = set(re.findall(r"\w+", statement_a.lower()))
+        words_b = set(re.findall(r"\w+", statement_b.lower()))
+        if not words_a or not words_b:
+            return 0.0
+        return round(len(words_a & words_b) / len(words_a | words_b), 3)
+
+    @classmethod
     def analyze(
         cls,
         ticker: str,
         call_text: str,
         filing_text: str,
         llm: LLMRouter | None = None,
+        reranker: Any | None = None,
     ) -> ContradictionRadarResult:
         ticker = ticker.strip().upper() or "CUSTOM"
         call_score = cls.calculate_sentiment_score(call_text, is_call=True)
@@ -296,6 +320,47 @@ class ContradictionRadar:
             severity = "LOW"
 
         contradictions = cls.detect_contradictions_deterministic(call_text, filing_text)
+
+        # Cross-encoder semantic discovery if reranker is provided
+        if reranker is not None:
+            call_paras = [p.strip() for p in re.split(r"\n\s*\n|\.", call_text) if len(p.strip()) >= 30]
+            filing_paras = [p.strip() for p in re.split(r"\n\s*\n|\.", filing_text) if len(p.strip()) >= 30]
+
+            for cp in call_paras[:10]:
+                for fp in filing_paras[:15]:
+                    score = cls.score_semantic_contradiction(cp, fp, reranker=reranker)
+                    if score >= 0.75:
+                        is_risk_passage = any(
+                            re.search(pat, fp, re.IGNORECASE) for pat in cls.RISK_FILING_CUES
+                        ) or any(
+                            term in fp.lower()
+                            for term in (
+                                "cancellation",
+                                "pushouts",
+                                "shortage",
+                                "churn",
+                                "subpoena",
+                                "investigation",
+                                "loss",
+                                "drop",
+                            )
+                        )
+                        if is_risk_passage:
+                            is_demand = any(w in cp.lower() for w in ("demand", "order", "backlog", "guidance"))
+                            topic = "Demand & Guidance Discrepancy" if is_demand else "Cross-Encoder Contradiction"
+                            contradictions.append(
+                                ContradictionItem(
+                                    topic=topic,
+                                    severity=ContradictionSeverity.HIGH.value,
+                                    call_statement=cp[:250],
+                                    filing_statement=fp[:250],
+                                    divergence_analysis=(
+                                        f"Cross-encoder detected a high semantic divergence ({score:.2f}) "
+                                        f"between executive statement and adverse filing disclosure."
+                                    ),
+                                )
+                            )
+                            break
 
         # If LLM is provided and no or few contradictions found, run an LLM semantic extraction
         if llm and len(contradictions) == 0:

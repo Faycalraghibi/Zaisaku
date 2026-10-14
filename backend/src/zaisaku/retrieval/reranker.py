@@ -52,3 +52,9 @@ class CrossEncoderReranker:
         scored_candidates.sort(key=lambda d: d["rerank_score"], reverse=True)
 
         return scored_candidates[:top_k]
+
+    def score_pair(self, text_a: str, text_b: str) -> float:
+        """Compute the relevance / cross-attention score between two texts using the cross-encoder."""
+        model = self._get_model()
+        score = model.predict([[text_a, text_b]])[0]
+        return float(score)

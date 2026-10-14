@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
-from zaisaku.api.dependencies import ConfigDep, RouterDep
+from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
@@ -44,6 +44,7 @@ class SectionDiffResponse(BaseModel):
     added_paragraphs: list[str] = []
     removed_paragraphs: list[str] = []
     modified_paragraphs: list[dict[str, str]] = []
+    opcodes: list[dict] = []
 
 
 class FilingDiffResponse(BaseModel):
@@ -239,6 +240,7 @@ class ContradictionResponse(BaseModel):
 async def analyze_contradictions(
     request: ContradictionRequest,
     llm: RouterDep,
+    reranker: RerankerDep,
 ):
     """Detect tone decoupling and semantic contradictions between spoken earnings calls and written 10-Q filings."""
     llm_to_use = llm if request.use_llm else None
@@ -248,6 +250,7 @@ async def analyze_contradictions(
         request.call_text,
         request.filing_text,
         llm_to_use,
+        reranker,
     )
     return result.to_dict()
 
