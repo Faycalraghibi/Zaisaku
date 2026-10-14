@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Response, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
@@ -14,6 +15,7 @@ from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
+from zaisaku.forensics.investigation import InvestigationOrchestrator
 from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard
@@ -380,5 +382,21 @@ async def get_sector_peers(ticker: str):
     """Retrieve sector peer comparative risk matrix and benchmark commentary."""
     analyzer = PeerAnalyzer()
     return analyzer.benchmark(ticker)
+
+
+class InvestigationRequest(BaseModel):
+    ticker: str = Field(..., description="Stock ticker symbol, e.g. NVDA")
+    form: str = Field(default="10-K", description="SEC filing form")
+
+
+@router.post("/investigate/stream")
+async def run_investigation_stream(request: InvestigationRequest):
+    """Execute an autonomous 4-stage multi-agent forensic investigation via SSE stream."""
+    orchestrator = InvestigationOrchestrator()
+    return StreamingResponse(
+        orchestrator.run_investigation_stream(ticker=request.ticker, form=request.form),
+        media_type="text/event-stream",
+    )
+
 
 
