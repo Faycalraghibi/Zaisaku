@@ -6,7 +6,7 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RouterDep
@@ -14,6 +14,7 @@ from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
+from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
@@ -294,3 +295,69 @@ async def generate_forensic_scorecard(request: ScorecardRequest):
         contradiction_count=request.contradiction_count,
     )
     return result.to_dict()
+
+
+class ForensicReportRequest(BaseModel):
+    ticker: str = Field(default="CUSTOM", description="Stock ticker symbol")
+    company_name: str = Field(default="", description="Company name")
+    scorecard: dict | None = Field(default=None, description="Scorecard data")
+    beneish: dict | None = Field(default=None, description="Beneish M-Score metrics")
+    footnote_findings: list[dict] | None = Field(default=None, description="Footnote hazard findings")
+    diff_result: dict | None = Field(default=None, description="Filing diff analysis")
+    contradiction_result: dict | None = Field(default=None, description="Call vs filing contradiction analysis")
+
+
+class ForensicReportResponse(BaseModel):
+    ticker: str
+    company_name: str
+    markdown: str
+    composite_ffi: float
+    risk_level: str
+    summary: str
+
+
+@router.post("/report/generate", response_model=ForensicReportResponse)
+async def generate_forensic_memo(request: ForensicReportRequest):
+    """Generate an institutional-grade Forensic Due Diligence Memorandum in Markdown."""
+    ticker = request.ticker.strip().upper() or "CUSTOM"
+    company_name = request.company_name.strip() or ticker
+    memo_md = ForensicReportGenerator.generate_memo(
+        ticker=ticker,
+        company_name=company_name,
+        scorecard=request.scorecard,
+        beneish=request.beneish,
+        footnote_findings=request.footnote_findings,
+        diff_result=request.diff_result,
+        contradiction_result=request.contradiction_result,
+    )
+    scorecard = request.scorecard or {}
+    return {
+        "ticker": ticker,
+        "company_name": company_name,
+        "markdown": memo_md,
+        "composite_ffi": float(scorecard.get("composite_ffi", 0.0)),
+        "risk_level": str(scorecard.get("risk_level", "CLEAN")),
+        "summary": str(scorecard.get("summary", "")),
+    }
+
+
+@router.post("/report/download")
+async def download_forensic_memo(request: ForensicReportRequest):
+    """Download the generated Forensic Due Diligence Memorandum as a markdown file."""
+    ticker = request.ticker.strip().upper() or "CUSTOM"
+    company_name = request.company_name.strip() or ticker
+    memo_md = ForensicReportGenerator.generate_memo(
+        ticker=ticker,
+        company_name=company_name,
+        scorecard=request.scorecard,
+        beneish=request.beneish,
+        footnote_findings=request.footnote_findings,
+        diff_result=request.diff_result,
+        contradiction_result=request.contradiction_result,
+    )
+    filename = f"forensic_due_diligence_{ticker.lower()}.md"
+    return Response(
+        content=memo_md.encode("utf-8"),
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

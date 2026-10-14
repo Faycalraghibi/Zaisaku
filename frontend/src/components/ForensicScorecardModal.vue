@@ -13,7 +13,8 @@ import {
   TrendingDown,
   TrendingUp,
   Sliders,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -111,6 +112,41 @@ const calculateScorecard = async () => {
   }
 }
 
+const isExporting = ref(false)
+
+const exportMemo = async () => {
+  if (!scorecardResult.value) return
+  isExporting.value = true
+  try {
+    const payload = {
+      ticker: form.ticker,
+      company_name: form.company_name,
+      scorecard: scorecardResult.value,
+    }
+    const res = await fetch('/api/forensics/report/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    if (!res.ok) {
+      throw new Error('Failed to generate report export')
+    }
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `forensic_due_diligence_${(form.ticker || 'company').toLowerCase()}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    errorMsg.value = err.message
+  } finally {
+    isExporting.value = false
+  }
+}
+
 const riskColor = (level) => {
   switch (level?.toUpperCase()) {
     case 'CRITICAL_ALERT': return 'text-rose-400 bg-rose-950/40 border-rose-800'
@@ -174,15 +210,28 @@ const pillarStatusColor = (status) => {
             </button>
           </div>
 
-          <button
-            @click="calculateScorecard"
-            :disabled="isLoading"
-            class="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
-            <Sliders v-else class="w-3.5 h-3.5" />
-            <span>{{ isLoading ? 'Evaluating Audit...' : 'Recalculate Scorecard' }}</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              v-if="scorecardResult"
+              @click="exportMemo"
+              :disabled="isExporting || isLoading"
+              class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Loader2 v-if="isExporting" class="w-3.5 h-3.5 animate-spin text-rose-400" />
+              <Download v-else class="w-3.5 h-3.5 text-rose-400" />
+              <span>{{ isExporting ? 'Exporting...' : 'Export Due Diligence Memo' }}</span>
+            </button>
+
+            <button
+              @click="calculateScorecard"
+              :disabled="isLoading"
+              class="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
+              <Sliders v-else class="w-3.5 h-3.5" />
+              <span>{{ isLoading ? 'Evaluating Audit...' : 'Recalculate Scorecard' }}</span>
+            </button>
+          </div>
         </div>
 
         <!-- Inputs Form Grid -->

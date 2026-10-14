@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     llm_max_tokens: int = 1024
     secret_key: str = "change-me-in-production"
     cors_origin: str = "http://localhost:5173"
+    sec_edgar_user_agent: str = "ZaisakuFinancialBot/2.0 (research@zaisaku.local)"
 
 
 @lru_cache(maxsize=1)
