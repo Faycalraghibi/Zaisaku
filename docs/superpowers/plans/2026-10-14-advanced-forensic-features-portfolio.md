@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Transform Zaisaku into an institutional-grade, feature-rich financial intelligence platform suitable for high-end freelance client acquisition by adding multi-year financial & accrual trend charts with AI anomaly markers, in-app interactive SEC filing annotation viewer, autonomous multi-agent forensic investigation runner, sector peer comparative matrix, and an interactive architecture showcase.
+**Goal:** Transform Zaisaku into an institutional-grade, feature-rich financial intelligence platform suitable for high-end enterprise client acquisition by adding multi-year financial & accrual trend charts with AI anomaly markers, in-app interactive SEC filing annotation viewer, autonomous multi-agent forensic investigation runner, sector peer comparative matrix, and an interactive architecture showcase.
 
 **Architecture:** 
 - Backend adds three specialized forensic services: `TrendsAnalyzer` for multi-year financial/accrual anomaly detection, `PeerAnalyzer` for comparative sector benchmarking, and `InvestigationOrchestrator` for streaming autonomous multi-agent audit executions via Server-Sent Events (SSE).
@@ -115,7 +115,7 @@
 
 - [ ] **Step 6.1**: Build `ForensicInvestigationRunner.vue` with animated multi-agent workflow nodes, real-time SSE progress stream, and instant report download.
 - [ ] **Step 6.2**: Build `PeerComparisonMatrix.vue` with color-coded comparative risk heatmap and instant ticker context switcher.
-- [ ] **Step 6.3**: Build `TechStackDrawer.vue` providing a "Freelance Portfolio Engineering Mode" overlay explaining architecture, RAG design, and performance optimizations.
+- [ ] **Step 6.3**: Build `TechStackDrawer.vue` providing a "Enterprise Architecture Blueprint Mode" overlay explaining architecture, RAG design, and performance optimizations.
 - [ ] **Step 6.4**: Integrate all new components into `CompanyHub.vue` with Apple design glass styling, keyboard navigation, and responsive controls.
 - [ ] **Step 6.5**: Verify full end-to-end tests and frontend build (`npm --prefix frontend run build` and `pytest backend/tests/`).
 - [ ] **Step 6.6**: Commit with message `feat(ui): integrate autonomous multi-agent audit runner, peer matrix, and portfolio showcase`.

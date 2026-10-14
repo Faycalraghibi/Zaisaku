@@ -68,7 +68,7 @@ onUnmounted(() => {
                   Production RAG
                 </span>
               </h3>
-              <p class="text-[11px] text-slate-400">Engineering blueprint for freelance technical evaluation</p>
+              <p class="text-[11px] text-slate-400">Enterprise engineering blueprint and architecture specifications</p>
             </div>
           </div>
 
@@ -157,18 +157,18 @@ onUnmounted(() => {
 
           </div>
 
-          <!-- Freelance Contact CTA -->
+          <!-- Lead Systems Architect Contact -->
           <div class="p-4 rounded-2xl bg-slate-800/80 border border-white/10 text-center space-y-2">
-            <h5 class="text-xs font-bold text-white">Interested in hiring me for your AI or Full-Stack project?</h5>
+            <h5 class="text-xs font-bold text-white">Enterprise AI & Full-Stack Systems Inquiries</h5>
             <p class="text-[11px] text-slate-300">
-              I build robust, high-performance web applications and embedded AI solutions tailored to complex enterprise domains.
+              Robust, high-performance web applications and embedded AI solutions tailored to complex enterprise domains.
             </p>
             <div class="pt-1">
               <a 
                 href="mailto:faycal.raghibi@etu.imt-nord-europe.fr"
                 class="apple-press inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs"
               >
-                <span>Get in touch for freelance contracts</span>
+                <span>Contact Lead Systems Architect</span>
                 <ExternalLink class="w-3.5 h-3.5" />
               </a>
             </div>

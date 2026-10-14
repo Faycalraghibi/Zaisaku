@@ -14,7 +14,7 @@
 
 **Tech Stack:** Python 3.11, FastAPI, Pydantic v2, Pytest, Vue 3.5, Vite 8, Tailwind CSS v4, Lucide Vue Next, HTML5 Canvas API.
 
-**Spec:** User request: "more features" to showcase advanced AI capabilities to prospective freelance clients across finance and general domains.
+**Spec:** User request: "more features" to showcase advanced AI capabilities to prospective enterprise clients across finance and general domains.
 
 ## Global Constraints
 
