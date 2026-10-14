@@ -12,13 +12,16 @@ from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
+from zaisaku.forensics.call_simulator import CallSimulator, EarningsCallSession
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
 from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
 from zaisaku.forensics.investigation import InvestigationOrchestrator
 from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
+from zaisaku.forensics.sandbox import BenchmarkRequest, BenchmarkResponse, SandboxBenchmark
 from zaisaku.forensics.scorecard import ForensicScorecard
+from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
@@ -397,6 +400,30 @@ async def run_investigation_stream(request: InvestigationRequest):
         orchestrator.run_investigation_stream(ticker=request.ticker, form=request.form),
         media_type="text/event-stream",
     )
+
+
+@router.get("/tables/{ticker}", response_model=FinancialStatementsResponse)
+async def get_financial_tables(ticker: str):
+    """Retrieve structured financial statements with YoY variance calculations."""
+    extractor = TableExtractor()
+    return extractor.extract_tables(ticker)
+
+
+@router.get("/calls/{ticker}", response_model=EarningsCallSession)
+async def get_earnings_call(ticker: str):
+    """Retrieve simulated multimodal earnings call audio session and synchronized transcript."""
+    simulator = CallSimulator()
+    return simulator.get_call_session(ticker)
+
+
+@router.post("/sandbox/benchmark", response_model=BenchmarkResponse)
+async def run_sandbox_benchmark(request: BenchmarkRequest):
+    """Execute AI prompt and RAG benchmark across frontier LLM architectures."""
+    benchmark = SandboxBenchmark()
+    return benchmark.run_benchmark(request)
+
+
+
 
 
 

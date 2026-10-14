@@ -28,7 +28,8 @@ import {
   Code2,
   Terminal,
   Play,
-  BookOpen
+  BookOpen,
+  Cpu
 } from 'lucide-vue-next'
 
 import FilingDiffModal from './FilingDiffModal.vue'
@@ -40,6 +41,10 @@ import FilingViewerModal from './FilingViewerModal.vue'
 import ForensicInvestigationRunner from './ForensicInvestigationRunner.vue'
 import PeerComparisonMatrix from './PeerComparisonMatrix.vue'
 import TechStackDrawer from './TechStackDrawer.vue'
+import FinancialTableExtractor from './FinancialTableExtractor.vue'
+import AudioCallSimulator from './AudioCallSimulator.vue'
+import ForensicSandboxModal from './ForensicSandboxModal.vue'
+import InstitutionalReportModal from './InstitutionalReportModal.vue'
 
 const emit = defineEmits(['open-chat', 'document-count-change'])
 
@@ -53,6 +58,8 @@ const showDeleteModal = ref(false)
 const showFilingViewerModal = ref(false)
 const showInvestigationRunner = ref(false)
 const showTechStackDrawer = ref(false)
+const showSandboxModal = ref(false)
+const showInstitutionalReportModal = ref(false)
 const selectedDocForViewer = ref(null)
 
 const openFilingViewer = (doc = null) => {
@@ -497,6 +504,24 @@ onMounted(() => {
         </button>
 
         <button
+          @click="showSandboxModal = true"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-indigo-500/30 bg-indigo-950/20 hover:bg-indigo-900/40 text-indigo-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="AI Prompt Engineering & Model Benchmark Sandbox"
+        >
+          <Cpu class="w-3.5 h-3.5 text-indigo-400" />
+          <span class="hidden md:inline">AI Sandbox</span>
+        </button>
+
+        <button
+          @click="showInstitutionalReportModal = true"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-950/20 hover:bg-blue-900/40 text-blue-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="Print-Ready Institutional Due Diligence Memorandum"
+        >
+          <FileText class="w-3.5 h-3.5 text-blue-400" />
+          <span class="hidden md:inline">Memo Preview</span>
+        </button>
+
+        <button
           @click="showSecModal = true"
           class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
           title="Import consecutive filings from SEC EDGAR"
@@ -813,6 +838,22 @@ onMounted(() => {
         />
       </section>
 
+      <!-- Structured Financial Statements & Segment Extraction Studio -->
+      <section>
+        <FinancialTableExtractor 
+          :ticker="currentCompany.ticker" 
+          :company-name="currentCompany.name" 
+        />
+      </section>
+
+      <!-- Multimodal Earnings Call Audio & Synchronized Transcript Simulator -->
+      <section>
+        <AudioCallSimulator 
+          :ticker="currentCompany.ticker" 
+          :company-name="currentCompany.name" 
+        />
+      </section>
+
       <!-- Indexed SEC Filings & Evidence Room -->
       <section class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -974,6 +1015,18 @@ onMounted(() => {
     <TechStackDrawer 
       :is-open="showTechStackDrawer" 
       @close="showTechStackDrawer = false" 
+    />
+    <ForensicSandboxModal 
+      :is-open="showSandboxModal" 
+      :ticker="currentCompany.ticker" 
+      @close="showSandboxModal = false" 
+    />
+    <InstitutionalReportModal 
+      :is-open="showInstitutionalReportModal" 
+      :ticker="currentCompany.ticker" 
+      :company-name="currentCompany.name" 
+      :profile="currentCompany" 
+      @close="showInstitutionalReportModal = false" 
     />
 
     <!-- SEC EDGAR Ingestion Modal -->
