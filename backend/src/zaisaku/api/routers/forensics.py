@@ -19,6 +19,7 @@ from zaisaku.forensics.investigation import InvestigationOrchestrator
 from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard
+from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
@@ -397,6 +398,14 @@ async def run_investigation_stream(request: InvestigationRequest):
         orchestrator.run_investigation_stream(ticker=request.ticker, form=request.form),
         media_type="text/event-stream",
     )
+
+
+@router.get("/tables/{ticker}", response_model=FinancialStatementsResponse)
+async def get_financial_tables(ticker: str):
+    """Retrieve structured financial statements with YoY variance calculations."""
+    extractor = TableExtractor()
+    return extractor.extract_tables(ticker)
+
 
 
 
