@@ -1,25 +1,48 @@
 <script setup>
-import { ref } from 'vue'
-import DocumentSidebar from './components/DocumentSidebar.vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import CompanyHub from './components/CompanyHub.vue'
 import ChatArea from './components/ChatArea.vue'
 
-// We track the number of documents in App.vue so we can pass it to ChatArea
-// to disable the chat input if there's no context available.
+const isChatOpen = ref(false)
+const chatInitialPrompt = ref('')
 const documentCount = ref(0)
 
-const handleDocumentChange = (count) => {
-  documentCount.value = count
+const handleOpenChat = (prompt = '') => {
+  chatInitialPrompt.value = prompt || ''
+  isChatOpen.value = true
 }
+
+const handleGlobalKeyDown = (e) => {
+  // Ctrl + K or Cmd + K toggles the Co-Analyst drawer
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+    e.preventDefault()
+    isChatOpen.value = !isChatOpen.value
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeyDown)
+})
 </script>
 
 <template>
-  <main class="flex h-screen w-full bg-slate-950 overflow-hidden text-slate-200">
-    <DocumentSidebar 
-      @document-change="handleDocumentChange" 
+  <div class="flex h-screen w-full bg-[#090d16] overflow-hidden text-slate-100">
+    <!-- Primary Landing View: Institutional Company Due Diligence Hub -->
+    <CompanyHub 
+      @open-chat="handleOpenChat" 
+      @document-count-change="(count) => documentCount = count"
     />
 
+    <!-- Apple-Style Slide-Over Co-Analyst Drawer (Ctrl + K) -->
     <ChatArea 
-      :document-count="documentCount" 
+      :is-open="isChatOpen"
+      :document-count="documentCount"
+      :initial-prompt="chatInitialPrompt"
+      @close="isChatOpen = false"
     />
-  </main>
+  </div>
 </template>
