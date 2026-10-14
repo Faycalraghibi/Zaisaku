@@ -16,6 +16,7 @@ from zaisaku.forensics.diff_engine import DiffEngine
 from zaisaku.forensics.footnote_scanner import FootnoteScanner
 from zaisaku.forensics.report_generator import ForensicReportGenerator
 from zaisaku.forensics.scorecard import ForensicScorecard
+from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
 
@@ -364,3 +365,11 @@ async def download_forensic_memo(request: ForensicReportRequest):
         media_type="text/markdown",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/trends/{ticker}", response_model=CompanyTrendsResponse)
+async def get_company_trends(ticker: str):
+    """Retrieve multi-year financial trends and AI-detected accrual anomaly flags."""
+    analyzer = TrendsAnalyzer()
+    return analyzer.analyze(ticker)
+
