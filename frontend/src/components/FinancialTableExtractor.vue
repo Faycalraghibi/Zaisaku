@@ -78,7 +78,7 @@ const exportToCsv = () => {
   const csvRows = [
     headers.map(escapeCsv).join(','),
     ...stmt.rows.map(row => {
-      const vals = row.values.map(v => v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
+      const vals = row.values.map(v => (v != null ? Number(v).toFixed(1) : ''))
       const yoy = row.yoy_change_pct != null ? `${row.yoy_change_pct}%` : 'N/A'
       const insight = row.ai_insight || ''
       return [

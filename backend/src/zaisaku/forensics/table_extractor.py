@@ -36,7 +36,9 @@ class TableExtractor:
 
     def _safe_yoy_pct(self, current: float, prior: float) -> float | None:
         if prior == 0.0:
-            return 0.0 if current == 0.0 else 100.0
+            if current == 0.0:
+                return 0.0
+            return 100.0 if current > 0 else -100.0
         return round(((current - prior) / abs(prior)) * 100.0, 1)
 
     def extract_tables(self, ticker: str) -> FinancialStatementsResponse:

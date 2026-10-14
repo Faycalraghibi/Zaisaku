@@ -33,9 +33,12 @@ def test_table_extractor_nvda():
 
 def test_table_extractor_division_by_zero():
     extractor = TableExtractor()
-    # Test zero previous period value calculation safety
-    var = extractor._safe_yoy_pct(current=100.0, prior=0.0)
-    assert var is None or var == 0.0 or var == 100.0
+    # Test zero previous period value calculation safety with positive and negative swings
+    assert extractor._safe_yoy_pct(current=100.0, prior=0.0) == 100.0
+    assert extractor._safe_yoy_pct(current=-50.0, prior=0.0) == -100.0
+    assert extractor._safe_yoy_pct(current=0.0, prior=0.0) == 0.0
+    # Test negative prior period (e.g. net loss improvement from -$100M to -$50M)
+    assert extractor._safe_yoy_pct(current=-50.0, prior=-100.0) == 50.0
 
 
 def test_table_api_endpoint(client):
