@@ -19,6 +19,7 @@ from zaisaku.forensics.footnote_scanner import FootnoteScanner
 from zaisaku.forensics.investigation import InvestigationOrchestrator
 from zaisaku.forensics.peers import PeerAnalyzer, PeerComparisonResponse
 from zaisaku.forensics.report_generator import ForensicReportGenerator
+from zaisaku.forensics.sandbox import BenchmarkRequest, BenchmarkResponse, SandboxBenchmark
 from zaisaku.forensics.scorecard import ForensicScorecard
 from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
@@ -413,6 +414,14 @@ async def get_earnings_call(ticker: str):
     """Retrieve simulated multimodal earnings call audio session and synchronized transcript."""
     simulator = CallSimulator()
     return simulator.get_call_session(ticker)
+
+
+@router.post("/sandbox/benchmark", response_model=BenchmarkResponse)
+async def run_sandbox_benchmark(request: BenchmarkRequest):
+    """Execute AI prompt and RAG benchmark across frontier LLM architectures."""
+    benchmark = SandboxBenchmark()
+    return benchmark.run_benchmark(request)
+
 
 
 
