@@ -11,6 +11,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
+from zaisaku.forensics.auditor_inquiry import (
+    AuditorCrossExaminer,
+    AuditorCrossExamineResponse,
+    CrossExamineRequest,
+)
 from zaisaku.forensics.beneish import BeneishCalculator, BeneishMetrics
 from zaisaku.forensics.call_simulator import CallSimulator, EarningsCallSession
 from zaisaku.forensics.contradiction_radar import ContradictionRadar
@@ -29,6 +34,10 @@ from zaisaku.forensics.stress_tester import (
 )
 from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
+from zaisaku.forensics.visual_extractor import (
+    FilingVisualExtractor,
+    FilingVisualsResponse,
+)
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
 
@@ -441,6 +450,21 @@ async def simulate_stress_scenario(request: StressSimulationRequest):
     """Simulate macro stress shock with pro-forma financial recalculation and Monte Carlo VaR."""
     tester = ScenarioStressTester()
     return tester.simulate(request)
+
+
+@router.get("/visuals/{ticker}", response_model=FilingVisualsResponse)
+async def get_filing_visuals(ticker: str):
+    """Extract visual GAAP-to-Non-GAAP waterfall bridges and geographic exposure structures."""
+    extractor = FilingVisualExtractor()
+    return extractor.get_visual_exhibits(ticker)
+
+
+@router.post("/auditor/cross-examine", response_model=AuditorCrossExamineResponse)
+async def run_auditor_cross_examination(request: CrossExamineRequest):
+    """Execute adversarial SEC Enforcement / Big 4 partner forensic cross-examination."""
+    examiner = AuditorCrossExaminer()
+    return examiner.cross_examine(request)
+
 
 
 
