@@ -1,15 +1,16 @@
 <script setup>
 import { computed } from 'vue'
-import { Wrench } from 'lucide-vue-next'
+import { Wrench, Star } from 'lucide-vue-next'
 import SeverityDot from '../ui/SeverityDot.vue'
 import MenuButton from '../ui/MenuButton.vue'
 import { ffiTier, ffiSeverity } from '../../utils/ffi.js'
 
 const props = defineProps({
-  company: { type: Object, required: true }
+  company: { type: Object, required: true },
+  watched: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['tool'])
+const emit = defineEmits(['tool', 'toggle-watch'])
 
 const toolItems = [
   { id: 'run-audit', label: 'Run audit' },
@@ -43,6 +44,16 @@ const severity = computed(() => ffiSeverity(props.company.ffi))
       <li v-for="item in meta" :key="item" class="truncate max-w-64" :class="item.startsWith('CIK') ? 'font-mono' : ''">{{ item }}</li>
     </ul>
     <div class="flex items-center gap-2 ml-auto">
+      <button
+        type="button"
+        class="btn-icon"
+        :aria-pressed="watched"
+        :aria-label="watched ? `Remove ${company.ticker} from watchlist` : `Add ${company.ticker} to watchlist`"
+        :title="watched ? 'On watchlist' : 'Add to watchlist'"
+        @click="emit('toggle-watch')"
+      >
+        <Star class="w-3.5 h-3.5" :class="watched ? 'fill-current text-watch' : ''" />
+      </button>
       <span class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-line bg-panel text-xs">
         <SeverityDot :level="severity" />
         <span class="text-muted">Risk</span>

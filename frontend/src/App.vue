@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import CompanyHub from './components/CompanyHub.vue'
 import ChatArea from './components/ChatArea.vue'
 import CommandPaletteModal from './components/CommandPaletteModal.vue'
+import ToastHost from './components/shell/ToastHost.vue'
 
 const isChatOpen = ref(false)
 const isPaletteOpen = ref(false)
@@ -72,5 +73,7 @@ onUnmounted(() => {
       :initial-prompt="chatInitialPrompt"
       @close="isChatOpen = false"
     />
+
+    <ToastHost />
   </div>
 </template>

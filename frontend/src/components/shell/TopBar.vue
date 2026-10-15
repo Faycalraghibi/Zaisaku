@@ -24,7 +24,9 @@ const memoItems = [
 
     <nav aria-label="Workspace" class="order-last md:order-none w-full md:w-auto md:flex-1 min-w-0 overflow-x-auto">
       <ul class="flex items-center gap-0.5 h-8 md:h-10">
-        <li v-for="tab in tabs" :key="tab.id" class="h-full">
+        <template v-for="(tab, i) in tabs" :key="tab.id">
+        <li v-if="i > 0 && tab.section !== tabs[i - 1].section" aria-hidden="true" class="w-px h-4 bg-line mx-1 self-center" />
+        <li class="h-full">
           <button
             type="button"
             class="h-full px-2.5 text-xs font-medium whitespace-nowrap border-b-2 cursor-pointer transition-colors"
@@ -36,6 +38,7 @@ const memoItems = [
             <span v-if="tab.count" class="ml-1 text-faint tabular-nums">{{ tab.count }}</span>
           </button>
         </li>
+        </template>
       </ul>
     </nav>
 
