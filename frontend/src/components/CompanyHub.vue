@@ -1439,7 +1439,7 @@ onMounted(async () => {
                     <span class="text-[11px] text-slate-500">Year-over-year semantic redline</span>
                     <button
                       @click="showDiffModal = true"
-                      class="apple-press text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer"
+                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
                     >
                       Inspect redline diff
                     </button>
@@ -1478,7 +1478,7 @@ onMounted(async () => {
                     <span class="text-[11px] text-slate-500">8-factor probabilistic model</span>
                     <button
                       @click="openMScoreModal('mscore')"
-                      class="apple-press text-xs font-medium text-purple-300 hover:text-purple-200 cursor-pointer"
+                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
                     >
                       Audit accruals
                     </button>
@@ -1509,7 +1509,7 @@ onMounted(async () => {
                     <span class="text-[11px] text-slate-500">Cross-modal tone decoupling</span>
                     <button
                       @click="showRadarModal = true"
-                      class="apple-press text-xs font-medium text-cyan-300 hover:text-cyan-200 cursor-pointer"
+                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
                     >
                       Inspect guidance discrepancies
                     </button>
@@ -1545,7 +1545,7 @@ onMounted(async () => {
                     <span class="text-[11px] text-slate-500">Automated NLP disclosure scan</span>
                     <button
                       @click="openMScoreModal('footnotes')"
-                      class="apple-press text-xs font-medium text-rose-300 hover:text-rose-200 cursor-pointer"
+                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
                     >
                       Scan footnotes
                     </button>

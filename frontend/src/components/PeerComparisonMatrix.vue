@@ -93,8 +93,17 @@ const ffiColor = (score) => {
       <Loader2 class="w-6 h-6 animate-spin text-cyan-400" />
     </div>
 
-    <div v-else-if="errorMsg" class="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs">
-      {{ errorMsg }}
+    <div v-else-if="errorMsg" class="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5 text-xs text-slate-300">
+        <AlertTriangle class="w-4 h-4 text-amber-400 shrink-0" />
+        <span>{{ errorMsg }}. The analysis service may be offline.</span>
+      </div>
+      <button
+        @click="fetchPeers(ticker)"
+        class="apple-press shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-white/10 bg-slate-800/80 hover:bg-slate-700 text-slate-200 cursor-pointer"
+      >
+        Retry
+      </button>
     </div>
 
     <div v-else-if="peerData" class="space-y-4">
