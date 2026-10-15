@@ -72,7 +72,7 @@ const ffiColor = (score) => {
       <div>
         <h3 class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
           Sector Peer Comparative Risk Matrix & Heatmap
-          <span v-if="peerData" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+          <span v-if="peerData?.sector" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
             {{ peerData.sector }}
           </span>
         </h3>
@@ -81,7 +81,7 @@ const ffiColor = (score) => {
         </p>
       </div>
 
-      <div v-if="peerData" class="flex items-center gap-2 text-xs">
+      <div v-if="peerData?.sector_average_ffi != null" class="flex items-center gap-2 text-xs">
         <span class="text-slate-400">Sector Avg FFI:</span>
         <span class="font-mono font-bold text-slate-200 bg-slate-800 px-2 py-0.5 rounded-lg border border-white/10">
           {{ peerData.sector_average_ffi }} / 100
@@ -105,6 +105,10 @@ const ffiColor = (score) => {
         Retry
       </button>
     </div>
+
+    <p v-else-if="peerData && !peerData.peers.length" class="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-slate-300">
+      {{ peerData.sector_commentary }}
+    </p>
 
     <div v-else-if="peerData" class="space-y-4">
       <!-- Heatmap Table -->
