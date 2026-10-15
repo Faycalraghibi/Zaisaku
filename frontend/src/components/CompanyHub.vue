@@ -21,6 +21,9 @@ import { useCompany } from '../composables/useCompany.js'
 import TopBar from './shell/TopBar.vue'
 import CompanyStrip from './shell/CompanyStrip.vue'
 import OverviewDashboard from './overview/OverviewDashboard.vue'
+import WatchlistView from './portfolio/WatchlistView.vue'
+import { useWatchlist } from '../composables/useWatchlist.js'
+import { useFlagReviews } from '../composables/useFlagReviews.js'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
 import ForensicScorecardModal from './ForensicScorecardModal.vue'
 import FinancialTrendsChart from './FinancialTrendsChart.vue'
@@ -40,13 +43,17 @@ const emit = defineEmits(['open-chat', 'document-count-change', 'open-palette'])
 
 // --- Active Navigation Tab ---
 const currentTab = ref('overview')
+const PORTFOLIO_TABS = ['watchlist', 'screener', 'compare']
+const isPortfolioView = computed(() => PORTFOLIO_TABS.includes(currentTab.value))
+
 const navigationTabs = computed(() => [
-  { id: 'overview', label: 'Overview' },
-  { id: 'financials', label: 'Financials' },
-  { id: 'benchmarks', label: 'Trends & peers' },
-  { id: 'scenarios', label: 'Scenarios' },
-  { id: 'interrogation', label: 'Calls & Q&A' },
-  { id: 'filings', label: 'Filings', count: documents.value.length || null }
+  { id: 'overview', label: 'Overview', section: 'company' },
+  { id: 'financials', label: 'Financials', section: 'company' },
+  { id: 'benchmarks', label: 'Trends & peers', section: 'company' },
+  { id: 'scenarios', label: 'Scenarios', section: 'company' },
+  { id: 'interrogation', label: 'Calls & Q&A', section: 'company' },
+  { id: 'filings', label: 'Filings', section: 'company', count: documents.value.length || null },
+  { id: 'watchlist', label: 'Watchlist', section: 'portfolio', count: watchlist.tickers.value.length || null }
 ])
 
 // --- Modal Visibility States ---
@@ -75,6 +82,8 @@ const openFilingViewer = (doc = null) => {
 }
 
 const { currentCompany, selectCompany } = useCompany()
+const watchlist = useWatchlist()
+const flagReviews = useFlagReviews()
 
 // --- Documents (Filings tab) State ---
 const documents = ref([])
@@ -275,6 +284,8 @@ defineExpose({
 })
 
 onMounted(async () => {
+  watchlist.load()
+  flagReviews.load()
   await fetchDocuments()
 })
 </script>
@@ -289,7 +300,13 @@ onMounted(async () => {
       @memo="handleMemo"
       @open-chat="emit('open-chat')"
     />
-    <CompanyStrip :company="currentCompany" @tool="handleTool" />
+    <CompanyStrip
+      v-if="!isPortfolioView"
+      :company="currentCompany"
+      :watched="watchlist.isWatched(currentCompany.ticker)"
+      @toggle-watch="watchlist.toggle(currentCompany.ticker)"
+      @tool="handleTool"
+    />
 
     <!-- Workspace body. Legacy tabs stay in a dark island until their redesign phase. -->
     <main class="flex-1 overflow-y-auto custom-scrollbar">
@@ -310,6 +327,7 @@ onMounted(async () => {
             @open-filing="openFilingViewer"
             @retry-documents="fetchDocuments"
           />
+          <WatchlistView v-else-if="currentTab === 'watchlist'" key="watchlist" @open-company="currentTab = 'overview'" />
 
           
           <!-- ========================================== -->
