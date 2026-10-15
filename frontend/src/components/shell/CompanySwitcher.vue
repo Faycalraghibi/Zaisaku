@@ -2,6 +2,7 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { ChevronDown, Search, Loader2 } from 'lucide-vue-next'
 import { useCompany } from '../../composables/useCompany.js'
+import { onShortcut } from '../../composables/useShortcuts.js'
 import { companyProfiles, INDEX_TICKERS, FEATURED_TICKERS } from '../../data/companyProfiles.js'
 
 const { currentCompany, recent, searchResults, isSearching, searchError, selectCompany, runSearch } = useCompany()
@@ -73,8 +74,15 @@ const onDocumentPointer = (e) => {
   if (root.value && !root.value.contains(e.target)) close()
 }
 
-onMounted(() => document.addEventListener('mousedown', onDocumentPointer))
-onUnmounted(() => document.removeEventListener('mousedown', onDocumentPointer))
+let offShortcut = null
+onMounted(() => {
+  document.addEventListener('mousedown', onDocumentPointer)
+  offShortcut = onShortcut('open-switcher', openMenu)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocumentPointer)
+  offShortcut?.()
+})
 </script>
 
 <template>

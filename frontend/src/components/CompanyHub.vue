@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   FileText,
   Globe,
@@ -25,6 +25,8 @@ import WatchlistView from './portfolio/WatchlistView.vue'
 import ScreenerView from './portfolio/ScreenerView.vue'
 import CompareView from './portfolio/CompareView.vue'
 import { parseCompareHash } from '../utils/compare.js'
+import { installShortcuts, onShortcut } from '../composables/useShortcuts.js'
+import ShortcutHelp from './shell/ShortcutHelp.vue'
 import { useWatchlist } from '../composables/useWatchlist.js'
 import { useFlagReviews } from '../composables/useFlagReviews.js'
 import { unresolvedCount } from '../utils/portfolio.js'
@@ -291,6 +293,23 @@ defineExpose({
   selectCompany,
   currentCompany
 })
+
+const showShortcutHelp = ref(false)
+const shortcutCleanups = []
+
+onMounted(() => {
+  shortcutCleanups.push(
+    installShortcuts(),
+    onShortcut('go-overview', () => { currentTab.value = 'overview' }),
+    onShortcut('go-watchlist', () => { currentTab.value = 'watchlist' }),
+    onShortcut('go-screener', () => { currentTab.value = 'screener' }),
+    onShortcut('go-compare', () => { currentTab.value = 'compare' }),
+    onShortcut('go-filings', () => { currentTab.value = 'filings' }),
+    onShortcut('help', () => { showShortcutHelp.value = true })
+  )
+})
+
+onUnmounted(() => shortcutCleanups.splice(0).forEach((cleanup) => cleanup()))
 
 onMounted(async () => {
   watchlist.load()
@@ -645,6 +664,7 @@ onMounted(async () => {
       :company-name="currentCompany.name"
       @close="showAuditorModal = false"
     />
+    <ShortcutHelp :open="showShortcutHelp" @close="showShortcutHelp = false" />
     <AnomalyRadarModal
       :is-open="showAnomalyModal"
       :initial-ticker="currentCompany.ticker"

@@ -2501,7 +2501,7 @@ watch(() => props.open, async (isOpen) => {
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" @click.self="emit('close')" @keydown.esc="emit('close')">
+  <div v-if="open" class="fixed inset-0 z-[60] flex items-center justify-center bg-[rgb(0_0_0/0.5)] p-4" @click.self="emit('close')" @keydown.esc="emit('close')">
     <div role="dialog" aria-modal="true" aria-labelledby="shortcut-help-title" class="w-full max-w-md rounded-md border border-line bg-panel text-fg shadow-xl">
       <header class="flex items-center justify-between h-10 px-4 border-b border-line">
         <h2 id="shortcut-help-title" class="text-sm font-semibold">Keyboard shortcuts</h2>

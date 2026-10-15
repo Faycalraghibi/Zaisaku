@@ -46,7 +46,7 @@ const memoItems = [
       <button type="button" class="btn-icon sm:hidden" aria-label="Open command palette" @click="emit('open-palette')">
         <Search class="w-3.5 h-3.5" />
       </button>
-      <button type="button" class="btn hidden sm:inline-flex text-muted" title="Command palette" @click="emit('open-palette')">
+      <button type="button" class="btn hidden sm:inline-flex text-muted" title="Command palette (⌘K) · Press ? for shortcuts" @click="emit('open-palette')">
         <Search class="w-3.5 h-3.5" />
         <kbd class="font-mono text-[10px]">⌘K</kbd>
       </button>
