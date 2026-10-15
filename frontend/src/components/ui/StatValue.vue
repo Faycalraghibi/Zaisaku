@@ -8,8 +8,8 @@ defineProps({
 
 <template>
   <div class="space-y-0.5">
-    <div class="text-[28px] leading-none font-semibold tracking-tight text-fg tabular-nums">{{ value }}</div>
+    <div class="text-[28px] leading-none font-semibold tracking-tight text-fg">{{ value }}</div>
     <div class="text-xs text-muted">{{ label }}</div>
-    <div v-if="sub" class="text-[11px] text-faint tabular-nums">{{ sub }}</div>
+    <div v-if="sub" class="text-[11px] text-faint">{{ sub }}</div>
   </div>
 </template>

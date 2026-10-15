@@ -44,7 +44,7 @@ const onRowClick = (row) => {
 </script>
 
 <template>
-  <table class="w-full text-xs tabular-nums border-collapse">
+  <table class="w-full text-xs border-collapse">
     <thead>
       <tr>
         <th
@@ -88,7 +88,7 @@ const onRowClick = (row) => {
           v-for="col in columns"
           :key="col.key"
           class="h-7 px-3 py-1 text-fg align-middle"
-          :class="col.align === 'right' ? 'text-right whitespace-nowrap' : 'text-left'"
+          :class="col.align === 'right' ? 'text-right whitespace-nowrap tabular-nums' : 'text-left'"
         >
           <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]">{{ display(col, row) }}</slot>
         </td>

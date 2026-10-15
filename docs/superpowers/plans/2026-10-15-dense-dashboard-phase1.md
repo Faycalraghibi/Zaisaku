@@ -595,7 +595,7 @@ const onRowClick = (row) => {
 </script>
 
 <template>
-  <table class="w-full text-xs tabular-nums border-collapse">
+  <table class="w-full text-xs border-collapse">
     <thead>
       <tr>
         <th
@@ -639,7 +639,7 @@ const onRowClick = (row) => {
           v-for="col in columns"
           :key="col.key"
           class="h-7 px-3 py-1 text-fg align-middle"
-          :class="col.align === 'right' ? 'text-right whitespace-nowrap' : 'text-left'"
+          :class="col.align === 'right' ? 'text-right whitespace-nowrap tabular-nums' : 'text-left'"
         >
           <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]">{{ display(col, row) }}</slot>
         </td>
@@ -711,9 +711,9 @@ defineProps({
 
 <template>
   <div class="space-y-0.5">
-    <div class="text-[28px] leading-none font-semibold tracking-tight text-fg tabular-nums">{{ value }}</div>
+    <div class="text-[28px] leading-none font-semibold tracking-tight text-fg">{{ value }}</div>
     <div class="text-xs text-muted">{{ label }}</div>
-    <div v-if="sub" class="text-[11px] text-faint tabular-nums">{{ sub }}</div>
+    <div v-if="sub" class="text-[11px] text-faint">{{ sub }}</div>
   </div>
 </template>
 ```
@@ -1586,7 +1586,7 @@ import SourceChip from '../ui/SourceChip.vue'
 import StatValue from '../ui/StatValue.vue'
 import ThresholdScale from '../ui/ThresholdScale.vue'
 import { buildRedFlags, riskBreakdown } from './overviewModel.js'
-import { ffiTier, formatEnum, tierToSeverity, mscoreSeverity, MSCORE_THRESHOLD, MSCORE_GREY_ZONE } from '../../utils/ffi.js'
+import { ffiTier, ffiSeverity, formatEnum, tierToSeverity, mscoreSeverity, MSCORE_THRESHOLD, MSCORE_GREY_ZONE } from '../../utils/ffi.js'
 
 const props = defineProps({
   company: { type: Object, required: true },
@@ -1665,13 +1665,15 @@ const docColumns = [
       </template>
       <div class="p-3 flex items-start justify-between gap-4">
         <StatValue :value="company.ffi" :label="company.is_macro_index ? 'Macro fragility index' : 'Forensic fragility index'" sub="0 = clean · 100 = critical" />
-        <SeverityDot :level="tierToSeverity(company.riskTier)" with-label />
+        <span class="inline-flex items-center gap-1.5 text-xs text-muted">
+          <SeverityDot :level="ffiSeverity(company.ffi)" />
+          {{ tier.label }}
+        </span>
       </div>
       <p v-if="company.is_macro_index" class="px-3 pb-3 text-xs text-muted">Constituent-weighted dispersion across index holdings.</p>
       <DataTable v-else :columns="breakdownColumns" :rows="breakdown" row-key="id">
         <template #cell-severity="{ row }"><SeverityDot :level="row.severity" /></template>
       </DataTable>
-      <p class="sr-only">{{ tier.label }}</p>
     </Panel>
 
     <!-- Red flags -->
@@ -1781,7 +1783,8 @@ describe('OverviewDashboard', () => {
   it('renders red flags and routes row clicks to flag-action', async () => {
     const w = mount(OverviewDashboard, { props: { company } })
     await flushPromises()
-    const row = w.find('[data-row="drift"]')
+    const flagsPanel = w.findAll('section').find((sec) => sec.find('h2').text() === 'Red flags')
+    const row = flagsPanel.find('[data-row="drift"]')
     expect(row.text()).toContain('Export controls.')
     await row.trigger('click')
     expect(w.emitted('flag-action')[0]).toEqual(['diff'])

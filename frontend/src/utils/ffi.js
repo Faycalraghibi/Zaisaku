@@ -34,3 +34,36 @@ export const ffiTier = (score) => {
 const TIER_TO_SEVERITY = { low: 'good', watch: 'watch', critical: 'critical' }
 
 export const ffiSeverity = (score) => TIER_TO_SEVERITY[ffiTier(score).key]
+
+// Beneish (1999): above -1.78 flags a likely manipulator; -2.22 is the conservative cut-off.
+export const MSCORE_THRESHOLD = -1.78
+export const MSCORE_GREY_ZONE = -2.22
+
+const byThreshold = (value, watchAt, criticalAt) => {
+  if (value === null || value === undefined) return 'watch'
+  if (value >= criticalAt) return 'critical'
+  return value >= watchAt ? 'watch' : 'good'
+}
+
+export const driftSeverity = (pct) => byThreshold(pct, 15, 30)
+export const decouplingSeverity = (score) => byThreshold(score, 25, 50)
+
+export const mscoreSeverity = (m) => {
+  if (m === null || m === undefined) return 'watch'
+  if (m > MSCORE_THRESHOLD) return 'critical'
+  return m > MSCORE_GREY_ZONE ? 'watch' : 'good'
+}
+
+export const footnoteSeverity = (clean, count) => {
+  if (clean !== false) return 'good'
+  return (count ?? 0) >= 4 ? 'critical' : 'watch'
+}
+
+export const tierToSeverity = (tier) => {
+  const t = String(tier || '').toUpperCase()
+  if (t.startsWith('CRITICAL')) return 'critical'
+  if (t === 'WATCHLIST') return 'watch'
+  return 'good'
+}
+
+export const SEVERITY_RANK = { critical: 0, watch: 1, good: 2 }

@@ -1,10 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import {
-  ShieldAlert,
-  GitCompare,
-  Calculator,
-  Radio,
   FileText,
   Globe,
   UploadCloud,
@@ -12,7 +8,6 @@ import {
   ExternalLink,
   Trash2,
   Sparkles,
-  Search,
   X,
   Terminal,
   BookOpen,
@@ -25,6 +20,7 @@ import ForensicMScoreModal from './ForensicMScoreModal.vue'
 import { useCompany } from '../composables/useCompany.js'
 import TopBar from './shell/TopBar.vue'
 import CompanyStrip from './shell/CompanyStrip.vue'
+import OverviewDashboard from './overview/OverviewDashboard.vue'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
 import ForensicScorecardModal from './ForensicScorecardModal.vue'
 import FinancialTrendsChart from './FinancialTrendsChart.vue'
@@ -86,17 +82,20 @@ const isLoadingDocs = ref(false)
 const isUploading = ref(false)
 const docErrorMsg = ref('')
 
+const docsLoadError = ref(false)
+
 const fetchDocuments = async () => {
   isLoadingDocs.value = true
   docErrorMsg.value = ''
+  docsLoadError.value = false
   try {
     const res = await fetch('/api/documents')
-    if (res.ok) {
-      const data = await res.json()
-      documents.value = data.documents || []
-      emit('document-count-change', documents.value.length)
-    }
+    if (!res.ok) throw new Error(`Documents request failed (${res.status})`)
+    const data = await res.json()
+    documents.value = data.documents || []
+    emit('document-count-change', documents.value.length)
   } catch (err) {
+    docsLoadError.value = true
     console.error('Failed to fetch documents:', err)
   } finally {
     isLoadingDocs.value = false
@@ -234,6 +233,15 @@ const switchWorkspace = (tabId) => {
   currentTab.value = tabId
 }
 
+const documentsState = computed(() => (isLoadingDocs.value ? 'loading' : docsLoadError.value ? 'error' : 'ready'))
+
+const handleFlagAction = (action) => {
+  if (action === 'diff') showDiffModal.value = true
+  else if (action === 'radar') showRadarModal.value = true
+  else if (action === 'footnotes') openMScoreModal('footnotes')
+  else if (action === 'mscore') openMScoreModal('mscore')
+}
+
 const handleMemo = (id) => {
   if (id === 'preview') showInstitutionalReportModal.value = true
   else if (id === 'export') exportDueDiligenceMemo()
@@ -284,221 +292,30 @@ onMounted(async () => {
     <CompanyStrip :company="currentCompany" @tool="handleTool" />
 
     <!-- Workspace body. Legacy tabs stay in a dark island until their redesign phase. -->
-    <main data-theme="dark" class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-bg text-fg">
-      <div class="max-w-7xl mx-auto">
+    <main class="flex-1 overflow-y-auto custom-scrollbar">
         <Transition name="fade-view" mode="out-in">
+          <OverviewDashboard
+            v-if="currentTab === 'overview'"
+            key="overview"
+            :company="currentCompany"
+            :documents="documents"
+            :documents-state="documentsState"
+            @open-scorecard="showScorecardModal = true"
+            @open-anomaly="showAnomalyModal = true"
+            @flag-action="handleFlagAction"
+            @open-mscore="openMScoreModal('mscore')"
+            @open-diff="showDiffModal = true"
+            @go-tab="switchWorkspace"
+            @open-sec="showSecModal = true"
+            @open-filing="openFilingViewer"
+            @retry-documents="fetchDocuments"
+          />
+
           
-          <!-- ========================================== -->
-          <!-- VIEW 1: EXECUTIVE DOSSIER (Overview)       -->
-          <!-- ========================================== -->
-          <div v-if="currentTab === 'overview'" key="overview" class="space-y-6">
-            
-            <!-- Corporate Governance & Filing Anomaly Alert Widget -->
-            <section 
-              class="apple-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border"
-              :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-950/20 border-rose-500/30' : 'bg-slate-900/60 border-white/10'"
-            >
-              <div class="flex items-center gap-3.5">
-                <div 
-                  class="p-2.5 rounded-xl border shrink-0"
-                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'"
-                >
-                  <ShieldAlert class="w-5 h-5" />
-                </div>
-                <div class="space-y-0.5">
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-xs font-semibold text-white">Governance & disclosure anomaly radar</h3>
-                    <span 
-                      class="text-[11px] font-medium px-2 py-0.5 rounded-md border"
-                      :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : (currentCompany.is_macro_index ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20')"
-                    >
-                      {{ currentCompany.ticker === 'SMCI' ? 'Critical disclosure anomalies' : (currentCompany.is_macro_index ? 'Benchmark composite dispersion' : 'Normalized governance') }}
-                    </span>
-                  </div>
-                  <p class="text-xs text-slate-300">
-                    {{ currentCompany.ticker === 'SMCI' 
-                      ? 'Auditor resignation (PCAOB Rule 3526), delinquent 10-K Form 12b-25 alerts, and inventory-sales decoupling detected.' 
-                      : (currentCompany.is_macro_index ? 'Aggregated macro benchmark index: continuous cross-asset monitoring of constituent language drift, accruals, and sector guidance dispersion.' : 'Zero Form 12b-25 late filing delinquency, non-audit fee ratio < 10%, and unbroken executive audit committee tenure.') }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
-                <button
-                  @click="showAnomalyModal = true"
-                  class="apple-press px-3.5 py-1.5 rounded-xl text-xs font-medium text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-slate-800 hover:bg-slate-700 border border-white/10'"
-                >
-                  <Search class="w-3.5 h-3.5 text-slate-300" />
-                  <span>Audit signals</span>
-                </button>
-              </div>
-            </section>
-
-            <!-- 4 Core Forensic Pillar Cards -->
-            <section class="space-y-3">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-sm font-semibold text-white tracking-tight">Forensic intelligence pillars</h2>
-                  <p class="text-xs text-slate-400">Continuous institutional monitoring across four analytical audit vectors</p>
-                </div>
-                <span class="text-xs text-slate-400">Continuous SEC EDGAR ingestion</span>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <!-- Card 1: Language Drift -->
-                <div class="apple-card rounded-2xl p-5 flex flex-col justify-between space-y-3">
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                          <GitCompare class="w-3.5 h-3.5" />
-                        </div>
-                        <h3 class="text-xs font-semibold text-white">Filing language drift</h3>
-                      </div>
-                      <span class="text-xs tabular-nums font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                        {{ currentCompany.driftLabel }}
-                      </span>
-                    </div>
-
-                    <div class="flex items-center gap-2 text-xs text-slate-400">
-                      <span class="text-emerald-400 font-medium">+{{ currentCompany.driftAdded }} risks added</span>
-                      <span class="text-slate-600">/</span>
-                      <span class="text-slate-400">-{{ currentCompany.driftRemoved }} retired</span>
-                    </div>
-
-                    <blockquote class="text-xs text-slate-300 italic border-l-2 border-amber-500/40 pl-3 py-1 bg-slate-950/40 rounded-r-lg font-serif">
-                      "{{ currentCompany.driftExcerpt }}"
-                    </blockquote>
-                  </div>
-
-                  <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500">Year-over-year semantic redline</span>
-                    <button
-                      @click="showDiffModal = true"
-                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
-                    >
-                      Inspect redline diff
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Card 2: Beneish M-Score -->
-                <div class="apple-card rounded-2xl p-5 flex flex-col justify-between space-y-3">
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                          <Calculator class="w-3.5 h-3.5" />
-                        </div>
-                        <h3 class="text-xs font-semibold text-white">Beneish M-Score accruals</h3>
-                      </div>
-                      <span class="text-xs tabular-nums font-medium px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                        {{ currentCompany.mscoreLabel }}
-                      </span>
-                    </div>
-
-                    <div class="flex items-center gap-3 text-xs text-slate-400 tabular-nums">
-                      <span>Threshold: <strong class="text-slate-200">-1.78</strong></span>
-                      <span class="text-slate-600">/</span>
-                      <span>Probability: <strong class="text-emerald-400">{{ currentCompany.mscoreProb }}</strong></span>
-                      <span class="text-slate-600">/</span>
-                      <span>TATA: <strong class="text-slate-200">{{ currentCompany.tataAccrual }}</strong></span>
-                    </div>
-
-                    <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/40 p-2.5 rounded-lg border border-white/5">
-                      Total Accruals to Total Assets (TATA) and Asset Quality Index (AQI) indicate earnings are backed by operational cash collection.
-                    </p>
-                  </div>
-
-                  <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500">8-factor probabilistic model</span>
-                    <button
-                      @click="openMScoreModal('mscore')"
-                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
-                    >
-                      Audit accruals
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Card 3: Tone Decoupling -->
-                <div class="apple-card rounded-2xl p-5 flex flex-col justify-between space-y-3">
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <div class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                          <Radio class="w-3.5 h-3.5" />
-                        </div>
-                        <h3 class="text-xs font-semibold text-white">Guidance vs 10-Q tone radar</h3>
-                      </div>
-                      <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                        {{ currentCompany.radarLabel }}
-                      </span>
-                    </div>
-
-                    <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/40 p-2.5 rounded-lg border border-white/5">
-                      {{ currentCompany.radarExcerpt }}
-                    </p>
-                  </div>
-
-                  <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500">Cross-modal tone decoupling</span>
-                    <button
-                      @click="showRadarModal = true"
-                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
-                    >
-                      Inspect guidance discrepancies
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Card 4: Footnote Hazards -->
-                <div class="apple-card rounded-2xl p-5 flex flex-col justify-between space-y-3">
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <div class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                          <ShieldAlert class="w-3.5 h-3.5" />
-                        </div>
-                        <h3 class="text-xs font-semibold text-white">Footnote disclosure scan</h3>
-                      </div>
-                      <span 
-                        class="text-xs font-medium px-2 py-0.5 rounded-md border"
-                        :class="currentCompany.footnotesClean 
-                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-                          : 'bg-rose-500/10 text-rose-300 border-rose-500/20'"
-                      >
-                        {{ currentCompany.footnotesClean ? 'Clean disclosures' : `${currentCompany.footnoteCount} hazards flagged` }}
-                      </span>
-                    </div>
-
-                    <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/40 p-2.5 rounded-lg border border-white/5">
-                      {{ currentCompany.footnoteExcerpt }}
-                    </p>
-                  </div>
-
-                  <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500">Automated NLP disclosure scan</span>
-                    <button
-                      @click="openMScoreModal('footnotes')"
-                      class="apple-press text-xs font-medium text-slate-200 hover:text-white underline-offset-4 hover:underline cursor-pointer"
-                    >
-                      Scan footnotes
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-          </div>
-
           <!-- ========================================== -->
           <!-- VIEW 2: FINANCIALS & VISUAL EXHIBITS       -->
           <!-- ========================================== -->
-          <div v-else-if="currentTab === 'financials'" key="financials" class="space-y-6">
+          <div v-else-if="currentTab === 'financials'" key="financials" data-theme="dark" class="min-h-full bg-bg text-fg p-6 *:mx-auto *:max-w-7xl space-y-6">
             <FinancialTableExtractor 
               :ticker="currentCompany.ticker" 
               :company-name="currentCompany.name" 
@@ -512,7 +329,7 @@ onMounted(async () => {
           <!-- ========================================== -->
           <!-- VIEW 3: MULTI-YEAR TRENDS & PEER BENCHMARK -->
           <!-- ========================================== -->
-          <div v-else-if="currentTab === 'benchmarks'" key="benchmarks" class="space-y-6">
+          <div v-else-if="currentTab === 'benchmarks'" key="benchmarks" data-theme="dark" class="min-h-full bg-bg text-fg p-6 *:mx-auto *:max-w-7xl space-y-6">
             <FinancialTrendsChart 
               :ticker="currentCompany.ticker" 
               @open-chat="emit('open-chat', $event)" 
@@ -526,7 +343,7 @@ onMounted(async () => {
           <!-- ========================================== -->
           <!-- VIEW 4: SCENARIO STRESS LAB (Monte Carlo)   -->
           <!-- ========================================== -->
-          <div v-else-if="currentTab === 'scenarios'" key="scenarios" class="space-y-6">
+          <div v-else-if="currentTab === 'scenarios'" key="scenarios" data-theme="dark" class="min-h-full bg-bg text-fg p-6 *:mx-auto *:max-w-7xl space-y-6">
             <ScenarioStressTester 
               :ticker="currentCompany.ticker" 
               :company-name="currentCompany.name" 
@@ -536,7 +353,7 @@ onMounted(async () => {
           <!-- ========================================== -->
           <!-- VIEW 5: AUDIO & ADVERSARIAL INQUIRIES      -->
           <!-- ========================================== -->
-          <div v-else-if="currentTab === 'interrogation'" key="interrogation" class="space-y-6">
+          <div v-else-if="currentTab === 'interrogation'" key="interrogation" data-theme="dark" class="min-h-full bg-bg text-fg p-6 *:mx-auto *:max-w-7xl space-y-6">
             <!-- Earnings Call Audio Simulator -->
             <AudioCallSimulator 
               :ticker="currentCompany.ticker" 
@@ -609,7 +426,7 @@ onMounted(async () => {
           <!-- ========================================== -->
           <!-- VIEW 6: EVIDENCE ROOM (Filings & Documents)-->
           <!-- ========================================== -->
-          <div v-else-if="currentTab === 'filings'" key="filings" class="space-y-4">
+          <div v-else-if="currentTab === 'filings'" key="filings" data-theme="dark" class="min-h-full bg-bg text-fg p-6 *:mx-auto *:max-w-7xl space-y-4">
             
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -737,7 +554,6 @@ onMounted(async () => {
           </div>
 
         </Transition>
-      </div>
     </main>
 
     <!-- Modals & Drawers -->
