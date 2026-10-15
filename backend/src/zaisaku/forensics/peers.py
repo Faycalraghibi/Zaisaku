@@ -19,7 +19,7 @@ class PeerComparisonResponse(BaseModel):
     target_ticker: str
     target_name: str
     sector: str
-    sector_average_ffi: float
+    sector_average_ffi: float | None = Field(None, description="Average FFI of the peer set; null when empty")
     peers: list[PeerMetric]
     sector_commentary: str
 
@@ -40,7 +40,7 @@ class PeerAnalyzer:
         elif t in ("TSLA", "RIVN", "F", "GM"):
             return self._build_auto_sector(t)
         else:
-            return self._build_generic_sector(t)
+            return self._no_peer_set(t)
 
     def _build_semi_sector(self, target: str) -> PeerComparisonResponse:
         all_peers = [
@@ -59,9 +59,9 @@ class PeerAnalyzer:
                 ticker="AMD",
                 name="Advanced Micro Devices",
                 market_cap="$260B",
-                ffi=26.0,
-                drift_pct=14.2,
-                beneish_mscore=-2.68,
+                ffi=27.0,
+                drift_pct=12.5,
+                beneish_mscore=-2.52,
                 risk_tier="LOW_RISK",
                 footnote_hazard_count=0,
                 key_vulnerability="Embedded Xilinx goodwill amortization and datacenter GPU ramp visibility.",
@@ -92,9 +92,9 @@ class PeerAnalyzer:
                 ticker="AVGO",
                 name="Broadcom Inc.",
                 market_cap="$820B",
-                ffi=31.0,
-                drift_pct=16.5,
-                beneish_mscore=-2.52,
+                ffi=24.5,
+                drift_pct=11.2,
+                beneish_mscore=-2.62,
                 risk_tier="LOW_RISK",
                 footnote_hazard_count=2,
                 key_vulnerability="High leverage and intangible asset load following VMware integration.",
@@ -147,9 +147,9 @@ class PeerAnalyzer:
                 ticker="GOOGL",
                 name="Alphabet Inc.",
                 market_cap="$2.10T",
-                ffi=28.0,
-                drift_pct=15.4,
-                beneish_mscore=-2.81,
+                ffi=16.5,
+                drift_pct=7.2,
+                beneish_mscore=-2.88,
                 risk_tier="LOW_RISK",
                 footnote_hazard_count=2,
                 key_vulnerability="DOJ antitrust search distribution litigation and potential behavioral remedies.",
@@ -158,9 +158,9 @@ class PeerAnalyzer:
                 ticker="META",
                 name="Meta Platforms Inc.",
                 market_cap="$1.45T",
-                ffi=25.0,
-                drift_pct=13.0,
-                beneish_mscore=-2.72,
+                ffi=21.0,
+                drift_pct=9.0,
+                beneish_mscore=-2.75,
                 risk_tier="LOW_RISK",
                 footnote_hazard_count=1,
                 key_vulnerability="Reality Labs operating cash drag and generative AI infrastructure depreciation.",
@@ -261,66 +261,13 @@ class PeerAnalyzer:
             sector_commentary=commentary,
         )
 
-    def _build_generic_sector(self, target: str) -> PeerComparisonResponse:
-        all_peers = [
-            PeerMetric(
-                ticker=target,
-                name=f"{target} Corporation",
-                market_cap="$50B",
-                ffi=25.0,
-                drift_pct=12.0,
-                beneish_mscore=-2.60,
-                risk_tier="LOW_RISK",
-                footnote_hazard_count=1,
-                key_vulnerability="Standard competitive and macro interest rate exposure disclosures.",
-            ),
-            PeerMetric(
-                ticker="PEER1",
-                name="Benchmark Peer A",
-                market_cap="$65B",
-                ffi=22.0,
-                drift_pct=10.5,
-                beneish_mscore=-2.72,
-                risk_tier="LOW_RISK",
-                footnote_hazard_count=0,
-                key_vulnerability="Moderate working capital variation.",
-            ),
-            PeerMetric(
-                ticker="PEER2",
-                name="Benchmark Peer B",
-                market_cap="$40B",
-                ffi=48.0,
-                drift_pct=26.0,
-                beneish_mscore=-2.05,
-                risk_tier="WATCHLIST",
-                footnote_hazard_count=2,
-                key_vulnerability="Elevated receivables growth and customer concentration.",
-            ),
-            PeerMetric(
-                ticker="PEER3",
-                name="Benchmark Peer C",
-                market_cap="$85B",
-                ffi=19.0,
-                drift_pct=8.0,
-                beneish_mscore=-2.88,
-                risk_tier="LOW_RISK",
-                footnote_hazard_count=0,
-                key_vulnerability="Foreign exchange hedging volatility.",
-            ),
-        ]
-
-        avg_ffi = round(sum(p.ffi for p in all_peers) / len(all_peers), 1)
-
-        commentary = (
-            f"Comparative industry peer benchmark for {target}. Sector average FFI is {avg_ffi}. "
-            f"{target} maintains risk scores in line with sector norms."
-        )
-
+    def _no_peer_set(self, target: str) -> PeerComparisonResponse:
+        # No curated peer group for this ticker: say so instead of inventing placeholder companies.
         return PeerComparisonResponse(
             target_ticker=target,
-            target_name=f"{target} Corp",
-            sector="General Equities Sector",
-            sector_average_ffi=avg_ffi,
-            peers=all_peers,
-            sector_commentary=commentary,
+            target_name=target,
+            sector="",
+            sector_average_ffi=None,
+            peers=[],
+            sector_commentary=f"No peer set is configured for {target} yet.",
         )

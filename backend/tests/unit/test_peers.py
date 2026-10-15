@@ -40,3 +40,25 @@ def test_peer_api_endpoint(client):
     assert data["target_ticker"] == "NVDA"
     assert len(data["peers"]) >= 4
     assert "sector_average_ffi" in data
+
+
+@pytest.mark.parametrize("ticker", ["SMCI", "COIN", "SPY", "ZZZZ"])
+def test_uncovered_ticker_gets_no_fabricated_peers(ticker):
+    res = PeerAnalyzer().benchmark(ticker)
+    assert res.target_ticker == ticker
+    assert res.peers == []
+    assert res.sector_average_ffi is None
+    assert "no peer set" in res.sector_commentary.lower()
+
+
+def test_no_placeholder_peers_in_any_sector():
+    for ticker in ["NVDA", "AAPL", "TSLA", "SMCI", "JPM"]:
+        for peer in PeerAnalyzer().benchmark(ticker).peers:
+            assert not peer.ticker.startswith("PEER")
+            assert "Benchmark Peer" not in peer.name
+
+
+def test_peer_api_returns_empty_set_for_uncovered_ticker(client):
+    data = client.get("/api/forensics/peers/SMCI").json()
+    assert data["peers"] == []
+    assert data["sector_average_ffi"] is None
