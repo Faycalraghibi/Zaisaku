@@ -340,9 +340,9 @@ const applyPreset = (preset) => {
 
             <!-- Retrieved RAG Chunks (if any) -->
             <div v-if="benchmarkResult.retrieval_chunks?.length" class="space-y-2">
-              <div class="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+              <div class="text-xs font-semibold text-neutral-400 flex items-center gap-1.5">
                 <FileCheck2 class="w-3.5 h-3.5 text-indigo-400" />
-                <span>Vector Ingested Chunks (Cosine Sim)</span>
+                <span>Vector ingested chunks (cosine similarity)</span>
               </div>
               <div class="space-y-1.5">
                 <div

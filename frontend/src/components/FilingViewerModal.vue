@@ -185,13 +185,13 @@ onUnmounted(() => {
               <BookOpen class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                SEC In-App Document & AI Annotation Studio
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  {{ ticker }} · Live Edgar Feed
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                SEC document and AI annotation viewer
+                <span class="text-xs font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {{ ticker }} / Live EDGAR feed
                 </span>
               </h3>
-              <p class="text-[11px] text-slate-400">Interactive regulatory text reader with real-time AI risk highlights</p>
+              <p class="text-xs text-slate-400">Interactive regulatory text reader with real-time AI risk highlights</p>
             </div>
           </div>
 
@@ -201,21 +201,21 @@ onUnmounted(() => {
               <button
                 @click="activeSection = 'item_1a'"
                 class="apple-press px-3 py-1 rounded-lg transition-all cursor-pointer"
-                :class="activeSection === 'item_1a' ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeSection === 'item_1a' ? 'bg-white text-slate-950 font-semibold shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 Item 1A Risk Factors
               </button>
               <button
                 @click="activeSection = 'item_7'"
                 class="apple-press px-3 py-1 rounded-lg transition-all cursor-pointer"
-                :class="activeSection === 'item_7' ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeSection === 'item_7' ? 'bg-white text-slate-950 font-semibold shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 Item 7 MD&A
               </button>
               <button
                 @click="activeSection = 'footnotes'"
                 class="apple-press px-3 py-1 rounded-lg transition-all cursor-pointer"
-                :class="activeSection === 'footnotes' ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeSection === 'footnotes' ? 'bg-white text-slate-950 font-semibold shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 Notes & Controls
               </button>
@@ -240,7 +240,7 @@ onUnmounted(() => {
             @mouseup="handleTextSelection"
           >
             <div class="space-y-1 border-b border-white/5 pb-4">
-              <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-semibold">
+              <span class="text-xs font-mono text-emerald-400 font-medium">
                 {{ currentSectionData.period }}
               </span>
               <h2 class="text-xl font-bold text-white tracking-tight">
@@ -264,7 +264,7 @@ onUnmounted(() => {
               >
                 <div class="flex items-center justify-between mb-2">
                   <span 
-                    class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border"
+                    class="text-xs font-medium px-2 py-0.5 rounded-md border"
                     :class="[
                       p.type === 'critical' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
                       p.type === 'warning' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
@@ -273,7 +273,7 @@ onUnmounted(() => {
                   >
                     {{ p.label }}
                   </span>
-                  <span class="text-[10px] text-slate-500 font-mono">Sec. {{ p.id.toUpperCase() }}</span>
+                  <span class="text-xs text-slate-500 font-mono">Sec. {{ p.id.toUpperCase() }}</span>
                 </div>
                 <p class="font-normal">{{ p.text }}</p>
               </div>
@@ -283,9 +283,9 @@ onUnmounted(() => {
           <!-- Right: AI Forensic Annotation & Studio Sidebar -->
           <div class="w-full lg:w-96 p-6 bg-slate-900/90 overflow-y-auto space-y-5 shrink-0">
             <div class="space-y-2">
-              <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <h4 class="text-xs font-semibold text-white flex items-center gap-2">
                 <Sparkles class="w-4 h-4 text-emerald-400" />
-                AI Forensic Co-Pilot
+                AI forensic analysis
               </h4>
               <p class="text-xs text-slate-400">
                 Continuous NLP monitoring of language revisions, semantic hedging, and accounting hazards.

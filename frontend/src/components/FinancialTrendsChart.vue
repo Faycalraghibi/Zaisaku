@@ -10,7 +10,6 @@ import {
   Calendar,
   Layers,
   Loader2,
-  ArrowRight,
   X
 } from 'lucide-vue-next'
 
@@ -458,10 +457,10 @@ const askAiAboutAnomaly = (anomaly) => {
               <AlertTriangle class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="text-xs font-bold text-white flex items-center gap-2">
+              <h4 class="text-xs font-semibold text-white flex items-center gap-2">
                 {{ activeAnomaly.title }}
-                <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                  FY{{ activeAnomaly.year }} · {{ activeAnomaly.severity }} RISK
+                <span class="text-xs font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                  FY{{ activeAnomaly.year }} / {{ activeAnomaly.severity.toLowerCase() }} risk
                 </span>
               </h4>
             </div>
@@ -476,16 +475,15 @@ const askAiAboutAnomaly = (anomaly) => {
         </p>
 
         <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-white/5">
-          <span class="text-[11px] text-amber-300/90">
-            <strong>Audit Action:</strong> {{ activeAnomaly.suggested_audit_action }}
+          <span class="text-xs text-amber-300/90">
+            <strong>Recommended audit procedure:</strong> {{ activeAnomaly.suggested_audit_action }}
           </span>
           <button
             @click="askAiAboutAnomaly(activeAnomaly)"
-            class="apple-press text-xs font-semibold px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
+            class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <Sparkles class="w-3 h-3" />
-            <span>Ask Co-Analyst to Investigate</span>
-            <ArrowRight class="w-3 h-3" />
+            <span>Investigate anomaly</span>
           </button>
         </div>
       </div>

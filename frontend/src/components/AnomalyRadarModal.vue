@@ -139,7 +139,7 @@ onUnmounted(() => {
         <!-- Ticker Selector Ribbon -->
         <div class="px-6 py-2.5 border-b border-white/10 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
-            <span class="text-slate-400 text-[11px] font-semibold mr-1 uppercase tracking-wider">Presets:</span>
+            <span class="text-slate-400 text-xs font-medium mr-1">Presets:</span>
             <button
               v-for="p in presets"
               :key="p.ticker"
@@ -218,20 +218,20 @@ onUnmounted(() => {
                   <div>
                     <div class="flex items-center gap-2">
                       <span class="text-lg font-bold text-white">{{ anomalyData.ticker }}</span>
-                      <span class="text-xs text-slate-400">• {{ anomalyData.company_name }}</span>
+                      <span class="text-xs text-slate-400 font-normal">{{ anomalyData.company_name }}</span>
                     </div>
                     <div class="flex items-center gap-2 mt-1">
                       <span 
-                        class="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border"
+                        class="text-xs font-medium px-2 py-0.5 rounded-md border"
                         :class="anomalyData.overall_anomaly_tier === 'CRITICAL_ALERT' 
-                          ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
                           : anomalyData.overall_anomaly_tier === 'ELEVATED_WATCH' 
-                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
-                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'"
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
+                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'"
                       >
-                        {{ anomalyData.overall_anomaly_tier.replace('_', ' ') }}
+                        {{ anomalyData.overall_anomaly_tier.replace('_', ' ').toLowerCase() }}
                       </span>
-                      <span class="text-xs text-slate-400 font-mono">
+                      <span class="text-xs text-slate-400 tabular-nums">
                         Score: {{ anomalyData.anomaly_score }} / 100
                       </span>
                     </div>
@@ -241,20 +241,20 @@ onUnmounted(() => {
                 <!-- Anomaly Metric Badges -->
                 <div class="flex items-center gap-3 text-xs">
                   <div class="px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-center">
-                    <span class="block text-[10px] text-slate-400 uppercase tracking-wider">Critical</span>
-                    <span class="text-base font-bold" :class="anomalyData.critical_count > 0 ? 'text-rose-400' : 'text-slate-300'">
+                    <span class="block text-xs text-slate-400 font-medium">Critical</span>
+                    <span class="text-base font-bold tabular-nums" :class="anomalyData.critical_count > 0 ? 'text-rose-400' : 'text-slate-300'">
                       {{ anomalyData.critical_count }}
                     </span>
                   </div>
                   <div class="px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-center">
-                    <span class="block text-[10px] text-slate-400 uppercase tracking-wider">Elevated</span>
-                    <span class="text-base font-bold" :class="anomalyData.elevated_count > 0 ? 'text-amber-400' : 'text-slate-300'">
+                    <span class="block text-xs text-slate-400 font-medium">Elevated</span>
+                    <span class="text-base font-bold tabular-nums" :class="anomalyData.elevated_count > 0 ? 'text-amber-400' : 'text-slate-300'">
                       {{ anomalyData.elevated_count }}
                     </span>
                   </div>
                   <div class="px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-center">
-                    <span class="block text-[10px] text-slate-400 uppercase tracking-wider">Signals</span>
-                    <span class="text-base font-bold text-slate-200">
+                    <span class="block text-xs text-slate-400 font-medium">Signals</span>
+                    <span class="text-base font-bold text-slate-200 tabular-nums">
                       {{ anomalyData.findings.length }}
                     </span>
                   </div>
@@ -269,9 +269,9 @@ onUnmounted(() => {
 
             <!-- Detected Disclosure Signals List -->
             <div class="space-y-3">
-              <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <span>Evaluated Disclosure Signals & Red Flags</span>
-                <span class="text-[10px] font-mono text-slate-400">({{ anomalyData.findings.length }} audited)</span>
+              <h3 class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                <span>Evaluated disclosure signals and red flags</span>
+                <span class="text-xs text-slate-500 tabular-nums">({{ anomalyData.findings.length }} audited)</span>
               </h3>
 
               <div class="space-y-3">
@@ -283,34 +283,34 @@ onUnmounted(() => {
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div class="flex items-center gap-2.5">
                       <span 
-                        class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border"
+                        class="text-xs font-medium px-2 py-0.5 rounded border"
                         :class="finding.severity === 'CRITICAL' 
-                          ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
                           : finding.severity === 'ELEVATED' 
-                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
                           : finding.severity === 'MONITOR' 
-                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
-                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'"
+                          ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' 
+                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'"
                       >
-                        {{ finding.severity }}
+                        {{ finding.severity.toLowerCase() }}
                       </span>
                       <h4 class="text-xs font-semibold text-white">{{ finding.title }}</h4>
                     </div>
 
-                    <span class="text-[11px] font-mono text-slate-400 truncate">
+                    <span class="text-xs text-slate-400 font-mono truncate">
                       {{ finding.citation }}
                     </span>
                   </div>
 
                   <!-- Metric Observation Grid -->
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-black/30 p-2.5 rounded-lg border border-white/5 font-mono">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-black/30 p-2.5 rounded-lg border border-white/5 font-sans">
                     <div>
-                      <span class="text-[10px] text-slate-500 block uppercase">Observed Signal</span>
-                      <span class="font-medium text-slate-200">{{ finding.observed_value }}</span>
+                      <span class="text-[11px] text-slate-400 block font-medium">Observed signal</span>
+                      <span class="font-medium text-slate-200 tabular-nums">{{ finding.observed_value }}</span>
                     </div>
                     <div>
-                      <span class="text-[10px] text-slate-500 block uppercase">Institutional Benchmark</span>
-                      <span class="font-medium text-slate-400">{{ finding.institutional_threshold }}</span>
+                      <span class="text-[11px] text-slate-400 block font-medium">Institutional benchmark</span>
+                      <span class="font-medium text-slate-300 tabular-nums">{{ finding.institutional_threshold }}</span>
                     </div>
                   </div>
 
@@ -323,8 +323,8 @@ onUnmounted(() => {
                   <div class="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-500/20 text-indigo-300 text-xs flex items-start gap-2">
                     <Scale class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                     <div>
-                      <span class="font-semibold text-indigo-200 block text-[11px] uppercase tracking-wider mb-0.5">Audit Procedure Recommendation</span>
-                      <span>{{ finding.remediation_recommendation }}</span>
+                      <span class="font-medium text-indigo-200 block text-xs mb-0.5">Recommended audit procedure</span>
+                      <span class="text-slate-300">{{ finding.remediation_recommendation }}</span>
                     </div>
                   </div>
                 </div>

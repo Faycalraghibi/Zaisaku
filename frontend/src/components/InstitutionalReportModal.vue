@@ -131,23 +131,23 @@ const handleDownloadMarkdown = async () => {
           <div class="border-b-2 border-neutral-700 pb-5 print:border-black">
             <div class="flex justify-between items-start">
               <div>
-                <span class="text-[10px] tracking-widest font-mono uppercase text-blue-400 font-bold print:text-neutral-700">
-                  CONFIDENTIAL • FOR INSTITUTIONAL USE ONLY
+                <span class="text-xs font-medium text-blue-400 print:text-neutral-700">
+                  Confidential / For institutional use only
                 </span>
                 <h1 class="text-xl font-bold tracking-tight text-white mt-1 print:text-black">
-                  FORENSIC FINANCIAL AUDIT & DUE DILIGENCE MEMORANDUM
+                  Forensic Financial Audit & Due Diligence Memorandum
                 </h1>
                 <p class="text-xs text-neutral-400 mt-0.5 print:text-neutral-600">
-                  Target Entity: {{ companyName }} (NASDAQ: {{ ticker }}) • CIK: {{ profile.cik || '0001045810' }}
+                  Target Entity: {{ companyName }} (NASDAQ: {{ ticker }}) / CIK: {{ profile.cik || '0001045810' }}
                 </p>
               </div>
 
               <!-- Risk Badge -->
               <div class="text-right">
-                <span class="inline-block px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 print:border-black print:text-black">
-                  FFI: {{ profile.ffi || 18 }} / 100 • LOW FRAGILITY
+                <span class="inline-block px-3 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 print:border-black print:text-black">
+                  FFI: {{ profile.ffi || 18 }} / 100 — Low fragility
                 </span>
-                <div class="text-[10px] text-neutral-500 mt-1 font-mono print:text-neutral-600">
+                <div class="text-[10px] text-neutral-500 mt-1 print:text-neutral-600">
                   Audited Date: October 2026
                 </div>
               </div>
@@ -157,27 +157,27 @@ const handleDownloadMarkdown = async () => {
           <!-- Metadata Box -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-lg bg-white/[0.02] border border-white/10 text-xs print:bg-neutral-50 print:border-neutral-300 print:text-neutral-900">
             <div>
-              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Sector</span>
+              <span class="text-neutral-400 print:text-neutral-600 block text-[11px] font-medium">Sector</span>
               <span class="font-medium text-white print:text-black">{{ profile.sector || 'Semiconductors & AI' }}</span>
             </div>
             <div>
-              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Auditor of Record</span>
+              <span class="text-neutral-400 print:text-neutral-600 block text-[11px] font-medium">Auditor of record</span>
               <span class="font-medium text-white print:text-black">{{ profile.auditor || 'PricewaterhouseCoopers LLP' }}</span>
             </div>
             <div>
-              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Filing Form</span>
+              <span class="text-neutral-400 print:text-neutral-600 block text-[11px] font-medium">Filing form</span>
               <span class="font-medium text-white print:text-black">{{ profile.period || 'Form 10-K / 10-Q' }}</span>
             </div>
             <div>
-              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Analyst Division</span>
+              <span class="text-neutral-400 print:text-neutral-600 block text-[11px] font-medium">Analyst division</span>
               <span class="font-medium text-white print:text-black">Institutional Forensic Intelligence Group</span>
             </div>
           </div>
 
           <!-- Section 1: Executive Summary & Recommendation -->
           <div class="space-y-2">
-            <h3 class="text-xs font-bold tracking-wider uppercase text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
-              1. Executive Summary & Forensic Fragility Index
+            <h3 class="text-xs font-semibold text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
+              1. Executive summary & forensic fragility index
             </h3>
             <p class="text-xs leading-relaxed text-neutral-300 print:text-neutral-800">
               The proprietary Forensic Fragility Index (FFI) for {{ companyName }} is assessed at
@@ -187,8 +187,8 @@ const handleDownloadMarkdown = async () => {
 
           <!-- Section 2: Pillar Analysis -->
           <div class="space-y-3">
-            <h3 class="text-xs font-bold tracking-wider uppercase text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
-              2. Tri-Pillar Forensic Findings
+            <h3 class="text-xs font-semibold text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
+              2. Tri-pillar forensic findings
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">

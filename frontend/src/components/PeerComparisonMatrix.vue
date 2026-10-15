@@ -8,7 +8,6 @@ import {
   ShieldAlert,
   CheckCircle2,
   Loader2,
-  ArrowRight,
   ExternalLink
 } from 'lucide-vue-next'
 
@@ -101,15 +100,15 @@ const ffiColor = (score) => {
       <!-- Heatmap Table -->
       <div class="overflow-x-auto rounded-2xl border border-white/5 bg-slate-950/60">
         <table class="w-full text-left text-xs text-slate-300">
-          <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider text-[10px] border-b border-white/5">
+          <thead class="bg-[#161b22] text-slate-400 text-xs font-medium border-b border-white/10">
             <tr>
-              <th class="py-3 px-4 font-semibold">Entity / Ticker</th>
-              <th class="py-3 px-3 font-semibold">Mkt Cap</th>
-              <th class="py-3 px-3 font-semibold">Fragility (FFI)</th>
-              <th class="py-3 px-3 font-semibold">Language Drift</th>
-              <th class="py-3 px-3 font-semibold">Beneish M-Score</th>
-              <th class="py-3 px-3 font-semibold">Risk Tier</th>
-              <th class="py-3 px-4 font-semibold">Key Accounting Vulnerability</th>
+              <th class="py-3 px-4 font-medium">Entity and ticker</th>
+              <th class="py-3 px-3 font-medium">Market cap</th>
+              <th class="py-3 px-3 font-medium">Fragility (FFI)</th>
+              <th class="py-3 px-3 font-medium">Language drift</th>
+              <th class="py-3 px-3 font-medium">Beneish M-Score</th>
+              <th class="py-3 px-3 font-medium">Risk tier</th>
+              <th class="py-3 px-4 font-medium">Key accounting vulnerability</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
@@ -120,26 +119,26 @@ const ffiColor = (score) => {
               :class="p.ticker === ticker.toUpperCase() ? 'bg-cyan-950/20 border-l-2 border-cyan-400' : ''"
               @click="emit('select-ticker', p.ticker)"
             >
-              <td class="py-3 px-4 font-bold text-white flex items-center gap-2">
+              <td class="py-3 px-4 font-semibold text-white flex items-center gap-2">
                 <span class="font-mono px-2 py-0.5 rounded bg-slate-800 border border-white/10 text-xs group-hover:border-cyan-400 transition-colors">
                   {{ p.ticker }}
                 </span>
                 <span class="truncate max-w-[140px] text-xs font-medium text-slate-300">{{ p.name }}</span>
               </td>
-              <td class="py-3 px-3 font-mono text-slate-400">{{ p.market_cap }}</td>
-              <td class="py-3 px-3 font-mono" :class="ffiColor(p.ffi)">
+              <td class="py-3 px-3 font-mono tabular-nums text-slate-400">{{ p.market_cap }}</td>
+              <td class="py-3 px-3 font-mono tabular-nums font-semibold" :class="ffiColor(p.ffi)">
                 {{ p.ffi }}
               </td>
-              <td class="py-3 px-3 font-mono text-slate-300">{{ p.drift_pct }}%</td>
-              <td class="py-3 px-3 font-mono" :class="p.beneish_mscore > -1.78 ? 'text-rose-400 font-bold' : 'text-emerald-400'">
+              <td class="py-3 px-3 font-mono tabular-nums text-slate-300">{{ p.drift_pct }}%</td>
+              <td class="py-3 px-3 font-mono tabular-nums" :class="p.beneish_mscore > -1.78 ? 'text-rose-400 font-semibold' : 'text-emerald-400'">
                 {{ p.beneish_mscore }}
               </td>
               <td class="py-3 px-3">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono border" :class="riskTierBadge(p.risk_tier)">
-                  {{ p.risk_tier }}
+                <span class="px-2 py-0.5 rounded-md text-xs font-medium border" :class="riskTierBadge(p.risk_tier)">
+                  {{ p.risk_tier.toLowerCase() }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-[11px] text-slate-400 max-w-sm truncate" :title="p.key_vulnerability">
+              <td class="py-3 px-4 text-xs text-slate-400 max-w-sm truncate" :title="p.key_vulnerability">
                 {{ p.key_vulnerability }}
               </td>
             </tr>

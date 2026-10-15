@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   X,
   Loader2,
-  ArrowRight,
   TrendingDown,
   TrendingUp,
   Sliders,
@@ -295,14 +294,14 @@ const pillarStatusColor = (status) => {
             <div class="space-y-1">
               <div class="text-xs font-medium text-slate-400">Forensic Fragility Index (0 to 100 FFI)</div>
               <div class="flex items-baseline gap-3">
-                <span class="text-4xl font-extrabold font-mono text-slate-100">
+                <span class="text-4xl font-extrabold tabular-nums text-slate-100">
                   {{ scorecardResult.composite_ffi }} <span class="text-lg font-normal text-slate-400">/ 100</span>
                 </span>
                 <span 
-                  class="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border"
+                  class="px-2.5 py-0.5 rounded-md text-xs font-medium border"
                   :class="riskColor(scorecardResult.risk_level)"
                 >
-                  {{ scorecardResult.risk_level.replace(/_/g, ' ') }}
+                  {{ scorecardResult.risk_level.replace(/_/g, ' ').toLowerCase() }}
                 </span>
               </div>
               <p class="text-xs text-slate-300 pt-1 max-w-xl leading-relaxed">
@@ -311,9 +310,9 @@ const pillarStatusColor = (status) => {
             </div>
 
             <div class="text-right space-y-1 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-              <div class="text-[11px] text-slate-400">Institutional Action</div>
-              <div class="text-sm font-bold font-mono uppercase text-slate-100">
-                {{ scorecardResult.recommendation.replace(/_/g, ' ') }}
+              <div class="text-[11px] text-slate-400">Institutional action</div>
+              <div class="text-xs font-semibold text-slate-100 capitalize">
+                {{ scorecardResult.recommendation.replace(/_/g, ' ').toLowerCase() }}
               </div>
               <div class="text-[10px] text-slate-500">Threshold: FFI &ge; 45 warrants short/avoid</div>
             </div>
@@ -323,7 +322,7 @@ const pillarStatusColor = (status) => {
           <div v-if="scorecardResult.red_flags?.length > 0" class="p-4 rounded-xl bg-rose-950/30 border border-rose-800/50 space-y-2">
             <div class="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
               <ShieldAlert class="w-4 h-4 shrink-0" />
-              <span>Critical Forensic Red Flags Flagged ({{ scorecardResult.red_flags.length }})</span>
+              <span>Critical forensic red flags ({{ scorecardResult.red_flags.length }})</span>
             </div>
             <ul class="space-y-1 pl-5 list-disc text-xs text-rose-200">
               <li v-for="(flag, idx) in scorecardResult.red_flags" :key="idx" class="leading-relaxed">
@@ -334,8 +333,8 @@ const pillarStatusColor = (status) => {
 
           <!-- 3 Pillars Grid -->
           <div class="space-y-3">
-            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Forensic Intelligence Pillars
+            <h4 class="text-xs font-semibold text-slate-300">
+              Forensic intelligence pillars
             </h4>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -345,10 +344,10 @@ const pillarStatusColor = (status) => {
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       <GitCompare class="w-4 h-4 text-amber-400" />
-                      <span class="text-xs font-bold text-slate-200">Filing Language Drift</span>
+                      <span class="text-xs font-semibold text-slate-200">Filing language drift</span>
                     </div>
                     <span 
-                      class="px-2 py-0.5 rounded text-[10px] font-semibold font-mono"
+                      class="px-2 py-0.5 rounded text-[10px] font-medium tabular-nums"
                       :class="pillarStatusColor(scorecardResult.pillars.language_drift?.status)"
                     >
                       {{ scorecardResult.pillars.language_drift?.raw_score }}%
@@ -364,10 +363,9 @@ const pillarStatusColor = (status) => {
 
                 <button
                   @click="emit('open-diff')"
-                  class="w-full py-1.5 px-3 rounded-lg bg-amber-950/30 border border-amber-800/50 hover:bg-amber-900/40 text-amber-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  class="w-full py-1.5 px-3 rounded-lg bg-amber-950/30 border border-amber-800/50 hover:bg-amber-900/40 text-amber-300 text-xs font-medium flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <span>Open Diff Engine</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Inspect language diff
                 </button>
               </div>
 
@@ -377,10 +375,10 @@ const pillarStatusColor = (status) => {
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       <Calculator class="w-4 h-4 text-purple-400" />
-                      <span class="text-xs font-bold text-slate-200">Accounting & Footnotes</span>
+                      <span class="text-xs font-semibold text-slate-200">Accounting & footnotes</span>
                     </div>
                     <span 
-                      class="px-2 py-0.5 rounded text-[10px] font-semibold font-mono"
+                      class="px-2 py-0.5 rounded text-[10px] font-medium tabular-nums"
                       :class="pillarStatusColor(scorecardResult.pillars.forensic_accounting?.status)"
                     >
                       {{ scorecardResult.pillars.forensic_accounting?.raw_score }} / 100
@@ -396,10 +394,9 @@ const pillarStatusColor = (status) => {
 
                 <button
                   @click="emit('open-mscore')"
-                  class="w-full py-1.5 px-3 rounded-lg bg-purple-950/30 border border-purple-800/50 hover:bg-purple-900/40 text-purple-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  class="w-full py-1.5 px-3 rounded-lg bg-purple-950/30 border border-purple-800/50 hover:bg-purple-900/40 text-purple-300 text-xs font-medium flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <span>Open M-Score Calculator</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Inspect M-Score accruals
                 </button>
               </div>
 
@@ -409,10 +406,10 @@ const pillarStatusColor = (status) => {
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       <Radio class="w-4 h-4 text-cyan-400" />
-                      <span class="text-xs font-bold text-slate-200">Call vs 10-Q Radar</span>
+                      <span class="text-xs font-semibold text-slate-200">Call vs 10-Q radar</span>
                     </div>
                     <span 
-                      class="px-2 py-0.5 rounded text-[10px] font-semibold font-mono"
+                      class="px-2 py-0.5 rounded text-[10px] font-medium tabular-nums"
                       :class="pillarStatusColor(scorecardResult.pillars.call_contradictions?.status)"
                     >
                       {{ scorecardResult.pillars.call_contradictions?.raw_score }} / 100
@@ -428,10 +425,9 @@ const pillarStatusColor = (status) => {
 
                 <button
                   @click="emit('open-radar')"
-                  class="w-full py-1.5 px-3 rounded-lg bg-cyan-950/30 border border-cyan-800/50 hover:bg-cyan-900/40 text-cyan-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  class="w-full py-1.5 px-3 rounded-lg bg-cyan-950/30 border border-cyan-800/50 hover:bg-cyan-900/40 text-cyan-300 text-xs font-medium flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <span>Open Contradiction Radar</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Inspect contradiction radar
                 </button>
               </div>
             </div>

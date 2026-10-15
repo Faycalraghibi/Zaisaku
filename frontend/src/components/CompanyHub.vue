@@ -16,7 +16,6 @@ import {
   Search,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
   TrendingDown,
   TrendingUp,
   Sliders,
@@ -1013,24 +1012,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#080b12] text-slate-100 font-sans">
+  <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#0d1117] text-slate-100 font-sans">
     
     <!-- Top Persistent Apple Frosted Glass Header -->
     <header class="apple-glass sticky top-0 z-30 px-6 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-white/8 shrink-0">
       
       <!-- Brand & Platform Scope -->
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400/20 to-teal-600/30 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold font-mono shadow-xs text-sm">
+        <div class="w-8 h-8 rounded-xl bg-slate-800/90 border border-white/10 flex items-center justify-center text-slate-100 font-bold text-sm tracking-tight shadow-xs">
           Z
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-bold tracking-tight text-white">ZAISAKU</span>
-            <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-              Enterprise v2.4
+            <span class="text-sm font-semibold tracking-tight text-white">ZAISAKU</span>
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+              Enterprise 2.4
             </span>
           </div>
-          <p class="text-[11px] text-slate-400">Institutional Forensic Due Diligence & Intelligence Suite</p>
+          <p class="text-xs text-slate-400">Institutional financial forensics and due diligence</p>
         </div>
       </div>
 
@@ -1074,7 +1073,7 @@ onMounted(async () => {
             @click="selectCompany(ticker)"
             class="apple-press px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer font-mono shrink-0"
             :class="currentCompany.ticker === ticker 
-              ? (ticker === 'SMCI' ? 'bg-rose-500 text-white font-bold shadow-xs' : (isIndexTicker(ticker) ? 'bg-blue-500 text-white font-bold shadow-xs' : 'bg-emerald-500 text-slate-950 font-bold shadow-xs'))
+              ? (ticker === 'SMCI' ? 'bg-rose-600 text-white font-semibold shadow-xs' : (isIndexTicker(ticker) ? 'bg-blue-600 text-white font-semibold shadow-xs' : 'bg-white text-slate-950 font-semibold shadow-xs'))
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
           >
             {{ ticker }}
@@ -1094,9 +1093,9 @@ onMounted(async () => {
               @keydown.down.prevent="navigateSearch(1)"
               @keydown.up.prevent="navigateSearch(-1)"
               placeholder="Search 10k+ SEC filers & indices..."
-              class="w-36 lg:w-48 xl:w-56 pl-7 pr-7 py-1.5 text-xs bg-slate-800/80 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:w-48 lg:focus:w-60 transition-all border border-transparent focus:border-emerald-500/40"
+              class="w-36 lg:w-48 xl:w-56 pl-7 pr-7 py-1.5 text-xs bg-slate-800/80 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:w-48 lg:focus:w-60 transition-all border border-transparent focus:border-white/20"
             />
-            <Loader2 v-if="isSearching" class="w-3 h-3 text-emerald-400 animate-spin absolute right-2.5 pointer-events-none" />
+            <Loader2 v-if="isSearching" class="w-3 h-3 text-slate-300 animate-spin absolute right-2.5 pointer-events-none" />
           </div>
 
           <!-- Instant Search Dropdown -->
@@ -1104,9 +1103,9 @@ onMounted(async () => {
             v-if="showSearchDropdown && searchResults.length > 0"
             class="absolute top-full left-0 mt-1.5 w-80 xl:w-96 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 animate-fadeIn"
           >
-            <div class="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between border-b border-white/5 pb-1 mb-1">
-              <span>SEC EDGAR & Index Directory</span>
-              <span>{{ searchResults.length }} matches</span>
+            <div class="px-2.5 py-1 text-xs text-slate-400 flex items-center justify-between border-b border-white/5 pb-1 mb-1">
+              <span>SEC EDGAR & index directory</span>
+              <span class="text-[11px] text-slate-500">{{ searchResults.length }} matches</span>
             </div>
             <div class="max-h-64 overflow-y-auto space-y-1 custom-scrollbar">
               <div
@@ -1114,7 +1113,7 @@ onMounted(async () => {
                 :key="item.ticker"
                 @click="selectSearchResult(item)"
                 class="apple-press flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all"
-                :class="activeSearchIndex === idx ? 'bg-emerald-500/20 border border-emerald-500/30 text-white' : 'hover:bg-white/5 text-slate-200 border border-transparent'"
+                :class="activeSearchIndex === idx ? 'bg-white/10 border border-white/15 text-white' : 'hover:bg-white/5 text-slate-200 border border-transparent'"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
                   <span 
@@ -1125,17 +1124,16 @@ onMounted(async () => {
                   </span>
                   <div class="truncate">
                     <div class="text-xs font-medium text-white truncate">{{ item.name }}</div>
-                    <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+                    <div class="text-[11px] text-slate-400 flex items-center gap-2 truncate">
                       <span>{{ item.exchange }}</span>
-                      <span>·</span>
-                      <span class="truncate">{{ item.sector }}</span>
+                      <span class="truncate text-slate-500">{{ item.sector }}</span>
                     </div>
                   </div>
                 </div>
                 <div class="text-right shrink-0 ml-2">
                   <span 
-                    class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
-                    :class="item.ffi_score > 60 ? 'bg-rose-500/20 text-rose-400' : (item.ffi_score > 35 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400')"
+                    class="text-[11px] tabular-nums font-semibold px-2 py-0.5 rounded border"
+                    :class="item.ffi_score > 60 ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' : (item.ffi_score > 35 ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20')"
                   >
                     FFI {{ Math.round(item.ffi_score) }}
                   </span>
@@ -1166,7 +1164,7 @@ onMounted(async () => {
           title="Filing Anomaly & Governance Radar"
         >
           <ShieldAlert class="w-3.5 h-3.5 text-rose-400" />
-          <span class="hidden md:inline">Anomaly Radar</span>
+          <span class="hidden md:inline">Anomaly radar</span>
         </button>
 
         <button
@@ -1184,14 +1182,14 @@ onMounted(async () => {
           class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-white/10 bg-slate-800/90 hover:bg-slate-700/80 text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           title="Export Markdown Memorandum"
         >
-          <Loader2 v-if="isExportingMemo" class="w-3.5 h-3.5 animate-spin text-emerald-400" />
+          <Loader2 v-if="isExportingMemo" class="w-3.5 h-3.5 animate-spin text-slate-300" />
           <Download v-else class="w-3.5 h-3.5 text-slate-400" />
           <span class="hidden sm:inline">Export</span>
         </button>
 
         <button
           @click="emit('open-chat')"
-          class="apple-press text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          class="apple-press text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           title="Open AI Co-Analyst Drawer"
         >
           <Sparkles class="w-3.5 h-3.5 fill-current" />
@@ -1213,28 +1211,27 @@ onMounted(async () => {
             ? 'bg-white/10 text-white font-semibold shadow-xs border border-white/10' 
             : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'"
         >
-          <component :is="tab.icon" class="w-3.5 h-3.5" :class="currentTab === tab.id ? 'text-emerald-400' : 'text-slate-500'" />
+          <component :is="tab.icon" class="w-3.5 h-3.5" :class="currentTab === tab.id ? 'text-white' : 'text-slate-500'" />
           <span>{{ tab.label }}</span>
           <span 
             v-if="tab.badge" 
-            class="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-bold"
+            class="text-[10px] tabular-nums px-1.5 py-0.2 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-medium"
           >
             {{ tab.badge }}
           </span>
           <span 
             v-else-if="tab.id === 'filings' && documents.length > 0" 
-            class="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400"
+            class="text-[10px] tabular-nums px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400"
           >
             {{ documents.length }}
           </span>
         </button>
       </div>
 
-      <!-- Target Company Fast Info Badge -->
-      <div class="hidden lg:flex items-center gap-3 text-xs text-slate-400 font-mono">
-        <span>Target: <strong class="text-white">{{ currentCompany.name }}</strong> ({{ currentCompany.ticker }})</span>
-        <span>·</span>
-        <span>Auditor: <strong class="text-slate-300">{{ currentCompany.auditor }}</strong></span>
+      <!-- Target Company Context Info -->
+      <div class="hidden lg:flex items-center gap-2.5 text-xs text-slate-400">
+        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white font-medium">{{ currentCompany.name }} ({{ currentCompany.ticker }})</span>
+        <span class="text-slate-400">Auditor: <span class="text-slate-200 font-medium">{{ currentCompany.auditor }}</span></span>
       </div>
     </div>
 
@@ -1262,7 +1259,7 @@ onMounted(async () => {
                     <component :is="currentCompany.is_macro_index ? Layers : Building2" class="w-3.5 h-3.5" :class="currentCompany.is_macro_index ? 'text-blue-400' : 'text-slate-500'" />
                     {{ currentCompany.sector }}
                   </span>
-                  <span class="text-xs text-slate-600">·</span>
+                  <span class="text-xs text-slate-600">/</span>
                   <span class="text-xs text-slate-400 font-mono">{{ currentCompany.is_macro_index ? `Exchange: ${currentCompany.exchange}` : `CIK ${currentCompany.cik}` }}</span>
                 </div>
 
@@ -1289,7 +1286,7 @@ onMounted(async () => {
                     <Calendar class="w-3.5 h-3.5 text-slate-500" />
                     {{ currentCompany.period }}
                   </span>
-                  <span>·</span>
+                  <span class="text-slate-600">/</span>
                   <span class="flex items-center gap-1.5">
                     <FileCheck class="w-3.5 h-3.5 text-emerald-400" />
                     Auditor of Record: {{ currentCompany.auditor }}
@@ -1304,7 +1301,7 @@ onMounted(async () => {
               <!-- FFI Fragility Gauge Card -->
               <div class="w-full lg:w-auto shrink-0">
                 <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-5 sm:p-6 flex flex-col items-center gap-4 text-center shadow-xl min-w-[280px]">
-                  <span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+                  <span class="text-xs font-semibold text-slate-400">
                     {{ currentCompany.is_macro_index ? 'Macro Fragility Index' : 'Forensic Fragility Index (FFI)' }}
                   </span>
 
@@ -1313,10 +1310,10 @@ onMounted(async () => {
                       class="w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center transition-all shadow-inner"
                       :class="[ffiColor(currentCompany.ffi).border, ffiColor(currentCompany.ffi).bg]"
                     >
-                      <span class="text-3xl font-extrabold tracking-tight text-white font-mono">
+                      <span class="text-3xl font-extrabold tracking-tight text-white tabular-nums">
                         {{ currentCompany.ffi }}
                       </span>
-                      <span class="text-[10px] text-slate-400 uppercase font-semibold">
+                      <span class="text-[10px] text-slate-400 font-medium">
                         / 100
                       </span>
                     </div>
@@ -1329,34 +1326,36 @@ onMounted(async () => {
                     >
                       {{ ffiColor(currentCompany.ffi).label }}
                     </span>
-                    <p class="text-[11px] text-slate-400">
-                      {{ currentCompany.is_macro_index ? 'Constituent Weighted Fragility Dispersion' : 'Drift 30% · M-Score 40% · Contradictions 30%' }}
-                    </p>
+                    <div class="flex items-center justify-center gap-1.5 pt-1">
+                      <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">Drift 30%</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">M-Score 40%</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">Tone 30%</span>
+                    </div>
                   </div>
 
                   <div class="w-full space-y-2 pt-2 border-t border-white/5">
                     <button
                       @click="showInvestigationRunner = true"
-                      class="apple-press w-full py-2 px-3 rounded-xl bg-purple-600/90 hover:bg-purple-500 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                      class="apple-press w-full py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-950 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
-                      <Terminal class="w-3.5 h-3.5" />
-                      <span>Autonomous Multi-Agent Audit</span>
+                      <Terminal class="w-3.5 h-3.5 text-slate-900" />
+                      <span>Run autonomous audit</span>
                     </button>
 
                     <button
                       @click="showAuditorModal = true"
-                      class="apple-press w-full py-2 px-3 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-xs font-semibold text-rose-300 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                      class="apple-press w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-white/10 text-xs font-medium text-slate-200 hover:text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
-                      <Scale class="w-3.5 h-3.5 text-rose-400" />
-                      <span>Adversarial Cross-Examination</span>
+                      <Scale class="w-3.5 h-3.5 text-slate-400" />
+                      <span>Adversarial cross-examination</span>
                     </button>
 
                     <button
                       @click="showScorecardModal = true"
-                      class="apple-press w-full py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-white/10 text-xs font-medium text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      class="apple-press w-full py-1.5 px-3 rounded-xl bg-transparent hover:bg-white/5 border border-white/10 text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      <Sliders class="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Inspect Audit Scorecard</span>
+                      <Sliders class="w-3.5 h-3.5 text-slate-500" />
+                      <span>Inspect audit scorecard</span>
                     </button>
                   </div>
                 </div>
@@ -1377,12 +1376,12 @@ onMounted(async () => {
                 </div>
                 <div class="space-y-0.5">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-white">Governance & Disclosure Anomaly Radar</h3>
+                    <h3 class="text-xs font-semibold text-white">Governance & disclosure anomaly radar</h3>
                     <span 
-                      class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                      class="text-[11px] font-medium px-2 py-0.5 rounded-md border"
                       :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : (currentCompany.is_macro_index ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20')"
                     >
-                      {{ currentCompany.ticker === 'SMCI' ? 'CRITICAL DISCLOSURE ANOMALIES' : (currentCompany.is_macro_index ? 'BENCHMARK COMPOSITE DISPERSION' : 'NORMALIZED GOVERNANCE') }}
+                      {{ currentCompany.ticker === 'SMCI' ? 'Critical disclosure anomalies' : (currentCompany.is_macro_index ? 'Benchmark composite dispersion' : 'Normalized governance') }}
                     </span>
                   </div>
                   <p class="text-xs text-slate-300">
@@ -1396,12 +1395,11 @@ onMounted(async () => {
               <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
                 <button
                   @click="showAnomalyModal = true"
-                  class="apple-press px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'"
+                  class="apple-press px-3.5 py-1.5 rounded-xl text-xs font-medium text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-slate-800 hover:bg-slate-700 border border-white/10'"
                 >
-                  <Search class="w-3.5 h-3.5" />
-                  <span>Audit Signals</span>
-                  <ArrowRight class="w-3 h-3" />
+                  <Search class="w-3.5 h-3.5 text-slate-300" />
+                  <span>Audit signals</span>
                 </button>
               </div>
             </section>
@@ -1410,10 +1408,10 @@ onMounted(async () => {
             <section class="space-y-3">
               <div class="flex items-center justify-between">
                 <div>
-                  <h2 class="text-sm font-bold text-white tracking-tight uppercase">Forensic Intelligence Pillars</h2>
+                  <h2 class="text-sm font-semibold text-white tracking-tight">Forensic intelligence pillars</h2>
                   <p class="text-xs text-slate-400">Continuous institutional monitoring across four analytical audit vectors</p>
                 </div>
-                <span class="text-xs text-slate-500 font-mono">SEC EDGAR Continuous Ingestion</span>
+                <span class="text-xs text-slate-400">Continuous SEC EDGAR ingestion</span>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1426,17 +1424,17 @@ onMounted(async () => {
                         <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
                           <GitCompare class="w-3.5 h-3.5" />
                         </div>
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Filing Language Drift</h3>
+                        <h3 class="text-xs font-semibold text-white">Filing language drift</h3>
                       </div>
-                      <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                      <span class="text-xs tabular-nums font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
                         {{ currentCompany.driftLabel }}
                       </span>
                     </div>
 
-                    <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
-                      <span class="text-emerald-400 font-medium">+{{ currentCompany.driftAdded }} Risks Added</span>
-                      <span>·</span>
-                      <span class="text-slate-400">-{{ currentCompany.driftRemoved }} Retired</span>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                      <span class="text-emerald-400 font-medium">+{{ currentCompany.driftAdded }} risks added</span>
+                      <span class="text-slate-600">/</span>
+                      <span class="text-slate-400">-{{ currentCompany.driftRemoved }} retired</span>
                     </div>
 
                     <blockquote class="text-xs text-slate-300 italic border-l-2 border-amber-500/40 pl-3 py-1 bg-slate-950/40 rounded-r-lg font-serif">
@@ -1445,13 +1443,12 @@ onMounted(async () => {
                   </div>
 
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500 font-mono">YoY Redline Semantic Matching</span>
+                    <span class="text-[11px] text-slate-500">Year-over-year semantic redline</span>
                     <button
                       @click="showDiffModal = true"
-                      class="apple-press text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                      class="apple-press text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer"
                     >
-                      <span>Inspect Redline Diff</span>
-                      <ArrowRight class="w-3 h-3" />
+                      Inspect redline diff
                     </button>
                   </div>
                 </div>
@@ -1464,18 +1461,18 @@ onMounted(async () => {
                         <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
                           <Calculator class="w-3.5 h-3.5" />
                         </div>
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Beneish M-Score Accruals</h3>
+                        <h3 class="text-xs font-semibold text-white">Beneish M-Score accruals</h3>
                       </div>
-                      <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                      <span class="text-xs tabular-nums font-medium px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20">
                         {{ currentCompany.mscoreLabel }}
                       </span>
                     </div>
 
-                    <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
+                    <div class="flex items-center gap-3 text-xs text-slate-400 tabular-nums">
                       <span>Threshold: <strong class="text-slate-200">-1.78</strong></span>
-                      <span>·</span>
-                      <span>Prob: <strong class="text-emerald-400">{{ currentCompany.mscoreProb }}</strong></span>
-                      <span>·</span>
+                      <span class="text-slate-600">/</span>
+                      <span>Probability: <strong class="text-emerald-400">{{ currentCompany.mscoreProb }}</strong></span>
+                      <span class="text-slate-600">/</span>
                       <span>TATA: <strong class="text-slate-200">{{ currentCompany.tataAccrual }}</strong></span>
                     </div>
 
@@ -1485,13 +1482,12 @@ onMounted(async () => {
                   </div>
 
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500 font-mono">8-Factor Probabilistic Model</span>
+                    <span class="text-[11px] text-slate-500">8-factor probabilistic model</span>
                     <button
                       @click="showMScoreModal = true"
-                      class="apple-press text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer"
+                      class="apple-press text-xs font-medium text-purple-300 hover:text-purple-200 cursor-pointer"
                     >
-                      <span>Audit Accruals</span>
-                      <ArrowRight class="w-3 h-3" />
+                      Audit accruals
                     </button>
                   </div>
                 </div>
@@ -1504,9 +1500,9 @@ onMounted(async () => {
                         <div class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                           <Radio class="w-3.5 h-3.5" />
                         </div>
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Earnings Call vs 10-Q Radar</h3>
+                        <h3 class="text-xs font-semibold text-white">Guidance vs 10-Q tone radar</h3>
                       </div>
-                      <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                      <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                         {{ currentCompany.radarLabel }}
                       </span>
                     </div>
@@ -1517,13 +1513,12 @@ onMounted(async () => {
                   </div>
 
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500 font-mono">Cross-Modal Decoupling</span>
+                    <span class="text-[11px] text-slate-500">Cross-modal tone decoupling</span>
                     <button
                       @click="showRadarModal = true"
-                      class="apple-press text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
+                      class="apple-press text-xs font-medium text-cyan-300 hover:text-cyan-200 cursor-pointer"
                     >
-                      <span>Inspect Contradictions</span>
-                      <ArrowRight class="w-3 h-3" />
+                      Inspect guidance discrepancies
                     </button>
                   </div>
                 </div>
@@ -1536,15 +1531,15 @@ onMounted(async () => {
                         <div class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
                           <ShieldAlert class="w-3.5 h-3.5" />
                         </div>
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Footnote Disclosure Scan</h3>
+                        <h3 class="text-xs font-semibold text-white">Footnote disclosure scan</h3>
                       </div>
                       <span 
-                        class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full border"
+                        class="text-xs font-medium px-2 py-0.5 rounded-md border"
                         :class="currentCompany.footnotesClean 
                           ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
                           : 'bg-rose-500/10 text-rose-300 border-rose-500/20'"
                       >
-                        {{ currentCompany.footnotesClean ? 'Clean Disclosures' : `${currentCompany.footnoteCount} Hazards Flagged` }}
+                        {{ currentCompany.footnotesClean ? 'Clean disclosures' : `${currentCompany.footnoteCount} hazards flagged` }}
                       </span>
                     </div>
 
@@ -1554,13 +1549,12 @@ onMounted(async () => {
                   </div>
 
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
-                    <span class="text-[11px] text-slate-500 font-mono">Automated NLP Disclosure Audit</span>
+                    <span class="text-[11px] text-slate-500">Automated NLP disclosure scan</span>
                     <button
                       @click="showMScoreModal = true"
-                      class="apple-press text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                      class="apple-press text-xs font-medium text-rose-300 hover:text-rose-200 cursor-pointer"
                     >
-                      <span>Scan Footnotes</span>
-                      <ArrowRight class="w-3 h-3" />
+                      Scan footnotes
                     </button>
                   </div>
                 </div>
@@ -1634,10 +1628,9 @@ onMounted(async () => {
                 </div>
                 <button
                   @click="showAuditorModal = true"
-                  class="apple-press py-2 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  class="apple-press py-2 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium flex items-center justify-center cursor-pointer shadow-xs"
                 >
-                  <span>Launch Cross-Examination</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Launch cross-examination
                 </button>
               </div>
 
@@ -1647,17 +1640,16 @@ onMounted(async () => {
                   <div class="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 w-fit">
                     <Terminal class="w-5 h-5" />
                   </div>
-                  <h3 class="text-sm font-bold text-white">Autonomous 4-Stage Multi-Agent Audit</h3>
+                  <h3 class="text-sm font-semibold text-white">Autonomous multi-agent investigation</h3>
                   <p class="text-xs text-slate-300 leading-relaxed">
                     Dispatches synchronized specialized subagents across filings, transcripts, and footnotes with real-time SSE execution telemetry.
                   </p>
                 </div>
                 <button
                   @click="showInvestigationRunner = true"
-                  class="apple-press py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  class="apple-press py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium flex items-center justify-center cursor-pointer shadow-xs"
                 >
-                  <span>Launch Agent Swarm</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Run autonomous audit
                 </button>
               </div>
 
@@ -1667,17 +1659,16 @@ onMounted(async () => {
                   <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 w-fit">
                     <Cpu class="w-5 h-5" />
                   </div>
-                  <h3 class="text-sm font-bold text-white">AI RAG & Prompt Benchmark Lab</h3>
+                  <h3 class="text-sm font-semibold text-white">AI benchmark and RAG laboratory</h3>
                   <p class="text-xs text-slate-300 leading-relaxed">
                     Evaluate LLM reasoning latencies, hallucination rates, and cross-encoder reranking precision across institutional queries.
                   </p>
                 </div>
                 <button
                   @click="showSandboxModal = true"
-                  class="apple-press py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  class="apple-press py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center justify-center cursor-pointer shadow-xs"
                 >
-                  <span>Open Benchmark Lab</span>
-                  <ArrowRight class="w-3.5 h-3.5" />
+                  Open benchmark lab
                 </button>
               </div>
 
@@ -1741,12 +1732,12 @@ onMounted(async () => {
 
               <div v-else class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-300">
-                  <thead class="bg-slate-950/80 text-slate-400 uppercase tracking-wider text-[10px] border-b border-white/5 font-mono">
+                  <thead class="bg-[#161b22] text-slate-400 text-xs font-medium border-b border-white/10">
                     <tr>
-                      <th class="py-3 px-4 font-semibold">Document Name / Source</th>
-                      <th class="py-3 px-4 font-semibold">Identifier</th>
-                      <th class="py-3 px-4 font-semibold">Status</th>
-                      <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                      <th class="py-3 px-4 font-medium">Document and source</th>
+                      <th class="py-3 px-4 font-medium">Identifier</th>
+                      <th class="py-3 px-4 font-medium">Status</th>
+                      <th class="py-3 px-4 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-white/5">
@@ -1763,9 +1754,9 @@ onMounted(async () => {
                         {{ doc.doc_id }}
                       </td>
                       <td class="py-3.5 px-4">
-                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                          Indexed & Reranked
+                          Indexed and vectorized
                         </span>
                       </td>
                       <td class="py-3.5 px-4 text-right">
@@ -1773,10 +1764,10 @@ onMounted(async () => {
                           <button
                             @click="openFilingViewer(doc)"
                             class="apple-press px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                            title="Open interactive SEC document & AI annotation viewer"
+                            title="Open interactive SEC document viewer"
                           >
                             <BookOpen class="w-3 h-3" />
-                            <span>AI Studio</span>
+                            <span>Viewer</span>
                           </button>
 
                           <button
@@ -1785,7 +1776,7 @@ onMounted(async () => {
                             title="Query AI Co-Analyst on this document"
                           >
                             <Sparkles class="w-3 h-3" />
-                            <span>Ask AI</span>
+                            <span>Query filing</span>
                           </button>
 
                           <a
@@ -2000,22 +1991,25 @@ onMounted(async () => {
 
 <style scoped>
 .apple-glass {
-  background: rgba(10, 14, 23, 0.82);
-  backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 
 .apple-card {
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(22, 27, 34, 0.75);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .apple-press {
-  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.18s ease;
+  transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.15s ease;
 }
 
 .apple-press:active {
-  transform: scale(0.975);
+  transform: scale(0.98);
 }
 
 /* Apple spring slide view transitions */

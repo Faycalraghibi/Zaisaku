@@ -10,7 +10,6 @@ import {
   FileText,
   FileSearch,
   ShieldAlert,
-  ArrowRight,
   Download,
   Bot,
   AlertTriangle,
@@ -314,8 +313,8 @@ onUnmounted(() => {
           
           <!-- AI Co-Analyst Quick Query Option (if query exists) -->
           <div v-if="searchQuery.trim().length > 1" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-              AI Co-Analyst Direct Inquiry
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400">
+              AI Co-Analyst direct inquiry
             </div>
             <div
               @click="executeItem(flattenedItems[0])"
@@ -335,15 +334,15 @@ onUnmounted(() => {
                   <div class="text-xs text-slate-400">Query vector index and financial filings with citations</div>
                 </div>
               </div>
-              <ArrowRight class="w-4 h-4 text-slate-400" />
+              <kbd class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
             </div>
           </div>
 
           <!-- Workspaces & Views -->
           <div v-if="filteredWorkspaces.length > 0" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400 flex items-center gap-1.5">
               <FolderOpen class="w-3.5 h-3.5" />
-              <span>Workspace Views</span>
+              <span>Workspace views</span>
             </div>
             <div
               v-for="item in filteredWorkspaces"
@@ -363,15 +362,15 @@ onUnmounted(() => {
                   <div class="text-xs text-slate-400">{{ item.desc }}</div>
                 </div>
               </div>
-              <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">View</span>
+              <span class="text-xs font-medium text-slate-500">View</span>
             </div>
           </div>
 
           <!-- Macro Market Indices & Benchmarks -->
           <div v-if="filteredIndices.length > 0" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400 flex items-center gap-1.5">
               <Layers class="w-3.5 h-3.5 text-blue-400" />
-              <span>Macro Market Indices & Sector ETFs</span>
+              <span>Macro market indices and sector ETFs</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               <div
@@ -392,7 +391,7 @@ onUnmounted(() => {
                   </div>
                 </div>
                 <div class="shrink-0 flex items-center gap-1.5">
-                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-blue-500/10 text-blue-300 border-blue-500/20">
+                  <span class="text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded border bg-blue-500/10 text-blue-300 border-blue-500/20">
                     {{ item.score }}
                   </span>
                 </div>
@@ -402,9 +401,9 @@ onUnmounted(() => {
 
           <!-- Watchlist Tickers -->
           <div v-if="filteredTickers.length > 0" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400 flex items-center gap-1.5">
               <Building2 class="w-3.5 h-3.5" />
-              <span>Institutional Watchlist Tickers</span>
+              <span>Watchlist tickers</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               <div
@@ -426,7 +425,7 @@ onUnmounted(() => {
                 </div>
                 <div class="shrink-0 flex items-center gap-1.5">
                   <span 
-                    class="text-[10px] font-semibold px-1.5 py-0.5 rounded border"
+                    class="text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded border"
                     :class="item.color === 'rose' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : item.color === 'amber' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'"
                   >
                     {{ item.score }}
@@ -438,10 +437,10 @@ onUnmounted(() => {
 
           <!-- Dynamic SEC EDGAR Directory Search Results -->
           <div v-if="remoteResults.length > 0 || isSearchingRemote" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center justify-between">
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400 flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <Search class="w-3.5 h-3.5 text-emerald-400" />
-                <span>SEC EDGAR Universe Autocomplete</span>
+                <span>SEC EDGAR universe autocomplete</span>
               </div>
               <div v-if="isSearchingRemote" class="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
                 <Loader2 class="w-3 h-3 animate-spin" />
@@ -478,9 +477,9 @@ onUnmounted(() => {
 
           <!-- Institutional Actions -->
           <div v-if="filteredActions.length > 0" class="space-y-1">
-            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400 flex items-center gap-1.5">
               <Activity class="w-3.5 h-3.5" />
-              <span>Institutional Forensic Actions</span>
+              <span>Institutional forensic actions</span>
             </div>
             <div
               v-for="item in filteredActions"
@@ -500,7 +499,7 @@ onUnmounted(() => {
                   <div class="text-xs text-slate-400">{{ item.desc }}</div>
                 </div>
               </div>
-              <ArrowRight class="w-4 h-4 text-slate-400" />
+              <kbd class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
             </div>
           </div>
 

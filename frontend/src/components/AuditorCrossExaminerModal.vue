@@ -158,8 +158,8 @@ onUnmounted(() => {
           
           <!-- Inquiries List (4 cols) -->
           <div class="md:col-span-5 space-y-2">
-            <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-2">
-              Cross-Examination Inquiries ({{ auditData.inquiries.length }})
+            <span class="text-xs text-slate-400 font-medium block mb-2">
+              Cross-examination inquiries ({{ auditData.inquiries.length }})
             </span>
 
             <button
@@ -172,7 +172,7 @@ onUnmounted(() => {
                 : 'bg-slate-950/40 border-white/5 hover:border-white/10 text-slate-300'"
             >
               <div class="flex items-center justify-between">
-                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded font-medium"
                   :class="inquiry.severity === 'SUBPOENA_VULNERABILITY' || inquiry.severity === 'CRITICAL_DEFICIENCY'
                     ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                     : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'"
@@ -181,7 +181,7 @@ onUnmounted(() => {
                 </span>
                 <ChevronRight class="w-3.5 h-3.5 text-slate-500" />
               </div>
-              <h4 class="text-xs font-bold leading-tight line-clamp-1">{{ inquiry.topic }}</h4>
+              <h4 class="text-xs font-semibold leading-tight line-clamp-1">{{ inquiry.topic }}</h4>
               <span class="text-[10px] font-mono text-slate-400">{{ inquiry.statutory_rule_citation }}</span>
             </button>
           </div>
@@ -195,18 +195,18 @@ onUnmounted(() => {
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-white/10">
                   {{ currentInquiry.statutory_rule_citation }}
                 </span>
-                <span class="text-xs font-mono font-semibold text-rose-400">
+                <span class="text-xs font-mono font-medium text-rose-400">
                   Posture: {{ currentInquiry.management_defense_posture }}
                 </span>
               </div>
-              <h3 class="text-sm font-bold text-white">{{ currentInquiry.topic }}</h3>
+              <h3 class="text-sm font-semibold text-white">{{ currentInquiry.topic }}</h3>
             </div>
 
             <!-- Interrogation Prompt (The Question) -->
             <div class="space-y-2">
-              <span class="text-[11px] font-mono uppercase text-slate-400 font-bold flex items-center gap-1.5">
+              <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
                 <Gavel class="w-3.5 h-3.5 text-rose-400" />
-                Prosecutorial Inquiry:
+                Prosecutorial inquiry:
               </span>
               <blockquote class="text-xs text-rose-100 italic bg-rose-950/20 p-4 rounded-xl border-l-2 border-rose-500/60 leading-relaxed font-serif">
                 "{{ currentInquiry.interrogation_prompt }}"
@@ -215,9 +215,9 @@ onUnmounted(() => {
 
             <!-- Evidentiary Documents Required -->
             <div class="space-y-2">
-              <span class="text-[11px] font-mono uppercase text-slate-400 font-bold flex items-center gap-1.5">
+              <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
                 <FileCheck class="w-3.5 h-3.5 text-sky-400" />
-                Required Audit Workpapers & Subpoena Evidence:
+                Required audit workpapers and subpoena evidence:
               </span>
               <ul class="space-y-1.5 text-xs text-slate-300">
                 <li 
