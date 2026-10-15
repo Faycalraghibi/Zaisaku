@@ -13,21 +13,24 @@ const searchResults = ref([])
 const isSearching = ref(false)
 const searchError = ref('')
 let searchTimer = null
+let searchSeq = 0
 
 const selectCompany = (ticker, entry = null) => {
   const t = (ticker || '').toUpperCase().trim()
   if (!t) return
-  if (entry) currentCompany.value = profileFromSearchEntry(t, entry)
-  else currentCompany.value = companyProfiles[t] ?? fallbackProfile(t)
+  // Curated profiles always win; a search row only describes companies outside coverage.
+  currentCompany.value = companyProfiles[t] ?? (entry ? profileFromSearchEntry(t, entry) : fallbackProfile(t))
   recent.value = pushRecent(recent.value, t)
 }
 
 const runSearch = (query) => {
   const q = (query || '').trim()
   if (searchTimer) clearTimeout(searchTimer)
+  // Results always belong to the latest query: clear now, and drop replies to superseded queries.
+  const seq = ++searchSeq
   searchError.value = ''
+  searchResults.value = []
   if (!q) {
-    searchResults.value = []
     isSearching.value = false
     return
   }
@@ -37,12 +40,11 @@ const runSearch = (query) => {
       const res = await fetch(`/api/forensics/tickers/search?q=${encodeURIComponent(q)}&limit=8`)
       if (!res.ok) throw new Error('Search unavailable')
       const data = await res.json()
-      searchResults.value = data.results || []
+      if (seq === searchSeq) searchResults.value = data.results || []
     } catch {
-      searchResults.value = []
-      searchError.value = 'Search unavailable. Showing local matches only.'
+      if (seq === searchSeq) searchError.value = 'Search unavailable. Showing local matches only.'
     } finally {
-      isSearching.value = false
+      if (seq === searchSeq) isSearching.value = false
     }
   }, SEARCH_DEBOUNCE_MS)
 }
