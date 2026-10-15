@@ -6,7 +6,6 @@ import {
   Download,
   FileText,
   ShieldAlert,
-  CheckCircle2,
   Calendar,
   Building,
   UserCheck
@@ -92,6 +91,12 @@ const pillars = computed(() => {
       detail: p.footnoteExcerpt || 'No footnote scan available for this period.'
     }
   ]
+})
+
+// Date the memo is generated, not an audit date: nothing here is externally audited.
+const preparedDate = computed(() => {
+  if (!props.isOpen) return ''
+  return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 })
 
 const entityLine = computed(() => {
@@ -221,7 +226,7 @@ const handleDownloadMarkdown = async () => {
                   FFI: {{ ffiScore }} / 100 — {{ tier.label }}
                 </span>
                 <div class="text-[10px] text-neutral-500 mt-1 print:text-neutral-600">
-                  Audited Date: October 2026
+                  Prepared: {{ preparedDate }}
                 </div>
               </div>
             </div>
@@ -285,19 +290,12 @@ const handleDownloadMarkdown = async () => {
             </div>
           </div>
 
-          <!-- Section 3: Sign-Off and Verification -->
+          <!-- Section 3: Sign-Off -->
           <div class="pt-4 border-t border-neutral-800 print:border-black flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
             <div>
               <span class="text-[10px] text-neutral-500 print:text-neutral-600 block">Sign-Off & Audit Directorate</span>
               <span class="font-semibold text-white print:text-black">Zaisaku Institutional Intelligence Group</span>
               <span class="text-[11px] text-neutral-400 print:text-neutral-600 block">Global Forensic Due Diligence & Risk Compliance</span>
-            </div>
-
-            <div class="text-right">
-              <span class="text-[10px] text-neutral-500 print:text-neutral-600 block">Autonomous Verification</span>
-              <span class="inline-flex items-center gap-1 text-emerald-400 font-mono text-xs font-semibold print:text-black">
-                <CheckCircle2 class="w-3.5 h-3.5" /> SEC XBRL & SHA-256 Validated
-              </span>
             </div>
           </div>
         </div>
