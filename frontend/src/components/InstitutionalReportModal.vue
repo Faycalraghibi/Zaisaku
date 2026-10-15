@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   X,
   Printer,
@@ -11,6 +11,7 @@ import {
   Building,
   UserCheck
 } from 'lucide-vue-next'
+import { ffiTier } from '../utils/ffi.js'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -30,6 +31,14 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const ffiScore = computed(() => props.profile.ffi ?? 0)
+const tier = computed(() => ffiTier(ffiScore.value))
+const entityLine = computed(() => {
+  const parts = [`${props.companyName} (${props.profile.exchange || 'N/A'}: ${props.ticker})`]
+  if (props.profile.cik) parts.push(`CIK: ${props.profile.cik}`)
+  return parts.join(' / ')
+})
+
 const isDownloading = ref(false)
 
 const handlePrint = () => {
@@ -43,7 +52,7 @@ const handleDownloadMarkdown = async () => {
       ticker: props.ticker,
       company_name: props.companyName,
       scorecard: {
-        composite_ffi: props.profile.ffi || 18,
+        composite_ffi: ffiScore.value,
         risk_level: props.profile.riskTier || 'LOW_RISK',
         summary: `Institutional forensic review of ${props.ticker} SEC filings, language drift, and executive tone.`
       }
@@ -138,14 +147,17 @@ const handleDownloadMarkdown = async () => {
                   Forensic Financial Audit & Due Diligence Memorandum
                 </h1>
                 <p class="text-xs text-neutral-400 mt-0.5 print:text-neutral-600">
-                  Target Entity: {{ companyName }} (NASDAQ: {{ ticker }}) / CIK: {{ profile.cik || '0001045810' }}
+                  Target Entity: {{ entityLine }}
                 </p>
               </div>
 
               <!-- Risk Badge -->
               <div class="text-right">
-                <span class="inline-block px-3 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 print:border-black print:text-black">
-                  FFI: {{ profile.ffi || 18 }} / 100 — Low fragility
+                <span
+                  class="inline-block px-3 py-1 rounded-md text-xs font-semibold border print:border-black print:text-black"
+                  :class="[tier.bg, tier.text, tier.border]"
+                >
+                  FFI: {{ ffiScore }} / 100 — {{ tier.label }}
                 </span>
                 <div class="text-[10px] text-neutral-500 mt-1 print:text-neutral-600">
                   Audited Date: October 2026
@@ -181,7 +193,13 @@ const handleDownloadMarkdown = async () => {
             </h3>
             <p class="text-xs leading-relaxed text-neutral-300 print:text-neutral-800">
               The proprietary Forensic Fragility Index (FFI) for {{ companyName }} is assessed at
-              <strong class="text-white print:text-black">{{ profile.ffi || 18 }} out of 100</strong>, reflecting institutional-grade financial reporting health and absence of aggressive earnings manipulation patterns. A tri-pillar synthesis across consecutive 10-K regulatory filings, footnote disclosures, and earnings conference call transcripts indicates negligible structural fragility.
+              <strong class="text-white print:text-black">{{ ffiScore }} out of 100</strong>.
+              <template v-if="tier.key === 'low'">
+                This reflects institutional-grade financial reporting health and absence of aggressive earnings manipulation patterns. A tri-pillar synthesis across consecutive 10-K regulatory filings, footnote disclosures, and earnings conference call transcripts indicates negligible structural fragility.
+              </template>
+              <template v-else>
+                A tri-pillar synthesis across consecutive 10-K regulatory filings, footnote disclosures, and earnings conference call transcripts indicates {{ tier.key === 'watch' ? 'watchlist-level' : 'critical' }} structural fragility, warranting targeted follow-up on the flagged pillars.
+              </template>
             </p>
           </div>
 
