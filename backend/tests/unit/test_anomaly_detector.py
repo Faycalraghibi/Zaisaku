@@ -75,3 +75,33 @@ def test_generic_ticker_fallback(detector: AnomalyDetector):
     assert res_dict["ticker"] == "UNKNOWN_CO"
     assert isinstance(res_dict["findings"], list)
     assert len(res_dict["findings"]) > 0
+
+
+def test_anomaly_api_endpoint():
+    """Verify GET /api/forensics/anomalies/{ticker} returns valid Pydantic schema."""
+    from fastapi.testclient import TestClient
+
+    from zaisaku.api.app import create_app
+
+    client = TestClient(create_app())
+
+    # Valid preset
+    res = client.get("/api/forensics/anomalies/SMCI")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["ticker"] == "SMCI"
+    assert data["overall_anomaly_tier"] == "CRITICAL_ALERT"
+    assert data["critical_count"] >= 2
+    assert isinstance(data["findings"], list)
+
+    # Generic ticker
+    res_gen = client.get("/api/forensics/anomalies/GENERIC_INC")
+    assert res_gen.status_code == 200
+    data_gen = res_gen.json()
+    assert data_gen["ticker"] == "GENERIC_INC"
+    assert data_gen["overall_anomaly_tier"] == "LOW_RISK"
+
+    # Whitespace ticker validation
+    res_err = client.get("/api/forensics/anomalies/%20")
+    assert res_err.status_code == 400
+

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import {
   ShieldAlert,
   AlertTriangle,
@@ -82,6 +82,21 @@ const handleCustomSearch = () => {
     customInput.value = ''
   }
 }
+
+const handleKeyDown = (e) => {
+  if (props.isOpen && e.key === 'Escape') {
+    e.preventDefault()
+    emit('close')
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>

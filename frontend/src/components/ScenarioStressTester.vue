@@ -137,6 +137,15 @@ const histogramMaxCount = computed(() => {
   return Math.max(...simulationResult.value.monte_carlo.histogram_bins.map(b => b.count), 1)
 })
 
+const var95LeftPct = computed(() => {
+  if (!simulationResult.value?.monte_carlo) return '20%'
+  const { min_fcf, max_fcf, var_95 } = simulationResult.value.monte_carlo
+  const span = max_fcf - min_fcf
+  if (span <= 0) return '20%'
+  const pct = ((var_95 - min_fcf) / span) * 100
+  return `${Math.max(4, Math.min(96, pct)).toFixed(1)}%`
+})
+
 const getBarHeightPct = (count) => {
   return ((count / histogramMaxCount.value) * 85).toFixed(1)
 }
@@ -455,7 +464,7 @@ const formatUSD = (val) => {
             <!-- Vertical VaR 95% Reference Line Indicator -->
             <div 
               class="absolute top-0 bottom-6 border-r border-dashed border-rose-500/80 pointer-events-none flex flex-col justify-between"
-              style="left: 20%;"
+              :style="{ left: var95LeftPct }"
             >
               <span class="text-[9px] font-mono text-rose-400 -translate-x-1/2 bg-slate-950 px-1 rounded border border-rose-500/40">
                 VaR 95% ({{ formatUSD(simulationResult.monte_carlo.var_95) }})

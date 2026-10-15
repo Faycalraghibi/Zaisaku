@@ -6,9 +6,10 @@ impairments, SEC Form 12b-25 late filing alerts, and inventory-sales decoupling.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class AnomalySeverity(StrEnum):
@@ -26,8 +27,7 @@ class AnomalyCategory(StrEnum):
     REVENUE_POLICY_AMENDMENT = "revenue_policy_amendment"
 
 
-@dataclass
-class AnomalyFinding:
+class AnomalyFinding(BaseModel):
     id: str
     category: str
     title: str
@@ -40,22 +40,21 @@ class AnomalyFinding:
     remediation_recommendation: str
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return self.model_dump()
 
 
-@dataclass
-class AnomalyScanResponse:
+class AnomalyScanResponse(BaseModel):
     ticker: str
     company_name: str
     overall_anomaly_tier: str
     anomaly_score: float
     critical_count: int
     elevated_count: int
-    findings: list[AnomalyFinding] = field(default_factory=list)
+    findings: list[AnomalyFinding] = Field(default_factory=list)
     institutional_summary: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return self.model_dump()
 
 
 class AnomalyDetector:

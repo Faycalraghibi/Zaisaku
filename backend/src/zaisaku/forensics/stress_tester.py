@@ -363,7 +363,7 @@ class ScenarioStressTester:
         revenue_multiplier = max(0.05, 1.0 + (rev_shock_pct / 100.0))
         shocked_rev = baseline.revenue * revenue_multiplier
         rev_delta = shocked_rev - baseline.revenue
-        rev_delta_pct = (rev_delta / baseline.revenue) * 100.0
+        rev_delta_pct = (rev_delta / baseline.revenue * 100.0) if baseline.revenue else 0.0
 
         # Margin bounded between 1.0% and 99.0%
         gm_delta_frac = gm_comp_bps / 10000.0
@@ -580,6 +580,7 @@ class ScenarioStressTester:
             f"{monte_carlo.prob_negative_fcf * 100:.1f}% probability of negative cash generation."
         )
 
+        base_ebit_pct = (baseline.ebit / baseline.revenue * 100.0) if baseline.revenue else 0.0
         vulnerabilities = [
             (
                 f"Working capital drag of ${pro_forma.working_capital_drag:,.0f}M immobilized "
@@ -587,7 +588,7 @@ class ScenarioStressTester:
             ),
             (
                 f"Operating leverage deleveraging: EBIT margin declines from "
-                f"{baseline.ebit / baseline.revenue * 100:.1f}% to {pro_forma.ebit_margin * 100:.1f}%."
+                f"{base_ebit_pct:.1f}% to {pro_forma.ebit_margin * 100:.1f}%."
             ),
             (
                 f"5% tail risk outcome (Expected Shortfall / CVaR 95%) projects adverse FCF generation "
