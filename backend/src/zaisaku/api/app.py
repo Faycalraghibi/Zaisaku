@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from zaisaku.api.routers import documents, forensics, health, ingest, query, sec
+from zaisaku.api.routers import documents, forensics, health, ingest, query, sec, workspace
 from zaisaku.config import Settings
 
 
@@ -37,5 +37,6 @@ def create_app(config: Settings | None = None) -> FastAPI:
     app.include_router(documents.router, prefix="/api")
     app.include_router(sec.router, prefix="/api")
     app.include_router(forensics.router, prefix="/api")
+    app.include_router(workspace.router, prefix="/api")
 
     return app

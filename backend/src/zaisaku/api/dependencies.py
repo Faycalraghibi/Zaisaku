@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Annotated
 
 import chromadb
@@ -12,6 +13,7 @@ from zaisaku.generation.llm import LLMBackend, LLMRouter
 from zaisaku.ingestion.embedder import Embedder, SentenceTransformerEmbedder
 from zaisaku.retrieval.reranker import CrossEncoderReranker, Reranker
 from zaisaku.retrieval.store import ChromaVectorStore, VectorStore
+from zaisaku.workspace.store import WorkspaceStore
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +79,17 @@ def get_llm_router(settings: Annotated[Settings, Depends(get_settings)]) -> LLMR
     return _llm_router_instance
 
 
+_workspace_store_instance: WorkspaceStore | None = None
+
+
+def get_workspace_store(settings: Annotated[Settings, Depends(get_settings)]) -> WorkspaceStore:
+    global _workspace_store_instance
+    if _workspace_store_instance is None:
+        path = settings.workspace_db_path or str(Path(settings.upload_dir) / "workspace.db")
+        _workspace_store_instance = WorkspaceStore(path)
+    return _workspace_store_instance
+
+
 # ---------------------------------------------------------------------------
 # Annotated type hints for concise dependency injection in routes
 # ---------------------------------------------------------------------------
@@ -86,3 +99,4 @@ RerankerDep = Annotated[Reranker, Depends(get_reranker)]
 StoreDep = Annotated[VectorStore, Depends(get_vector_store)]
 LLMDep = Annotated[LLMBackend, Depends(get_llm_backend)]
 RouterDep = Annotated[LLMRouter, Depends(get_llm_router)]
+WorkspaceDep = Annotated[WorkspaceStore, Depends(get_workspace_store)]
