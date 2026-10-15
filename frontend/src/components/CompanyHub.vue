@@ -1977,20 +1977,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.apple-glass {
-  background: rgba(13, 17, 23, 0.85);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-}
-
-.apple-card {
-  background: rgba(22, 27, 34, 0.75);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
 .apple-press {
   transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.15s ease;
 }
