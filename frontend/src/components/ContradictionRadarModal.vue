@@ -10,7 +10,6 @@ import {
   Loader2,
   CheckCircle2,
   Sparkles,
-  ArrowRight,
   TrendingDown,
   TrendingUp
 } from 'lucide-vue-next'
@@ -239,14 +238,14 @@ const severityColor = (severity) => {
             <div class="space-y-1">
               <div class="text-xs text-slate-400">Tone Decoupling Metric</div>
               <div class="flex items-baseline gap-3">
-                <span class="text-3xl font-extrabold font-mono text-cyan-400">
+                <span class="text-3xl font-extrabold tabular-nums text-cyan-400">
                   {{ radarResult.tone_divergence_score }}%
                 </span>
                 <span 
-                  class="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium border"
                   :class="severityColor(radarResult.divergence_severity)"
                 >
-                  {{ radarResult.divergence_severity }} DECOUPLING
+                  {{ radarResult.divergence_severity.toLowerCase() }} decoupling
                 </span>
               </div>
               <p class="text-xs text-slate-300 pt-1 max-w-xl leading-relaxed">
@@ -257,22 +256,22 @@ const severityColor = (severity) => {
             <!-- Sentiment Polarity Chips -->
             <div class="flex items-center gap-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
               <div class="text-center">
-                <div class="text-[11px] text-slate-400 flex items-center gap-1 justify-center">
-                  <Mic class="w-3 h-3 text-cyan-400" /> Call Tone
+                <div class="text-xs text-slate-400 flex items-center gap-1 justify-center">
+                  <Mic class="w-3 h-3 text-cyan-400" /> Call tone
                 </div>
-                <div class="text-sm font-bold font-mono text-cyan-400 uppercase mt-0.5">
-                  {{ radarResult.call_sentiment }}
+                <div class="text-xs font-semibold text-cyan-300 mt-1 capitalize">
+                  {{ radarResult.call_sentiment.toLowerCase() }}
                 </div>
               </div>
 
               <div class="h-8 w-px bg-slate-800"></div>
 
               <div class="text-center">
-                <div class="text-[11px] text-slate-400 flex items-center gap-1 justify-center">
-                  <FileText class="w-3 h-3 text-amber-400" /> 10-Q Tone
+                <div class="text-xs text-slate-400 flex items-center gap-1 justify-center">
+                  <FileText class="w-3 h-3 text-amber-400" /> 10-Q tone
                 </div>
-                <div class="text-sm font-bold font-mono text-amber-400 uppercase mt-0.5">
-                  {{ radarResult.filing_sentiment }}
+                <div class="text-xs font-semibold text-amber-300 mt-1 capitalize">
+                  {{ radarResult.filing_sentiment.toLowerCase() }}
                 </div>
               </div>
             </div>
@@ -280,9 +279,9 @@ const severityColor = (severity) => {
 
           <!-- Contradictions Cards List -->
           <div v-if="radarResult.contradictions?.length > 0" class="space-y-4">
-            <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <div class="text-xs font-semibold text-slate-300 flex items-center gap-2">
               <ShieldAlert class="w-4 h-4 text-rose-400" />
-              <span>Flagged Guidance & Operational Contradictions ({{ radarResult.contradictions.length }})</span>
+              <span>Flagged guidance and operational contradictions ({{ radarResult.contradictions.length }})</span>
             </div>
 
             <div 
@@ -293,12 +292,12 @@ const severityColor = (severity) => {
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                   <span 
-                    class="px-2.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border"
+                    class="px-2 py-0.5 rounded text-xs font-medium border"
                     :class="severityColor(c.severity)"
                   >
-                    {{ c.severity }}
+                    {{ c.severity.toLowerCase() }}
                   </span>
-                  <h4 class="text-sm font-bold text-slate-100">{{ c.topic }}</h4>
+                  <h4 class="text-sm font-semibold text-slate-100">{{ c.topic }}</h4>
                 </div>
               </div>
 

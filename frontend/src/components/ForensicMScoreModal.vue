@@ -290,18 +290,18 @@ const indexDescriptions = {
               <div class="text-xs font-medium text-slate-400">Beneish M-Score (Threshold: -1.78)</div>
               <div class="flex items-baseline gap-3">
                 <span 
-                  class="text-4xl font-extrabold font-mono"
+                  class="text-4xl font-extrabold tabular-nums"
                   :class="mScoreResult.is_manipulator_probable ? 'text-rose-400' : 'text-emerald-400'"
                 >
                   {{ mScoreResult.m_score }}
                 </span>
                 <span 
-                  class="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border"
+                  class="px-2.5 py-0.5 rounded-md text-xs font-medium border"
                   :class="mScoreResult.is_manipulator_probable 
                     ? 'bg-rose-500/10 text-rose-300 border-rose-500/30' 
                     : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'"
                 >
-                  {{ mScoreResult.risk_level }}
+                  {{ mScoreResult.risk_level.toLowerCase() }}
                 </span>
               </div>
               <p class="text-xs text-slate-300 pt-1 max-w-xl leading-relaxed">
@@ -310,12 +310,12 @@ const indexDescriptions = {
             </div>
 
             <div class="text-right space-y-1 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-              <div class="text-[11px] text-slate-400">Manipulation Probability</div>
+              <div class="text-[11px] text-slate-400">Manipulation probability</div>
               <div 
-                class="text-xl font-bold font-mono"
+                class="text-xl font-bold tabular-nums"
                 :class="mScoreResult.is_manipulator_probable ? 'text-rose-400' : 'text-emerald-400'"
               >
-                {{ mScoreResult.is_manipulator_probable ? 'HIGH (>75%)' : 'LOW (<5%)' }}
+                {{ mScoreResult.is_manipulator_probable ? 'High (>75%)' : 'Low (<5%)' }}
               </div>
               <div class="text-[10px] text-slate-500">Benchmark: M > -1.78 flags restatements</div>
             </div>
@@ -325,7 +325,7 @@ const indexDescriptions = {
           <div v-if="mScoreResult.flagged_indices?.length > 0" class="p-4 rounded-xl bg-rose-950/30 border border-rose-800/50 space-y-2">
             <div class="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
               <ShieldAlert class="w-4 h-4 shrink-0" />
-              <span>Flagged Accounting Anomalies ({{ mScoreResult.flagged_indices.length }})</span>
+              <span>Flagged accounting anomalies ({{ mScoreResult.flagged_indices.length }})</span>
             </div>
             <ul class="space-y-1.5 pl-5 list-disc text-xs text-rose-200">
               <li v-for="(flag, idx) in mScoreResult.flagged_indices" :key="idx" class="leading-relaxed">
@@ -336,8 +336,8 @@ const indexDescriptions = {
 
           <!-- 8 Indices Breakdown Cards -->
           <div class="space-y-2">
-            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              8 Beneish Forensic Indices
+            <h4 class="text-xs font-semibold text-slate-300">
+              8 Beneish forensic indices
             </h4>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div 
@@ -347,7 +347,7 @@ const indexDescriptions = {
               >
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-slate-200 font-mono">{{ code }}</span>
-                  <span class="text-xs font-bold font-mono text-purple-400">{{ val }}</span>
+                  <span class="text-xs font-bold tabular-nums text-purple-400">{{ val }}</span>
                 </div>
                 <div class="text-[10px] text-slate-400 font-medium leading-tight">
                   {{ indexDescriptions[code]?.name }}
@@ -362,8 +362,8 @@ const indexDescriptions = {
 
         <!-- Inputs Grid -->
         <div class="space-y-3 pt-2">
-          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <span>Input Financial Statements ($ in Millions)</span>
+          <div class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+            <span>Input financial statements ($ in millions)</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -546,10 +546,10 @@ const indexDescriptions = {
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span 
-                    class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider"
+                    class="px-2 py-0.5 rounded text-[10px] font-medium"
                     :class="f.severity === 'HIGH' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'"
                   >
-                    {{ f.severity }}
+                    {{ f.severity.toLowerCase() }}
                   </span>
                   <span class="text-xs font-bold text-slate-200">{{ f.title }}</span>
                 </div>

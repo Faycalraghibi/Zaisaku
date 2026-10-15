@@ -385,7 +385,7 @@ const exportTableToCsv = (text) => {
                 </button>
 
                 <div v-if="msg.sources?.length > 0" class="flex flex-wrap gap-1.5 items-center w-full mt-1">
-                  <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Citations:</span>
+                  <span class="text-xs text-slate-500 font-medium">Citations:</span>
                   <SourceBadge v-for="source in msg.sources" :key="source" :source="source" />
                 </div>
               </div>

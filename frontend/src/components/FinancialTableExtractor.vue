@@ -195,17 +195,17 @@ const formatNumber = (val) => {
       <div class="overflow-x-auto rounded-xl border border-white/10 bg-black/20">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="border-b border-white/10 bg-white/[0.04] text-neutral-300 uppercase tracking-wider text-[11px]">
-              <th class="py-3 px-4 font-semibold">Line Item</th>
+            <tr class="border-b border-white/10 bg-[#161b22] text-slate-400 text-xs font-medium">
+              <th class="py-3 px-4 font-medium">Line item</th>
               <th
                 v-for="period in currentStatement.period_labels"
                 :key="period"
-                class="py-3 px-3 text-right font-semibold"
+                class="py-3 px-3 text-right font-medium"
               >
                 {{ period }}
               </th>
-              <th class="py-3 px-3 text-right font-semibold">YoY Change</th>
-              <th class="py-3 px-4 font-semibold">AI Forensic Insight</th>
+              <th class="py-3 px-3 text-right font-medium">YoY change</th>
+              <th class="py-3 px-4 font-medium">Forensic insight</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
@@ -233,13 +233,13 @@ const formatNumber = (val) => {
               <td
                 v-for="(val, vIdx) in row.values"
                 :key="vIdx"
-                class="py-2.5 px-3 text-right font-mono text-[12px]"
+                class="py-2.5 px-3 text-right font-mono tabular-nums text-xs"
               >
                 {{ formatNumber(val) }}
               </td>
 
               <!-- YoY Change % -->
-              <td class="py-2.5 px-3 text-right font-mono text-[12px]">
+              <td class="py-2.5 px-3 text-right font-mono tabular-nums text-xs">
                 <div v-if="row.yoy_change_pct != null" class="inline-flex items-center justify-end gap-1">
                   <TrendingUp v-if="row.yoy_change_pct > 0" class="w-3 h-3 text-emerald-400 shrink-0" />
                   <TrendingDown v-else-if="row.yoy_change_pct < 0" class="w-3 h-3 text-rose-400 shrink-0" />

@@ -6,7 +6,6 @@ import {
   Layers,
   AlertTriangle,
   ShieldAlert,
-  ArrowRight,
   TrendingUp,
   Globe,
   Loader2,
@@ -160,7 +159,7 @@ const formatUSD = (val) => {
       <div class="flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-950/40 p-3 rounded-xl border border-white/5">
         <div class="flex items-center gap-3">
           <span class="text-slate-400 font-mono">Source: <strong class="text-slate-200">{{ currentExhibit.filing_source }}</strong></span>
-          <span>·</span>
+          <span class="text-slate-600">/</span>
           <span class="text-slate-400 font-mono">Period: <strong class="text-slate-200">{{ currentExhibit.fiscal_period }}</strong></span>
         </div>
 

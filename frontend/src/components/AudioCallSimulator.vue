@@ -331,17 +331,17 @@ onBeforeUnmount(() => {
         <div v-if="currentUtterance" class="mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex items-center gap-2">
             <span class="font-medium text-white">{{ currentUtterance.speaker }}</span>
-            <span class="px-2 py-0.5 text-[10px] font-semibold rounded bg-white/10 text-neutral-300 uppercase">
+            <span class="px-2 py-0.5 text-xs font-medium rounded-md bg-white/10 text-neutral-300">
               {{ currentUtterance.speaker_role }}
             </span>
-            <span class="text-neutral-500 font-mono">{{ currentUtterance.timestamp_label }}</span>
+            <span class="text-neutral-500 font-mono tabular-nums">{{ currentUtterance.timestamp_label }}</span>
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="text-[11px] text-neutral-400">Tone Sentiment:</span>
+            <span class="text-xs text-neutral-400">Tone sentiment:</span>
             <span
               :class="[
-                'font-mono font-medium',
+                'font-mono tabular-nums font-medium',
                 currentUtterance.sentiment_score >= 0.5 ? 'text-emerald-400' : currentUtterance.sentiment_score < 0 ? 'text-rose-400' : 'text-neutral-300'
               ]"
             >
@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
           </button>
 
           <!-- Time Display -->
-          <div class="font-mono text-xs text-neutral-300 pl-1">
+          <div class="font-mono tabular-nums text-xs text-neutral-300 pl-1">
             <span class="text-white font-medium">{{ formatTime(currentTime) }}</span>
             <span class="text-neutral-500"> / {{ formatTime(totalDuration) }}</span>
           </div>
@@ -398,8 +398,8 @@ onBeforeUnmount(() => {
             :key="s"
             @click="playbackSpeed = s"
             :class="[
-              'px-2 py-1 text-[11px] font-medium rounded-md transition-all',
-              playbackSpeed === s ? 'bg-white/20 text-white font-bold' : 'text-neutral-400 hover:text-neutral-200'
+              'px-2 py-1 text-xs font-medium rounded-md transition-all',
+              playbackSpeed === s ? 'bg-white/20 text-white font-semibold' : 'text-neutral-400 hover:text-neutral-200'
             ]"
           >
             {{ s }}x
@@ -409,8 +409,8 @@ onBeforeUnmount(() => {
 
       <!-- Synchronized Transcript Stream -->
       <div class="space-y-3 pt-2">
-        <h4 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-          Live Synchronized Transcript & SEC 10-Q Cross-Verification
+        <h4 class="text-xs font-semibold text-neutral-400">
+          Live synchronized transcript and SEC 10-Q cross-verification
         </h4>
 
         <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-white">{{ u.speaker }}</span>
-                <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold bg-white/10 text-neutral-400 uppercase">
+                <span class="px-1.5 py-0.5 text-xs rounded-md font-medium bg-white/10 text-neutral-400">
                   {{ u.speaker_role }}
                 </span>
               </div>

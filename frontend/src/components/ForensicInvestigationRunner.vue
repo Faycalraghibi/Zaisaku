@@ -257,10 +257,10 @@ onUnmounted(() => {
           <!-- Live Agent Terminal Logs -->
           <div class="space-y-2">
             <div class="flex items-center justify-between text-xs text-slate-400">
-              <span class="font-mono text-[10px] uppercase tracking-wider font-semibold">Real-Time Sub-Agent Stream</span>
-              <span v-if="isRunning" class="flex items-center gap-1.5 text-purple-400 text-[11px]">
+              <span class="text-xs font-medium text-slate-400">Real-time sub-agent execution telemetry</span>
+              <span v-if="isRunning" class="flex items-center gap-1.5 text-purple-400 text-xs font-medium">
                 <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-                Inference Stream Active
+                Inference stream active
               </span>
             </div>
 

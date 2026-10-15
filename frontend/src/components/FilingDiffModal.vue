@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { GitCompare, Loader2, X, AlertTriangle, ShieldAlert, ArrowRight, CheckCircle2, ChevronRight } from 'lucide-vue-next'
+import { GitCompare, Loader2, X, AlertTriangle, ShieldAlert, CheckCircle2, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: {
@@ -111,7 +111,7 @@ const formatSectionTitle = (key) => {
               v-model="ticker" 
               type="text" 
               placeholder="e.g. NVDA" 
-              class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 uppercase font-mono tracking-wider focus:outline-none focus:border-amber-500"
+              class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 uppercase font-mono focus:outline-none focus:border-amber-500"
               @keydown.enter="runDiff"
             />
           </div>
@@ -188,28 +188,28 @@ const formatSectionTitle = (key) => {
           <!-- Overview Banner -->
           <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+              <div class="text-xs text-slate-400 font-mono flex items-center gap-2">
                 <span>{{ diffResult.current_filing }}</span>
-                <ArrowRight class="w-3.5 h-3.5 text-slate-500" />
+                <span class="text-slate-500 font-sans font-normal">vs</span>
                 <span>{{ diffResult.prior_filing }}</span>
               </div>
               <h4 class="text-base font-semibold text-slate-100 mt-1 flex items-center gap-2">
-                {{ diffResult.ticker }} {{ diffResult.form }} Comparison
+                {{ diffResult.ticker }} {{ diffResult.form }} comparison
               </h4>
             </div>
 
             <div class="flex items-center gap-3">
               <div class="text-right">
-                <div class="text-xs text-slate-400">Language Drift</div>
-                <div class="text-2xl font-bold font-mono text-slate-100">
+                <div class="text-xs text-slate-400">Language drift</div>
+                <div class="text-2xl font-bold tabular-nums text-slate-100">
                   {{ diffResult.overall_drift_score }}%
                 </div>
               </div>
               <div 
-                class="px-3 py-1.5 rounded-lg border text-xs font-semibold uppercase tracking-wider"
+                class="px-2.5 py-1 rounded-md border text-xs font-medium"
                 :class="severityColor(diffResult.overall_severity)"
               >
-                {{ diffResult.overall_severity }}
+                {{ diffResult.overall_severity.toLowerCase() }} drift
               </div>
             </div>
           </div>

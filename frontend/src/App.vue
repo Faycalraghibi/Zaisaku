@@ -45,7 +45,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-full bg-[#080b12] overflow-hidden text-slate-100">
+  <div class="flex h-screen w-full bg-[#0d1117] overflow-hidden text-slate-100">
     <!-- Primary Landing View: Institutional Company Due Diligence Hub -->
     <CompanyHub 
       ref="companyHubRef"

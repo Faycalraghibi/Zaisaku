@@ -225,7 +225,7 @@ const formatUSD = (val) => {
         >
           <div class="space-y-1">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold">
+              <span class="text-xs font-mono text-rose-400 font-medium">
                 {{ preset.category }}
               </span>
               <span v-if="activePresetId === preset.id" class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
@@ -426,9 +426,9 @@ const formatUSD = (val) => {
       <div class="p-5 rounded-2xl bg-slate-950/80 border border-white/5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 class="text-xs font-semibold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-              Monte Carlo Tail Risk Distribution (1,000 Iterations)
+              Monte Carlo tail risk distribution (1,000 iterations)
             </h3>
             <p class="text-[11px] text-slate-400">
               Parametric Gaussian distribution of pro-forma Free Cash Flow across correlated stochastic shocks
@@ -512,25 +512,25 @@ const formatUSD = (val) => {
       <!-- 2D Sensitivity Grid (Revenue Shock vs Gross Margin Compression) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <h3 class="text-xs font-semibold text-white flex items-center gap-2">
             <Sliders class="w-3.5 h-3.5 text-sky-400" />
-            2D Sensitivity Matrix: Pro-Forma FCF vs Margin Compression
+            2D sensitivity matrix: pro-forma FCF vs margin compression
           </h3>
-          <span class="text-[11px] text-slate-500 font-mono">Values in USD Millions</span>
+          <span class="text-xs text-slate-500 font-mono">Values in USD millions</span>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-white/5">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-900/80 text-slate-400 font-mono text-[10px] border-b border-white/5">
+            <thead class="bg-[#161b22] text-slate-400 text-xs font-medium border-b border-white/10">
               <tr>
-                <th class="py-2.5 px-3">Top-Line Shock \ Margin</th>
-                <th class="py-2.5 px-3 text-right">0 bps</th>
-                <th class="py-2.5 px-3 text-right">-200 bps</th>
-                <th class="py-2.5 px-3 text-right">-400 bps</th>
-                <th class="py-2.5 px-3 text-right">-600 bps</th>
+                <th class="py-2.5 px-3 font-medium">Top-line shock \ Margin</th>
+                <th class="py-2.5 px-3 text-right font-medium">0 bps</th>
+                <th class="py-2.5 px-3 text-right font-medium">-200 bps</th>
+                <th class="py-2.5 px-3 text-right font-medium">-400 bps</th>
+                <th class="py-2.5 px-3 text-right font-medium">-600 bps</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-white/5 font-mono">
+            <tbody class="divide-y divide-white/5 font-mono tabular-nums">
               <tr 
                 v-for="row in simulationResult.sensitivity_matrix" 
                 :key="row.revenue_shock_pct"
@@ -562,13 +562,13 @@ const formatUSD = (val) => {
         <div class="flex items-center justify-between border-b border-white/5 pb-3">
           <div class="flex items-center gap-2">
             <Sparkles class="w-4 h-4 text-emerald-400" />
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">
-              Institutional Credit Rating & Treasury Playbook
+            <h3 class="text-xs font-semibold text-white">
+              Institutional credit rating and treasury playbook
             </h3>
           </div>
 
           <span 
-            class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold border"
+            class="px-2 py-0.5 rounded-md text-xs font-medium border"
             :class="simulationResult.ai_commentary.capital_rating_impact === 'Severe Downgrade Risk'
               ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
               : simulationResult.ai_commentary.capital_rating_impact === 'Moderate Outlook Revision'
