@@ -169,8 +169,8 @@ const handleDownloadMarkdown = async () => {
               <span class="font-medium text-white print:text-black">{{ profile.period || 'Form 10-K / 10-Q' }}</span>
             </div>
             <div>
-              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Lead Engineer / Analyst</span>
-              <span class="font-medium text-white print:text-black">Fayçal Raghibi</span>
+              <span class="text-neutral-400 print:text-neutral-600 block text-[10px] uppercase">Analyst Division</span>
+              <span class="font-medium text-white print:text-black">Institutional Forensic Intelligence Group</span>
             </div>
           </div>
 
@@ -224,9 +224,9 @@ const handleDownloadMarkdown = async () => {
           <!-- Section 3: Sign-Off and Verification -->
           <div class="pt-4 border-t border-neutral-800 print:border-black flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
             <div>
-              <span class="text-[10px] text-neutral-500 print:text-neutral-600 block">Lead Architect & Forensic Engineer</span>
-              <span class="font-semibold text-white print:text-black">Fayçal Raghibi</span>
-              <span class="text-[11px] text-neutral-400 print:text-neutral-600 block">Villeneuve d'Ascq, France • faycal.raghibi@etu.imt-nord-europe.fr</span>
+              <span class="text-[10px] text-neutral-500 print:text-neutral-600 block">Sign-Off & Audit Directorate</span>
+              <span class="font-semibold text-white print:text-black">Zaisaku Institutional Intelligence Group</span>
+              <span class="text-[11px] text-neutral-400 print:text-neutral-600 block">Global Forensic Due Diligence & Risk Compliance</span>
             </div>
 
             <div class="text-right">
