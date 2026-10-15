@@ -247,7 +247,7 @@ onUnmounted(() => {
                 {{ currentSectionData.title }}
               </h2>
               <p class="text-xs text-slate-400">
-                Tip: Highlight any sentence in the text below to run instant AI explanation or query the Co-Analyst.
+                Tip: Highlight any sentence in the text below to run instant AI explanation or ask Zaisaku.
               </p>
             </div>
 
@@ -334,7 +334,7 @@ onUnmounted(() => {
                 class="apple-press w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <Sparkles class="w-3.5 h-3.5" />
-                <span>Ask Co-Analyst to Audit Section</span>
+                <span>Ask Zaisaku about this section</span>
               </button>
             </div>
           </div>
@@ -360,7 +360,7 @@ onUnmounted(() => {
             class="apple-press text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 font-medium transition-all flex items-center gap-1 cursor-pointer"
           >
             <MessageSquare class="w-3 h-3 text-sky-400" />
-            <span>Ask Co-Analyst</span>
+            <span>Ask Zaisaku</span>
           </button>
 
           <button 

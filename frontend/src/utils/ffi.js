@@ -30,3 +30,7 @@ export const ffiTier = (score) => {
     label: 'Critical alert'
   }
 }
+
+const TIER_TO_SEVERITY = { low: 'good', watch: 'watch', critical: 'critical' }
+
+export const ffiSeverity = (score) => TIER_TO_SEVERITY[ffiTier(score).key]

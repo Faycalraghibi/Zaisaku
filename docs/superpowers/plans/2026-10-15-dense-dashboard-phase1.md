@@ -20,7 +20,7 @@ git push -u origin <branch> && gh pr create ... && gh pr checks --watch
 gh pr merge --squash --delete-branch   # only when all checks pass
 ```
 
-**Spec deviation (deliberate, YAGNI):** the CompanySwitcher groups are **Recent / Indices / Companies / Search results**. The sector-category filter is dropped; Indices = the old "Macro Indices" list, and Companies = the old "All" and "High-Risk" lists, deduplicated with indices removed.
+**Spec deviation (deliberate, YAGNI):** the CompanySwitcher groups are **Recent / Indices / Companies / Search results**. The sector-category filter is dropped; Indices = the old "Macro Indices" list, and Companies = every non-index ticker that has a profile. The old "All"/"High-Risk" lists referenced RIVN, which has no profile.
 
 ---
 
@@ -948,7 +948,7 @@ describe('MenuButton', () => {
 - [ ] Create `src/data/companyProfiles.js` by moving, verbatim, from `CompanyHub.vue`:
   - `companyProfiles` (export const)
   - `categoryTickerMap['Macro Indices']` → `export const INDEX_TICKERS`
-  - the union of `categoryTickerMap['All']` and `categoryTickerMap['High-Risk']`, deduplicated with indices removed → `export const FEATURED_TICKERS`
+  - every non-index key of `companyProfiles` → `export const FEATURED_TICKERS`
   - `isIndexTicker` (export, implemented as `INDEX_TICKERS.includes(...)`)
   - the two synthetic-profile object literals inside `selectCompany` → `export function profileFromSearchEntry(ticker, entry)` and `export function fallbackProfile(ticker)`. Bodies are identical to the current branches.
 - [ ] Delete from `CompanyHub.vue`: `sectorCategories`, `categoryTickerMap`, `visibleCategoryTickers`, `activeCategory`, `showCategoryMenu`, the search refs and handlers (`searchInput` … `navigateSearch`), `handleClickOutside` and its listeners, `companyProfiles`, `isIndexTicker`, `selectCompany`.
@@ -1148,7 +1148,7 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocumentPointer))
       class="btn max-w-56"
       aria-haspopup="listbox"
       :aria-expanded="open"
-      :title="`Switch company (current: ${currentCompany.name})`"
+      :aria-label="`Switch company, current ${currentCompany.ticker} ${currentCompany.name}`"
       @click="open ? close() : openMenu()"
     >
       <span class="font-mono font-semibold">{{ currentCompany.ticker }}</span>

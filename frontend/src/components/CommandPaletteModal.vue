@@ -47,12 +47,12 @@ const selectedIndex = ref(0)
 const searchInputRef = ref(null)
 
 const workspaces = [
-  { id: 'overview', label: 'Executive Dossier', desc: 'FFI Fragility Scorecard, Beneish M-Score & Anomaly Radar', icon: LayoutDashboard },
-  { id: 'financials', label: 'Financials & Exhibits', desc: 'Multi-statement GAAP extracts and visual waterfall bridges', icon: BarChart3 },
-  { id: 'benchmarks', label: 'Multi-Year & Peers', desc: '5-year forensic time-series and sector comparative matrix', icon: TrendingUp },
-  { id: 'scenarios', label: 'Scenario Stress Lab', desc: 'AI macro shock engine and Monte Carlo simulation', icon: Activity },
-  { id: 'interrogation', label: 'Audio & Inquiries', desc: 'Synchronized earnings call audio and auditor cross-examination', icon: Scale },
-  { id: 'filings', label: 'Evidence Room', desc: 'Full-text SEC filing search, chunk inspection & doc ingestion', icon: FileText }
+  { id: 'overview', label: 'Overview', desc: 'Risk score, red flags, M-Score, drift, peers, filings', icon: LayoutDashboard },
+  { id: 'financials', label: 'Financials', desc: 'Statement extracts and exhibit charts', icon: BarChart3 },
+  { id: 'benchmarks', label: 'Trends & peers', desc: '5-year trends and sector peer comparison', icon: TrendingUp },
+  { id: 'scenarios', label: 'Scenarios', desc: 'Macro shock and Monte Carlo stress tests', icon: Activity },
+  { id: 'interrogation', label: 'Calls & Q&A', desc: 'Earnings call playback and auditor Q&A', icon: Scale },
+  { id: 'filings', label: 'Filings', desc: 'Ingested filings, search and upload', icon: FileText }
 ]
 
 const institutionalActions = [
@@ -158,7 +158,7 @@ const flattenedItems = computed(() => {
     items.push({
       type: 'ai-prompt',
       id: 'ai-prompt',
-      label: `Ask AI Co-Analyst: "${searchQuery.value.trim()}"`,
+      label: `Ask Zaisaku: "${searchQuery.value.trim()}"`,
       desc: 'Query vector database and indexed financial filings with frontier LLM',
       icon: Sparkles
     })
@@ -311,10 +311,10 @@ onUnmounted(() => {
         <!-- Scrollable Command Results Area -->
         <div ref="scrollContainerRef" class="max-h-[60vh] overflow-y-auto p-2 space-y-4 custom-scrollbar bg-slate-950/80">
           
-          <!-- AI Co-Analyst Quick Query Option (if query exists) -->
+          <!-- Ask Zaisaku quick query (if query exists) -->
           <div v-if="searchQuery.trim().length > 1" class="space-y-1">
             <div class="px-2 pt-1 pb-1 text-xs font-semibold text-slate-400">
-              AI Co-Analyst direct inquiry
+              Ask Zaisaku
             </div>
             <div
               @click="executeItem(flattenedItems[0])"
@@ -329,7 +329,7 @@ onUnmounted(() => {
                 </div>
                 <div>
                   <div class="text-sm font-medium text-white flex items-center gap-2">
-                    Ask AI Co-Analyst: <span class="text-indigo-300 font-semibold italic">"{{ searchQuery.trim() }}"</span>
+                    Ask Zaisaku: <span class="text-indigo-300 font-semibold italic">"{{ searchQuery.trim() }}"</span>
                   </div>
                   <div class="text-xs text-slate-400">Query vector index and financial filings with citations</div>
                 </div>
