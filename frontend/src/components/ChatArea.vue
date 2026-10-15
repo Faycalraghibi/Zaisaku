@@ -23,7 +23,7 @@ const emit = defineEmits(['close'])
 const messages = ref([
   {
     role: 'assistant',
-    text: 'Hello. I am your Institutional AI Co-Analyst. You can query indexed SEC filings, 10-Ks, 10-Qs, and earnings transcripts for forensic anomalies, accounting accruals, or linguistic drift.',
+    text: 'Hello. I am Zaisaku. You can query indexed SEC filings, 10-Ks, 10-Qs, and earnings transcripts for forensic anomalies, accounting accruals, or linguistic drift.',
     sources: [],
     confidence: null,
     model: null
@@ -289,7 +289,7 @@ const exportTableToCsv = (text) => {
             </div>
             <div>
               <h2 id="drawer-title" class="text-sm font-semibold tracking-tight text-white flex items-center gap-2">
-                AI Co-Analyst
+                Ask Zaisaku
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Forensic RAG
                 </span>

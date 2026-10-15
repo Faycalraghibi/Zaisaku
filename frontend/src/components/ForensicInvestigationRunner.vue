@@ -53,7 +53,7 @@ const startInvestigation = async () => {
     s.details = null
   })
 
-  logs.value.push(`[${new Date().toLocaleTimeString()}] Initializing Autonomous Multi-Agent Forensic Investigation for ${props.ticker}...`)
+  logs.value.push(`[${new Date().toLocaleTimeString()}] Starting audit run for ${props.ticker}...`)
 
   try {
     const res = await fetch('/api/forensics/investigate/stream', {
@@ -168,7 +168,7 @@ onUnmounted(() => {
             </div>
             <div>
               <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                Autonomous Multi-Agent Forensic Investigation Runner
+                Audit run
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
                   SSE Live Pipeline
                 </span>

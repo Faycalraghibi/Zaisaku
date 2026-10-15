@@ -45,7 +45,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-full bg-[#0d1117] overflow-hidden text-slate-100">
+  <div class="flex h-screen w-full overflow-hidden bg-bg text-fg">
     <!-- Primary Landing View: Institutional Company Due Diligence Hub -->
     <CompanyHub 
       ref="companyHubRef"
@@ -65,7 +65,7 @@ onUnmounted(() => {
       @open-chat="handleOpenChat"
     />
 
-    <!-- Apple-Style Slide-Over Co-Analyst Drawer -->
+    <!-- Ask Zaisaku slide-over drawer -->
     <ChatArea 
       :is-open="isChatOpen"
       :document-count="documentCount"

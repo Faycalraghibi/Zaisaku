@@ -101,7 +101,7 @@ onUnmounted(() => {
           <div>
             <div class="flex items-center gap-2">
               <h2 class="text-base font-bold text-white tracking-tight">
-                Adversarial SEC Enforcement & Big 4 Cross-Examination Studio
+                Auditor Q&amp;A
               </h2>
               <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-bold">
                 PCAOB Forensic Mode
