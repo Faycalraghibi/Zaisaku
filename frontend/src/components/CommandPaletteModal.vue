@@ -19,7 +19,9 @@ import {
   Building2,
   Sparkles,
   Sliders,
-  FolderOpen
+  FolderOpen,
+  Layers,
+  Loader2
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -67,6 +69,16 @@ const institutionalActions = [
   { id: 'rag-sandbox', label: 'AI Prompt & RAG Laboratory', desc: 'Benchmark temperature, chunks, and LLM providers', icon: Sliders }
 ]
 
+const macroIndices = [
+  { ticker: 'SPY', name: 'S&P 500 Large-Cap Core Benchmark', score: 'FFI 22', tier: 'CORE BENCHMARK', color: 'blue' },
+  { ticker: 'QQQ', name: 'Invesco QQQ Nasdaq-100 Growth', score: 'FFI 25', tier: 'TECH BENCHMARK', color: 'blue' },
+  { ticker: 'DIA', name: 'SPDR Dow Jones Industrial Average', score: 'FFI 19', tier: 'BLUE CHIP', color: 'blue' },
+  { ticker: 'IWM', name: 'iShares Russell 2000 Small-Cap', score: 'FFI 44', tier: 'SMALL CAP', color: 'amber' },
+  { ticker: 'SMH', name: 'VanEck Semiconductor Sector ETF', score: 'FFI 31', tier: 'SEMI BENCHMARK', color: 'purple' },
+  { ticker: 'XLK', name: 'Technology Select Sector SPDR', score: 'FFI 22', tier: 'TECH SECTOR', color: 'blue' },
+  { ticker: 'XLF', name: 'Financial Select Sector SPDR', score: 'FFI 27', tier: 'FINANCIALS', color: 'blue' }
+]
+
 const watchlistTickers = [
   { ticker: 'NVDA', name: 'NVIDIA Corporation', score: 'FFI 18', tier: 'LOW RISK', color: 'emerald' },
   { ticker: 'AAPL', name: 'Apple Inc.', score: 'FFI 14', tier: 'LOW RISK', color: 'emerald' },
@@ -83,16 +95,59 @@ const filteredWorkspaces = computed(() => {
   return workspaces.filter(w => w.label.toLowerCase().includes(q) || w.desc.toLowerCase().includes(q))
 })
 
-const filteredActions = computed(() => {
+const filteredIndices = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return institutionalActions
-  return institutionalActions.filter(a => a.label.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))
+  if (!q) return macroIndices
+  return macroIndices.filter(i => i.ticker.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.tier.toLowerCase().includes(q))
 })
 
 const filteredTickers = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return watchlistTickers
   return watchlistTickers.filter(t => t.ticker.toLowerCase().includes(q) || t.name.toLowerCase().includes(q))
+})
+
+const filteredActions = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return institutionalActions
+  return institutionalActions.filter(a => a.label.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))
+})
+
+// Dynamic SEC EDGAR & Universal Ticker Search
+const remoteResults = ref([])
+const isSearchingRemote = ref(false)
+let searchDebounceTimer = null
+
+const performRemoteSearch = (query) => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  const q = query.trim()
+  if (!q || q.length < 2) {
+    remoteResults.value = []
+    isSearchingRemote.value = false
+    return
+  }
+  isSearchingRemote.value = true
+  searchDebounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/forensics/tickers/search?q=${encodeURIComponent(q)}&limit=6`)
+      if (res.ok) {
+        const data = await res.json()
+        const existingSymbols = new Set([
+          ...macroIndices.map(m => m.ticker),
+          ...watchlistTickers.map(w => w.ticker)
+        ])
+        remoteResults.value = (data.results || []).filter(r => !existingSymbols.has(r.ticker))
+      }
+    } catch (e) {
+      console.error('Remote directory search failed:', e)
+    } finally {
+      isSearchingRemote.value = false
+    }
+  }, 180)
+}
+
+watch(searchQuery, (newVal) => {
+  performRemoteSearch(newVal)
 })
 
 // Unified flat list for arrow key navigation
@@ -114,8 +169,35 @@ const flattenedItems = computed(() => {
     items.push({ type: 'workspace', ...w })
   })
 
+  filteredIndices.value.forEach(i => {
+    items.push({
+      type: 'ticker',
+      ticker: i.ticker,
+      name: i.name,
+      score: i.score,
+      tier: i.tier,
+      color: i.color,
+      label: `${i.ticker} • ${i.name}`,
+      desc: `${i.score} (${i.tier})`
+    })
+  })
+
   filteredTickers.value.forEach(t => {
     items.push({ type: 'ticker', ...t, label: `${t.ticker} • ${t.name}`, desc: `${t.score} (${t.tier})` })
+  })
+
+  remoteResults.value.forEach(r => {
+    const tier = r.risk_tier.replace('_', ' ')
+    items.push({
+      type: 'ticker',
+      ticker: r.ticker,
+      name: r.name,
+      score: `FFI ${Math.round(r.ffi_score)}`,
+      tier: tier,
+      color: r.risk_tier === 'CRITICAL_ALERT' ? 'rose' : (r.risk_tier === 'ELEVATED_WATCH' ? 'amber' : 'emerald'),
+      label: `${r.ticker} • ${r.name}`,
+      desc: `${r.sector} (${r.exchange})`
+    })
   })
 
   filteredActions.value.forEach(a => {
@@ -285,6 +367,39 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- Macro Market Indices & Benchmarks -->
+          <div v-if="filteredIndices.length > 0" class="space-y-1">
+            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+              <Layers class="w-3.5 h-3.5 text-blue-400" />
+              <span>Macro Market Indices & Sector ETFs</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div
+                v-for="item in filteredIndices"
+                :key="item.ticker"
+                @click="executeItem({ type: 'ticker', ...item })"
+                @mouseenter="selectedIndex = flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
+                class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all duration-150"
+                :class="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker) ? 'bg-blue-600/20 border border-blue-500/30 text-white' : 'text-slate-300 bg-slate-900/40 hover:bg-white/5 border border-white/5'"
+                :data-active="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="font-mono font-bold text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    {{ item.ticker }}
+                  </span>
+                  <div class="truncate text-xs font-medium text-slate-200">
+                    {{ item.name }}
+                  </div>
+                </div>
+                <div class="shrink-0 flex items-center gap-1.5">
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-blue-500/10 text-blue-300 border-blue-500/20">
+                    {{ item.score }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Watchlist Tickers -->
           <div v-if="filteredTickers.length > 0" class="space-y-1">
             <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
@@ -315,6 +430,46 @@ onUnmounted(() => {
                     :class="item.color === 'rose' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : item.color === 'amber' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'"
                   >
                     {{ item.score }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic SEC EDGAR Directory Search Results -->
+          <div v-if="remoteResults.length > 0 || isSearchingRemote" class="space-y-1">
+            <div class="px-2 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Search class="w-3.5 h-3.5 text-emerald-400" />
+                <span>SEC EDGAR Universe Autocomplete</span>
+              </div>
+              <div v-if="isSearchingRemote" class="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
+                <Loader2 class="w-3 h-3 animate-spin" />
+                <span>Searching SEC...</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div
+                v-for="item in remoteResults"
+                :key="item.ticker"
+                @click="executeItem({ type: 'ticker', ticker: item.ticker })"
+                @mouseenter="selectedIndex = flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
+                class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all duration-150"
+                :class="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker) ? 'bg-emerald-500/20 border border-emerald-500/30 text-white' : 'text-slate-300 bg-slate-900/40 hover:bg-white/5 border border-white/5'"
+                :data-active="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 shrink-0">
+                    {{ item.ticker }}
+                  </span>
+                  <div class="truncate text-xs font-medium text-slate-200">
+                    <div class="truncate">{{ item.name }}</div>
+                    <div class="text-[10px] text-slate-500 truncate">{{ item.sector }}</div>
+                  </div>
+                </div>
+                <div class="shrink-0 flex items-center gap-1.5 ml-2">
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
+                    CIK {{ item.cik }}
                   </span>
                 </div>
               </div>
