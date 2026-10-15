@@ -23,6 +23,8 @@ import CompanyStrip from './shell/CompanyStrip.vue'
 import OverviewDashboard from './overview/OverviewDashboard.vue'
 import WatchlistView from './portfolio/WatchlistView.vue'
 import ScreenerView from './portfolio/ScreenerView.vue'
+import CompareView from './portfolio/CompareView.vue'
+import { parseCompareHash } from '../utils/compare.js'
 import { useWatchlist } from '../composables/useWatchlist.js'
 import { useFlagReviews } from '../composables/useFlagReviews.js'
 import { unresolvedCount } from '../utils/portfolio.js'
@@ -44,7 +46,7 @@ import AnomalyRadarModal from './AnomalyRadarModal.vue'
 const emit = defineEmits(['open-chat', 'document-count-change', 'open-palette'])
 
 // --- Active Navigation Tab ---
-const currentTab = ref('overview')
+const currentTab = ref(parseCompareHash(window.location.hash) ? 'compare' : 'overview')
 const PORTFOLIO_TABS = ['watchlist', 'screener', 'compare']
 const isPortfolioView = computed(() => PORTFOLIO_TABS.includes(currentTab.value))
 
@@ -56,7 +58,8 @@ const navigationTabs = computed(() => [
   { id: 'interrogation', label: 'Calls & Q&A', section: 'company' },
   { id: 'filings', label: 'Filings', section: 'company', count: documents.value.length || null },
   { id: 'watchlist', label: 'Watchlist', section: 'portfolio', count: watchlist.tickers.value.length || null },
-  { id: 'screener', label: 'Screener', section: 'portfolio' }
+  { id: 'screener', label: 'Screener', section: 'portfolio' },
+  { id: 'compare', label: 'Compare', section: 'portfolio' }
 ])
 
 // --- Modal Visibility States ---
@@ -337,6 +340,7 @@ onMounted(async () => {
           />
           <WatchlistView v-else-if="currentTab === 'watchlist'" key="watchlist" @open-company="currentTab = 'overview'" />
           <ScreenerView v-else-if="currentTab === 'screener'" key="screener" @open-company="currentTab = 'overview'" />
+          <CompareView v-else-if="currentTab === 'compare'" key="compare" @open-company="currentTab = 'overview'" />
 
           
           <!-- ========================================== -->
