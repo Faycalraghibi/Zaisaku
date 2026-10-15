@@ -10,7 +10,8 @@ const props = defineProps({
   rowKey: { type: String, required: true },
   highlight: { type: [String, Number], default: null },
   clickable: { type: Boolean, default: false },
-  initialSort: { type: Object, default: null } // { key, dir }
+  initialSort: { type: Object, default: null }, // { key, dir }
+  rowClass: { type: Function, default: null }
 })
 
 const emit = defineEmits(['row-click'])
@@ -78,7 +79,8 @@ const onRowClick = (row) => {
         class="border-b border-line last:border-b-0"
         :class="[
           clickable ? 'cursor-pointer hover:bg-raised' : '',
-          highlight !== null && row[rowKey] === highlight ? 'bg-accent-soft' : ''
+          highlight !== null && row[rowKey] === highlight ? 'bg-accent-soft' : '',
+          rowClass ? rowClass(row) : ''
         ]"
         :tabindex="clickable ? 0 : undefined"
         @click="onRowClick(row)"

@@ -46,4 +46,19 @@ describe('OverviewDashboard', () => {
     expect(w.text()).toContain('Constituent-weighted dispersion')
     expect(w.text()).toContain('Signals')
   })
+
+  it('saves a status change for a flag without opening its modal', async () => {
+    const fetchMock = vi.fn(async (url, opts = {}) => {
+      if (opts.method === 'PUT') return { ok: true, status: 200, json: async () => ({ ticker: 'NVDA', flag_id: 'drift', status: 'escalated', note: '', updated_at: 't' }) }
+      return { ok: false, status: 500, json: async () => ({}) }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const w = mount(OverviewDashboard, { props: { company } })
+    await flushPromises()
+    const flagsPanel = w.findAll('section').find((sec) => sec.find('h2').text() === 'Red flags')
+    await flagsPanel.find('[data-row="drift"] select').setValue('escalated')
+    await flushPromises()
+    expect(fetchMock).toHaveBeenCalledWith('/api/workspace/flags/NVDA/drift', expect.objectContaining({ method: 'PUT' }))
+    expect(w.emitted('flag-action')).toBeUndefined()
+  })
 })

@@ -24,6 +24,7 @@ import OverviewDashboard from './overview/OverviewDashboard.vue'
 import WatchlistView from './portfolio/WatchlistView.vue'
 import { useWatchlist } from '../composables/useWatchlist.js'
 import { useFlagReviews } from '../composables/useFlagReviews.js'
+import { unresolvedCount } from '../utils/portfolio.js'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
 import ForensicScorecardModal from './ForensicScorecardModal.vue'
 import FinancialTrendsChart from './FinancialTrendsChart.vue'
@@ -84,6 +85,9 @@ const openFilingViewer = (doc = null) => {
 const { currentCompany, selectCompany } = useCompany()
 const watchlist = useWatchlist()
 const flagReviews = useFlagReviews()
+const unresolvedForCurrent = computed(() =>
+  unresolvedCount(currentCompany.value, flagReviews.reviewsFor(currentCompany.value.ticker))
+)
 
 // --- Documents (Filings tab) State ---
 const documents = ref([])
@@ -304,6 +308,8 @@ onMounted(async () => {
       v-if="!isPortfolioView"
       :company="currentCompany"
       :watched="watchlist.isWatched(currentCompany.ticker)"
+      :unresolved="unresolvedForCurrent"
+      @show-flags="currentTab = 'overview'"
       @toggle-watch="watchlist.toggle(currentCompany.ticker)"
       @tool="handleTool"
     />
