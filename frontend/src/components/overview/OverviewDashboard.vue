@@ -1,15 +1,19 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Download } from 'lucide-vue-next'
 import Panel from '../ui/Panel.vue'
 import DataTable from '../ui/DataTable.vue'
 import SeverityDot from '../ui/SeverityDot.vue'
 import SourceChip from '../ui/SourceChip.vue'
 import StatValue from '../ui/StatValue.vue'
 import ThresholdScale from '../ui/ThresholdScale.vue'
-import { buildRedFlags, riskBreakdown, REVIEW_STATUSES } from './overviewModel.js'
+import { buildRedFlags, riskBreakdown, REVIEW_STATUSES, FLAG_LABELS } from './overviewModel.js'
 import FlagNoteEditor from './FlagNoteEditor.vue'
 import NotesPanel from './NotesPanel.vue'
 import { useFlagReviews } from '../../composables/useFlagReviews.js'
+import { useToasts } from '../../composables/useToasts.js'
+import { onShortcut } from '../../composables/useShortcuts.js'
+import { toCsv, downloadCsv } from '../../utils/csv.js'
 import { ffiTier, ffiSeverity, formatEnum, tierToSeverity, mscoreSeverity, MSCORE_THRESHOLD, MSCORE_GREY_ZONE } from '../../utils/ffi.js'
 
 const props = defineProps({
@@ -40,6 +44,26 @@ const flagRows = computed(() =>
 const onStatus = (row, status) => setReview(props.company.ticker, row.id, status, row.note)
 const onNote = (row, note) => setReview(props.company.ticker, row.id, row.status, note)
 const flagRowClass = (row) => (row.status === 'dismissed' ? 'opacity-50' : '')
+
+// Keyboard triage: j/k move the selection, r marks the selected flag reviewed.
+const selectedFlag = ref(0)
+const selectedFlagId = computed(() => flagRows.value[selectedFlag.value]?.id ?? null)
+watch(() => props.company.ticker, () => { selectedFlag.value = 0 })
+
+const shortcutOffs = []
+onMounted(() => {
+  shortcutOffs.push(
+    onShortcut('flag-next', () => { selectedFlag.value = Math.min(selectedFlag.value + 1, flagRows.value.length - 1) }),
+    onShortcut('flag-prev', () => { selectedFlag.value = Math.max(selectedFlag.value - 1, 0) }),
+    onShortcut('flag-reviewed', () => {
+      const row = flagRows.value[selectedFlag.value]
+      if (!row) return
+      setReview(props.company.ticker, row.id, 'reviewed', row.note)
+      useToasts().push(`Marked “${FLAG_LABELS[row.id]}” reviewed`)
+    })
+  )
+})
+onUnmounted(() => shortcutOffs.splice(0).forEach((off) => off()))
 
 const flagColumns = [
   { key: 'severity', label: '', width: '28px' },
@@ -86,6 +110,9 @@ const peerColumns = [
   { key: 'key_vulnerability', label: 'Key vulnerability' }
 ]
 
+const exportPeers = () =>
+  downloadCsv(`zaisaku-peers-${props.company.ticker}.csv`, toCsv(peerColumns.map((c) => ({ label: c.label, key: c.key })), peers.value))
+
 // --- Filings ---
 const recentDocs = computed(() => props.documents.slice(0, 6).map((d) => ({ ...d, short_id: String(d.doc_id).slice(0, 8) })))
 const filingsState = computed(() => {
@@ -131,7 +158,7 @@ const docColumns = [
         </button>
         <button type="button" class="btn-ghost" @click="emit('open-anomaly')">Anomaly radar</button>
       </template>
-      <DataTable :columns="flagColumns" :rows="flagRows" row-key="id" clickable :row-class="flagRowClass" @row-click="(row) => emit('flag-action', row.action)">
+      <DataTable :columns="flagColumns" :rows="flagRows" row-key="id" clickable :highlight="selectedFlagId" :row-class="flagRowClass" @row-click="(row) => emit('flag-action', row.action)">
         <template #cell-severity="{ row }"><SeverityDot :level="row.severity" /></template>
         <template #cell-finding="{ row }"><span class="line-clamp-2">{{ row.finding }}</span></template>
         <template #cell-status="{ row }">
@@ -214,6 +241,7 @@ const docColumns = [
       @retry="fetchPeers(company.ticker)"
     >
       <template #actions>
+        <button type="button" class="btn-ghost" :disabled="!peers.length" @click="exportPeers"><Download class="w-3.5 h-3.5" /> CSV</button>
         <button type="button" class="btn-ghost" @click="emit('go-tab', 'benchmarks')">Trends &amp; peers</button>
       </template>
       <DataTable :columns="peerColumns" :rows="peers" row-key="ticker" :highlight="company.ticker" :initial-sort="{ key: 'ffi', dir: 'desc' }">
