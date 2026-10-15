@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Response, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
+from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep, WorkspaceDep
 from zaisaku.forensics.anomaly_detector import AnomalyDetector, AnomalyScanResponse
 from zaisaku.forensics.auditor_inquiry import (
     AuditorCrossExaminer,
@@ -46,6 +46,7 @@ from zaisaku.forensics.visual_extractor import (
 )
 from zaisaku.ingestion.loader import DocumentLoader
 from zaisaku.ingestion.sec_edgar import SECEdgarClient
+from zaisaku.workspace.memo import render_analyst_review
 
 router = APIRouter(prefix="/forensics", tags=["forensics"])
 
@@ -373,7 +374,7 @@ async def generate_forensic_memo(request: ForensicReportRequest):
 
 
 @router.post("/report/download")
-async def download_forensic_memo(request: ForensicReportRequest):
+async def download_forensic_memo(request: ForensicReportRequest, store: WorkspaceDep):
     """Download the generated Forensic Due Diligence Memorandum as a markdown file."""
     ticker = request.ticker.strip().upper() or "CUSTOM"
     company_name = request.company_name.strip() or ticker
@@ -386,6 +387,7 @@ async def download_forensic_memo(request: ForensicReportRequest):
         diff_result=request.diff_result,
         contradiction_result=request.contradiction_result,
     )
+    memo_md += render_analyst_review(store.list_flag_reviews(ticker), store.list_notes(ticker))
     filename = f"forensic_due_diligence_{ticker.lower()}.md"
     return Response(
         content=memo_md.encode("utf-8"),

@@ -108,3 +108,15 @@ def test_settings():
         retrieval_top_k=5,
         rerank_top_k=2,
     )
+
+
+@pytest.fixture(autouse=True)
+def workspace_store(monkeypatch):
+    """Point the workspace dependency at an in-memory DB so tests never write into uploads/."""
+    from zaisaku.api import dependencies
+    from zaisaku.workspace.store import WorkspaceStore
+
+    store = WorkspaceStore(":memory:")
+    monkeypatch.setattr(dependencies, "_workspace_store_instance", store)
+    yield store
+    store.close()
