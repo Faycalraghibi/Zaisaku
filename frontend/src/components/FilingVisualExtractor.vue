@@ -65,6 +65,40 @@ const maxStepValue = computed(() => {
   return Math.max(...currentExhibit.value.steps.map(s => s.value), 1)
 })
 
+const waterfallSteps = computed(() => {
+  if (!currentExhibit.value?.steps) return []
+  let running = 0
+  const steps = currentExhibit.value.steps
+  const maxVal = Math.max(...steps.map(s => s.value), 1)
+
+  return steps.map((step, idx) => {
+    const isFirst = idx === 0
+    const isLast = idx === steps.length - 1 || step.is_total
+
+    let bottomPct = 0
+    let heightPct = 0
+
+    if (isFirst || isLast) {
+      bottomPct = 0
+      heightPct = Math.max(12, (step.value / maxVal) * 85)
+      running = step.value
+    } else {
+      const prev = running
+      const next = step.step_type === 'positive' ? running + step.value : running - step.value
+      const lower = Math.min(prev, next)
+      bottomPct = Math.max(0, (lower / maxVal) * 85)
+      heightPct = Math.max(6, (Math.abs(step.value) / maxVal) * 85)
+      running = next
+    }
+
+    return {
+      ...step,
+      bottomPct,
+      heightPct
+    }
+  })
+})
+
 const formatUSD = (val) => {
   if (val === undefined || val === null) return '$0M'
   const abs = Math.abs(val)
@@ -143,36 +177,41 @@ const formatUSD = (val) => {
         
         <!-- Interactive Waterfall Bar Graphic -->
         <div class="p-6 rounded-2xl bg-slate-950/80 border border-white/5 space-y-4">
-          <div class="h-56 w-full flex items-end justify-between gap-3 pt-6 pb-2 px-4 relative">
+          <div class="h-64 w-full flex items-end justify-between gap-3 pt-6 pb-2 px-2 relative">
             
             <div
-              v-for="step in currentExhibit.steps"
+              v-for="step in waterfallSteps"
               :key="step.label"
               @mouseenter="hoveredStep = step"
               @mouseleave="hoveredStep = null"
-              class="flex-1 flex flex-col items-center justify-end h-full gap-2 group cursor-pointer"
+              class="flex-1 flex flex-col items-center justify-end h-full gap-2 group cursor-pointer relative"
             >
-              <!-- Step Value Label -->
-              <span class="text-[11px] font-mono font-bold transition-transform group-hover:scale-105"
-                :class="step.is_total 
-                  ? 'text-white' 
-                  : step.step_type === 'positive' 
-                    ? 'text-sky-400' 
-                    : 'text-rose-400'"
-              >
-                {{ step.step_type === 'positive' && !step.is_total ? '+' : '' }}{{ formatUSD(step.value) }}
-              </span>
-
-              <!-- Column Bar -->
-              <div 
-                class="w-full rounded-t-lg transition-all"
-                :class="step.is_total
-                  ? 'bg-gradient-to-t from-slate-700 to-slate-500 group-hover:from-slate-600 group-hover:to-slate-400'
-                  : step.step_type === 'positive'
-                    ? 'bg-gradient-to-t from-sky-600/70 to-sky-400 group-hover:from-sky-500 group-hover:to-sky-300'
-                    : 'bg-gradient-to-t from-rose-600/70 to-rose-400 group-hover:from-rose-500 group-hover:to-rose-300'"
-                :style="{ height: `${Math.max(12, (step.value / maxStepValue) * 85)}%` }"
-              ></div>
+              <!-- Relative Bar Stage -->
+              <div class="w-full h-48 relative flex items-end justify-center">
+                
+                <!-- Floating Column Bar -->
+                <div 
+                  class="w-full rounded-md transition-all absolute"
+                  :class="step.is_total
+                    ? 'bg-gradient-to-t from-slate-700 to-slate-500 group-hover:from-slate-600 group-hover:to-slate-400'
+                    : step.step_type === 'positive'
+                      ? 'bg-gradient-to-t from-sky-600/70 to-sky-400 group-hover:from-sky-500 group-hover:to-sky-300'
+                      : 'bg-gradient-to-t from-rose-600/70 to-rose-400 group-hover:from-rose-500 group-hover:to-rose-300'"
+                  :style="{ bottom: `${step.bottomPct}%`, height: `${step.heightPct}%` }"
+                >
+                  <!-- Step Value Label -->
+                  <span 
+                    class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold whitespace-nowrap transition-transform group-hover:scale-105"
+                    :class="step.is_total 
+                      ? 'text-white' 
+                      : step.step_type === 'positive' 
+                        ? 'text-sky-300' 
+                        : 'text-rose-300'"
+                  >
+                    {{ step.step_type === 'positive' && !step.is_total ? '+' : '' }}{{ formatUSD(step.value) }}
+                  </span>
+                </div>
+              </div>
 
               <!-- Step Bottom Label -->
               <span class="text-[10px] text-slate-400 font-medium text-center line-clamp-2 h-7 leading-tight">

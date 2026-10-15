@@ -135,10 +135,19 @@ watch(() => props.isOpen, (open) => {
   }
 })
 
-watch(flattenedItems, () => {
-  if (selectedIndex.value >= flattenedItems.value.length) {
-    selectedIndex.value = 0
-  }
+const scrollContainerRef = ref(null)
+
+const scrollToActiveItem = () => {
+  nextTick(() => {
+    const activeEl = scrollContainerRef.value?.querySelector('[data-active="true"]')
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  })
+}
+
+watch(selectedIndex, () => {
+  scrollToActiveItem()
 })
 
 const executeItem = (item) => {
@@ -219,7 +228,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Scrollable Command Results Area -->
-        <div class="max-h-[60vh] overflow-y-auto p-2 space-y-4 custom-scrollbar bg-slate-950/80">
+        <div ref="scrollContainerRef" class="max-h-[60vh] overflow-y-auto p-2 space-y-4 custom-scrollbar bg-slate-950/80">
           
           <!-- AI Co-Analyst Quick Query Option (if query exists) -->
           <div v-if="searchQuery.trim().length > 1" class="space-y-1">
@@ -231,6 +240,7 @@ onUnmounted(() => {
               @mouseenter="selectedIndex = 0"
               class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all duration-150"
               :class="selectedIndex === 0 ? 'bg-indigo-600/25 border border-indigo-500/40 text-white' : 'text-slate-300 hover:bg-white/5 border border-transparent'"
+              :data-active="selectedIndex === 0"
             >
               <div class="flex items-center gap-3">
                 <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
@@ -260,6 +270,7 @@ onUnmounted(() => {
               @mouseenter="selectedIndex = flattenedItems.findIndex(i => i.type === 'workspace' && i.id === item.id)"
               class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all duration-150"
               :class="selectedIndex === flattenedItems.findIndex(i => i.type === 'workspace' && i.id === item.id) ? 'bg-blue-600/20 border border-blue-500/40 text-white' : 'text-slate-300 hover:bg-white/5 border border-transparent'"
+              :data-active="selectedIndex === flattenedItems.findIndex(i => i.type === 'workspace' && i.id === item.id)"
             >
               <div class="flex items-center gap-3">
                 <div class="p-2 rounded-lg bg-slate-800 text-slate-300 border border-white/5">
@@ -288,6 +299,7 @@ onUnmounted(() => {
                 @mouseenter="selectedIndex = flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
                 class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all duration-150"
                 :class="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker) ? 'bg-white/10 border border-white/20 text-white' : 'text-slate-300 bg-slate-900/40 hover:bg-white/5 border border-white/5'"
+                :data-active="selectedIndex === flattenedItems.findIndex(i => i.type === 'ticker' && i.ticker === item.ticker)"
               >
                 <div class="flex items-center gap-2.5">
                   <span class="font-mono font-bold text-xs px-2 py-1 rounded bg-slate-800 text-slate-200 border border-white/10">
@@ -322,6 +334,7 @@ onUnmounted(() => {
               @mouseenter="selectedIndex = flattenedItems.findIndex(i => i.type === 'action' && i.id === item.id)"
               class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all duration-150"
               :class="selectedIndex === flattenedItems.findIndex(i => i.type === 'action' && i.id === item.id) ? 'bg-emerald-600/20 border border-emerald-500/40 text-white' : 'text-slate-300 hover:bg-white/5 border border-transparent'"
+              :data-active="selectedIndex === flattenedItems.findIndex(i => i.type === 'action' && i.id === item.id)"
             >
               <div class="flex items-center gap-3">
                 <div class="p-2 rounded-lg bg-slate-800 text-slate-300 border border-white/5">

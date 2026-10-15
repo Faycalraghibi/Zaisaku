@@ -170,3 +170,66 @@ def test_stress_api_endpoints():
     assert "ai_commentary" in sim_data
     assert sim_data["monte_carlo"]["runs"] == 200
 
+
+def test_zero_revenue_baseline_safety():
+    """Verify zero division safety when baseline revenue is 0.0."""
+    from zaisaku.forensics.stress_tester import (
+        BaselineFinancials,
+        ScenarioStressTester,
+    )
+
+    tester = ScenarioStressTester()
+    custom_baseline = BaselineFinancials(
+        ticker="PRE_REV",
+        period="FY2024",
+        revenue=0.0,
+        gross_margin=0.0,
+        gross_profit=0.0,
+        opex=500.0,
+        ebit=-500.0,
+        tax_rate=0.21,
+        net_income=-500.0,
+        dso=0.0,
+        operating_cash_flow=-450.0,
+        capex=50.0,
+        free_cash_flow=-500.0,
+    )
+
+    # 1. Pro-forma must not divide by zero
+    pro_forma = tester._calculate_pro_forma(
+        baseline=custom_baseline,
+        rev_shock_pct=-20.0,
+        gm_comp_bps=-450.0,
+        opex_inf_pct=8.0,
+        dso_exp_days=30.0,
+    )
+    assert pro_forma.shocked_revenue == 0.0
+    assert pro_forma.revenue_delta == 0.0
+    assert pro_forma.revenue_delta_pct == 0.0
+
+    # 2. Commentary generation must not divide by zero
+    from zaisaku.forensics.stress_tester import MonteCarloResult
+
+    mock_mc = MonteCarloResult(
+        runs=100,
+        mean_fcf=-550.0,
+        median_fcf=-540.0,
+        std_dev=40.0,
+        min_fcf=-700.0,
+        max_fcf=-400.0,
+        var_95=-650.0,
+        var_99=-690.0,
+        cvar_95=-670.0,
+        prob_negative_fcf=1.0,
+        histogram_bins=[],
+    )
+    commentary = tester._generate_commentary(
+        baseline=custom_baseline,
+        pro_forma=pro_forma,
+        monte_carlo=mock_mc,
+        preset_name="Stagflationary Supply Squeeze",
+    )
+    assert isinstance(commentary.key_vulnerabilities, list)
+    assert len(commentary.key_vulnerabilities) > 0
+
+

@@ -11,7 +11,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
-from zaisaku.forensics.anomaly_detector import AnomalyDetector
+from zaisaku.forensics.anomaly_detector import AnomalyDetector, AnomalyScanResponse
 from zaisaku.forensics.auditor_inquiry import (
     AuditorCrossExaminer,
     AuditorCrossExamineResponse,
@@ -467,11 +467,17 @@ async def run_auditor_cross_examination(request: CrossExamineRequest):
     return examiner.cross_examine(request)
 
 
-@router.get("/anomalies/{ticker}")
+@router.get("/anomalies/{ticker}", response_model=AnomalyScanResponse)
 async def get_filing_anomalies(ticker: str):
     """Retrieve corporate governance anomalies and SEC disclosure red-flag alerts."""
+    clean_ticker = ticker.strip().upper()
+    if not clean_ticker:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Stock ticker symbol cannot be empty.",
+        )
     detector = AnomalyDetector()
-    return detector.detect_anomalies(ticker).to_dict()
+    return detector.detect_anomalies(clean_ticker)
 
 
 
