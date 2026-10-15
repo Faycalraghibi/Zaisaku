@@ -33,9 +33,70 @@ const emit = defineEmits(['close'])
 
 const ffiScore = computed(() => props.profile.ffi ?? 0)
 const tier = computed(() => ffiTier(ffiScore.value))
+// Beneish (1999): M-Score above -1.78 flags a likely manipulator; -2.22 is the conservative cut-off.
+const MSCORE_THRESHOLD = -1.78
+const MSCORE_GREY_ZONE = -2.22
+
+const severityClass = {
+  good: 'text-emerald-400',
+  watch: 'text-amber-400',
+  critical: 'text-rose-400'
+}
+
+const byThreshold = (value, watchAt, criticalAt) => {
+  if (value == null) return 'watch'
+  if (value >= criticalAt) return 'critical'
+  return value >= watchAt ? 'watch' : 'good'
+}
+
+const pillars = computed(() => {
+  const p = props.profile
+  const mscoreSeverity = p.mscore == null
+    ? 'watch'
+    : p.mscore > MSCORE_THRESHOLD ? 'critical' : p.mscore > MSCORE_GREY_ZONE ? 'watch' : 'good'
+  const mscoreVerdict = p.mscore == null
+    ? 'M-Score unavailable for this filer.'
+    : p.mscore > MSCORE_THRESHOLD
+      ? `Above the ${MSCORE_THRESHOLD} manipulation threshold.`
+      : `Below the ${MSCORE_THRESHOLD} manipulation threshold.`
+  const accrualDetail = [
+    p.tataAccrual != null ? `TATA ${p.tataAccrual}` : null,
+    p.mscoreProb ? `manipulation probability ${p.mscoreProb}` : null
+  ].filter(Boolean).join('; ')
+
+  return [
+    {
+      title: 'Language drift (Item 1A)',
+      metric: p.driftScore != null ? `${p.driftScore}% YoY drift` : 'Drift not computed',
+      severity: byThreshold(p.driftScore, 15, 30),
+      detail: p.driftExcerpt || 'No risk-factor redline available for this period.'
+    },
+    {
+      title: 'Beneish M-Score & accruals',
+      metric: p.mscore != null ? `M-Score: ${p.mscore}` : 'M-Score: n/a',
+      severity: mscoreSeverity,
+      detail: accrualDetail ? `${mscoreVerdict} ${accrualDetail}.` : mscoreVerdict
+    },
+    {
+      title: 'Call vs 10-Q contradictions',
+      metric: p.divergenceScore != null ? `${p.divergenceScore} / 100 decoupling` : 'Decoupling not computed',
+      severity: byThreshold(p.divergenceScore, 25, 50),
+      detail: p.radarExcerpt || 'No earnings call transcript aligned for this period.'
+    },
+    {
+      title: 'Footnote disclosures',
+      metric: p.footnotesClean === false
+        ? `${p.footnoteCount ?? 0} flagged ${p.footnoteCount === 1 ? 'item' : 'items'}`
+        : 'No flagged items',
+      severity: p.footnotesClean === false ? (p.footnoteCount >= 4 ? 'critical' : 'watch') : 'good',
+      detail: p.footnoteExcerpt || 'No footnote scan available for this period.'
+    }
+  ]
+})
+
 const entityLine = computed(() => {
   const parts = [`${props.companyName} (${props.profile.exchange || 'N/A'}: ${props.ticker})`]
-  if (props.profile.cik) parts.push(`CIK: ${props.profile.cik}`)
+  if (props.profile.cik && !/^0+$/.test(props.profile.cik)) parts.push(`CIK: ${props.profile.cik}`)
   return parts.join(' / ')
 })
 
@@ -206,34 +267,19 @@ const handleDownloadMarkdown = async () => {
           <!-- Section 2: Pillar Analysis -->
           <div class="space-y-3">
             <h3 class="text-xs font-semibold text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
-              2. Tri-pillar forensic findings
+              2. Forensic pillar findings
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <!-- Pillar 1 -->
-              <div class="p-3.5 rounded-lg bg-white/[0.02] border border-white/10 print:border-neutral-300 print:bg-white text-xs space-y-1.5">
-                <span class="font-semibold text-white print:text-black block">Language Drift (Item 1A)</span>
-                <span class="text-[11px] font-mono text-emerald-400 print:text-black">{{ profile.driftScore || 8.5 }}% YoY Volatility</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div
+                v-for="pillar in pillars"
+                :key="pillar.title"
+                class="p-3.5 rounded-lg bg-white/[0.02] border border-white/10 print:border-neutral-300 print:bg-white text-xs space-y-1.5"
+              >
+                <span class="font-semibold text-white print:text-black block">{{ pillar.title }}</span>
+                <span class="text-[11px] font-mono print:text-black" :class="severityClass[pillar.severity]">{{ pillar.metric }}</span>
                 <p class="text-[11px] text-neutral-400 print:text-neutral-700 leading-normal">
-                  {{ profile.driftExcerpt || 'Modest legal modifications concerning international trade controls without adverse risk shift.' }}
-                </p>
-              </div>
-
-              <!-- Pillar 2 -->
-              <div class="p-3.5 rounded-lg bg-white/[0.02] border border-white/10 print:border-neutral-300 print:bg-white text-xs space-y-1.5">
-                <span class="font-semibold text-white print:text-black block">Beneish M-Score & Accruals</span>
-                <span class="text-[11px] font-mono text-emerald-400 print:text-black">M-Score: {{ profile.mscore || -2.85 }}</span>
-                <p class="text-[11px] text-neutral-400 print:text-neutral-700 leading-normal">
-                  Comfortably beneath -1.78 threshold. Total accruals to total assets (TATA) remain negative and non-aggressive.
-                </p>
-              </div>
-
-              <!-- Pillar 3 -->
-              <div class="p-3.5 rounded-lg bg-white/[0.02] border border-white/10 print:border-neutral-300 print:bg-white text-xs space-y-1.5">
-                <span class="font-semibold text-white print:text-black block">Tone Contradiction Radar</span>
-                <span class="text-[11px] font-mono text-emerald-400 print:text-black">{{ profile.divergenceScore || 11.0 }} / 100 Decoupling</span>
-                <p class="text-[11px] text-neutral-400 print:text-neutral-700 leading-normal">
-                  {{ profile.radarExcerpt || 'Management guidance aligns closely with conservative supply-chain commentary.' }}
+                  {{ pillar.detail }}
                 </p>
               </div>
             </div>
