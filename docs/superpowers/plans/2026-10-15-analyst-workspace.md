@@ -2174,7 +2174,7 @@ export function compareRows (profiles) {
       const valid = nums.filter((v) => v !== null)
       if (valid.length > 1 && Math.max(...valid) !== Math.min(...valid)) worstIndex = nums.indexOf(Math.max(...valid))
     }
-    return { key: m.key, label: m.label, values, worstIndex }
+    return { key: m.key, label: m.label, values, worstIndex, numeric: Boolean(m.worse) }
   })
 }
 
@@ -2246,6 +2246,7 @@ const rows = computed(() =>
     key: r.key,
     label: r.label,
     worstIndex: r.worstIndex,
+    numeric: r.numeric,
     ...Object.fromEntries(r.values.map((v, i) => [`v${i}`, v]))
   }))
 )
@@ -2290,7 +2291,7 @@ const openCompany = (t) => {
       <DataTable :columns="columns" :rows="rows" row-key="key">
         <template #cell-label="{ value }"><span class="text-muted">{{ value }}</span></template>
         <template v-for="(t, i) in selected" :key="t" #[`cell-v${i}`]="{ row, value }">
-          <span :class="row.worstIndex === i ? 'text-critical font-semibold' : ''" :data-worst="row.worstIndex === i || undefined">{{ value }}</span>
+          <span :class="[row.worstIndex === i ? 'text-critical font-semibold' : '', row.numeric ? '' : '[font-variant-numeric:normal]']" :data-worst="row.worstIndex === i || undefined">{{ value }}</span>
         </template>
       </DataTable>
     </Panel>
