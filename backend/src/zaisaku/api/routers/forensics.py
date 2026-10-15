@@ -34,6 +34,11 @@ from zaisaku.forensics.stress_tester import (
     StressSimulationResponse,
 )
 from zaisaku.forensics.table_extractor import FinancialStatementsResponse, TableExtractor
+from zaisaku.forensics.ticker_directory import (
+    MarketIndexSummary,
+    TickerDirectoryService,
+    TickerSearchResponse,
+)
 from zaisaku.forensics.trends import CompanyTrendsResponse, TrendsAnalyzer
 from zaisaku.forensics.visual_extractor import (
     FilingVisualExtractor,
@@ -478,6 +483,25 @@ async def get_filing_anomalies(ticker: str):
         )
     detector = AnomalyDetector()
     return detector.detect_anomalies(clean_ticker)
+
+
+@router.get("/indices", response_model=list[MarketIndexSummary])
+async def get_market_indices():
+    """Retrieve supported macro market benchmarks and sector indices."""
+    service = TickerDirectoryService()
+    return service.get_indices()
+
+
+@router.get("/tickers/search", response_model=TickerSearchResponse)
+async def search_tickers(
+    q: str = "",
+    index_filter: str | None = None,
+    limit: int = 20,
+):
+    """Search tickers across market indices, constituents, and SEC EDGAR universe."""
+    service = TickerDirectoryService()
+    bounded_limit = max(1, min(100, limit))
+    return service.search_tickers(query=q, index_filter=index_filter, limit=bounded_limit)
 
 
 
