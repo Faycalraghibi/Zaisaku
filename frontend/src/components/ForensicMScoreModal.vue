@@ -237,7 +237,7 @@ const indexDescriptions = {
           :class="activeTab === 'mscore' ? 'border-purple-400 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
         >
           <Calculator class="w-4 h-4" />
-          <span>Beneish M-Score Calculator</span>
+          <span>Beneish M-Score calculator</span>
         </button>
 
         <button
@@ -246,7 +246,7 @@ const indexDescriptions = {
           :class="activeTab === 'footnotes' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
         >
           <FileSearch class="w-4 h-4" />
-          <span>Footnote Hazard Scanner</span>
+          <span>Footnote hazard scanner</span>
           <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">5 Red Flags</span>
         </button>
       </div>
@@ -256,18 +256,18 @@ const indexDescriptions = {
         <!-- Preset Controls -->
         <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-800/40 border border-slate-800">
           <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400">Load Scenario Preset:</span>
+            <span class="text-xs text-slate-400">Load scenario preset:</span>
             <button
               @click="applyPreset('clean')"
               class="px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 hover:bg-emerald-900/40 text-emerald-300 text-xs font-medium transition-colors cursor-pointer"
             >
-              Clean Profile (Normal)
+              Clean profile (normal)
             </button>
             <button
               @click="applyPreset('manipulator')"
               class="px-3 py-1.5 rounded-lg bg-rose-950/40 border border-rose-800/60 hover:bg-rose-900/40 text-rose-300 text-xs font-medium transition-colors cursor-pointer"
             >
-              Aggressive Accruals (High Risk)
+              Aggressive accruals (high risk)
             </button>
           </div>
 
@@ -278,7 +278,7 @@ const indexDescriptions = {
           >
             <Loader2 v-if="isCalculating" class="w-3.5 h-3.5 animate-spin" />
             <Calculator v-else class="w-3.5 h-3.5" />
-            <span>{{ isCalculating ? 'Calculating...' : 'Run M-Score Analysis' }}</span>
+            <span>{{ isCalculating ? 'Calculating...' : 'Run M-Score analysis' }}</span>
           </button>
         </div>
 
