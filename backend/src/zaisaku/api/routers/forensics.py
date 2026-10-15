@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from zaisaku.api.dependencies import ConfigDep, RerankerDep, RouterDep
+from zaisaku.forensics.anomaly_detector import AnomalyDetector
 from zaisaku.forensics.auditor_inquiry import (
     AuditorCrossExaminer,
     AuditorCrossExamineResponse,
@@ -464,6 +465,13 @@ async def run_auditor_cross_examination(request: CrossExamineRequest):
     """Execute adversarial SEC Enforcement / Big 4 partner forensic cross-examination."""
     examiner = AuditorCrossExaminer()
     return examiner.cross_examine(request)
+
+
+@router.get("/anomalies/{ticker}")
+async def get_filing_anomalies(ticker: str):
+    """Retrieve corporate governance anomalies and SEC disclosure red-flag alerts."""
+    detector = AnomalyDetector()
+    return detector.detect_anomalies(ticker).to_dict()
 
 
 

@@ -2,10 +2,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import CompanyHub from './components/CompanyHub.vue'
 import ChatArea from './components/ChatArea.vue'
+import CommandPaletteModal from './components/CommandPaletteModal.vue'
 
 const isChatOpen = ref(false)
+const isPaletteOpen = ref(false)
 const chatInitialPrompt = ref('')
 const documentCount = ref(0)
+const companyHubRef = ref(null)
 
 const handleOpenChat = (prompt = '') => {
   chatInitialPrompt.value = prompt || ''
@@ -13,11 +16,23 @@ const handleOpenChat = (prompt = '') => {
 }
 
 const handleGlobalKeyDown = (e) => {
-  // Ctrl + K or Cmd + K toggles the Co-Analyst drawer
+  // Ctrl + K or Cmd + K toggles the Spotlight Command Palette
   if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault()
-    isChatOpen.value = !isChatOpen.value
+    isPaletteOpen.value = !isPaletteOpen.value
   }
+}
+
+const handleSelectWorkspace = (workspaceId) => {
+  companyHubRef.value?.switchWorkspace(workspaceId)
+}
+
+const handleSelectAction = (actionId) => {
+  companyHubRef.value?.triggerAction(actionId)
+}
+
+const handleSelectTicker = (ticker) => {
+  companyHubRef.value?.selectCompany(ticker)
 }
 
 onMounted(() => {
@@ -30,14 +45,27 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-full bg-[#090d16] overflow-hidden text-slate-100">
+  <div class="flex h-screen w-full bg-[#080b12] overflow-hidden text-slate-100">
     <!-- Primary Landing View: Institutional Company Due Diligence Hub -->
     <CompanyHub 
+      ref="companyHubRef"
       @open-chat="handleOpenChat" 
+      @open-palette="isPaletteOpen = true"
       @document-count-change="(count) => documentCount = count"
     />
 
-    <!-- Apple-Style Slide-Over Co-Analyst Drawer (Ctrl + K) -->
+    <!-- Apple Spotlight Style Command Palette (⌘K) -->
+    <CommandPaletteModal
+      :is-open="isPaletteOpen"
+      :current-ticker="companyHubRef?.currentCompany?.ticker || 'NVDA'"
+      @close="isPaletteOpen = false"
+      @select-workspace="handleSelectWorkspace"
+      @select-action="handleSelectAction"
+      @select-ticker="handleSelectTicker"
+      @open-chat="handleOpenChat"
+    />
+
+    <!-- Apple-Style Slide-Over Co-Analyst Drawer -->
     <ChatArea 
       :is-open="isChatOpen"
       :document-count="documentCount"

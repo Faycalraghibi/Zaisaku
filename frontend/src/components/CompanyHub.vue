@@ -52,8 +52,9 @@ import InstitutionalReportModal from './InstitutionalReportModal.vue'
 import ScenarioStressTester from './ScenarioStressTester.vue'
 import FilingVisualExtractor from './FilingVisualExtractor.vue'
 import AuditorCrossExaminerModal from './AuditorCrossExaminerModal.vue'
+import AnomalyRadarModal from './AnomalyRadarModal.vue'
 
-const emit = defineEmits(['open-chat', 'document-count-change'])
+const emit = defineEmits(['open-chat', 'document-count-change', 'open-palette'])
 
 // --- Active Navigation Tab ---
 const currentTab = ref('overview')
@@ -78,6 +79,7 @@ const showInvestigationRunner = ref(false)
 const showSandboxModal = ref(false)
 const showInstitutionalReportModal = ref(false)
 const showAuditorModal = ref(false)
+const showAnomalyModal = ref(false)
 const selectedDocForViewer = ref(null)
 
 const openFilingViewer = (doc = null) => {
@@ -219,6 +221,32 @@ const companyProfiles = {
     footnotesClean: true,
     footnoteCount: 1,
     footnoteExcerpt: 'Lease accounting commitments for fulfillment centers and sovereign tax examination reserves.'
+  },
+  SMCI: {
+    ticker: 'SMCI',
+    name: 'Super Micro Computer, Inc.',
+    exchange: 'NASDAQ',
+    cik: '0001375365',
+    sector: 'Server Hardware & AI Datacenters',
+    period: 'FY2024 Form 10-K (Delinquent) & Form 8-K',
+    auditor: 'Ernst & Young LLP (Resigned Oct 2024)',
+    ffi: 84,
+    riskTier: 'CRITICAL_ALERT',
+    driftScore: 42.0,
+    driftLabel: 'Severe Governance Drift (42.0%)',
+    driftAdded: 18,
+    driftRemoved: 9,
+    driftExcerpt: 'Special Committee investigation into internal financial controls and related party commercial relationships.',
+    mscore: -1.42,
+    mscoreLabel: 'Probable Manipulation (-1.42)',
+    mscoreProb: '76%',
+    tataAccrual: 0.124,
+    divergenceScore: 78.5,
+    radarLabel: 'Hostile Divergence (78.5 / 100)',
+    radarExcerpt: 'Guidance and press releases conflict sharply with delinquent 10-K filing status and auditor resignation.',
+    footnotesClean: false,
+    footnoteCount: 4,
+    footnoteExcerpt: 'PCAOB Rule 3526 resignation of certifying accountant. Form 12b-25 late filing notifications pending.'
   }
 }
 
@@ -435,6 +463,30 @@ const askAiAboutDoc = (doc) => {
   emit('open-chat', `Conduct an in-depth forensic financial audit on the filing '${doc.source}'. Analyze language drift, footnotes, and potential accounting risks.`)
 }
 
+const switchWorkspace = (tabId) => {
+  currentTab.value = tabId
+}
+
+const triggerAction = (actionId) => {
+  if (actionId === 'sec-import') showSecModal.value = true
+  else if (actionId === 'beneish-mscore') showMScoreModal.value = true
+  else if (actionId === 'auditor-studio') showAuditorModal.value = true
+  else if (actionId === 'stress-tester') currentTab.value = 'scenarios'
+  else if (actionId === 'export-memo') showInstitutionalReportModal.value = true
+  else if (actionId === 'investigation-runner') showInvestigationRunner.value = true
+  else if (actionId === 'filing-diff') showDiffModal.value = true
+  else if (actionId === 'contradiction-radar') showRadarModal.value = true
+  else if (actionId === 'footnote-scan') showScorecardModal.value = true
+  else if (actionId === 'rag-sandbox') showSandboxModal.value = true
+}
+
+defineExpose({
+  switchWorkspace,
+  triggerAction,
+  selectCompany,
+  currentCompany
+})
+
 onMounted(async () => {
   await fetchDocuments()
 })
@@ -465,12 +517,12 @@ onMounted(async () => {
       <!-- Quick Ticker Switcher -->
       <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/80 border border-white/10">
         <button
-          v-for="ticker in ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN']"
+          v-for="ticker in ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN', 'SMCI']"
           :key="ticker"
           @click="selectCompany(ticker)"
-          class="apple-press px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          class="apple-press px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer font-mono"
           :class="currentCompany.ticker === ticker 
-            ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs' 
+            ? (ticker === 'SMCI' ? 'bg-rose-500 text-white font-bold shadow-xs' : 'bg-emerald-500 text-slate-950 font-bold shadow-xs')
             : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
         >
           {{ ticker }}
@@ -489,13 +541,34 @@ onMounted(async () => {
 
       <!-- Global Actions Tray -->
       <div class="flex items-center gap-2">
+        <!-- Spotlight Command Palette Trigger (⌘K) -->
+        <button
+          @click="emit('open-palette')"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-white/10 bg-slate-900/90 hover:bg-slate-800 text-slate-300 flex items-center gap-2 cursor-pointer shadow-xs"
+          title="Open Command Palette (⌘K)"
+        >
+          <Search class="w-3.5 h-3.5 text-slate-400" />
+          <span class="hidden xl:inline text-slate-400">Search or</span>
+          <kbd class="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-white/10 text-slate-300">⌘K</kbd>
+        </button>
+
+        <!-- Anomaly Radar Trigger -->
+        <button
+          @click="showAnomalyModal = true"
+          class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          title="Filing Anomaly & Governance Radar"
+        >
+          <ShieldAlert class="w-3.5 h-3.5 text-rose-400" />
+          <span class="hidden md:inline">Anomaly Radar</span>
+        </button>
+
         <button
           @click="showInstitutionalReportModal = true"
           class="apple-press text-xs font-medium px-3 py-1.5 rounded-xl border border-white/10 bg-slate-800/90 hover:bg-slate-700/80 text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           title="Print-Ready Institutional Due Diligence Memorandum"
         >
           <FileText class="w-3.5 h-3.5 text-slate-400" />
-          <span class="hidden md:inline">Memo Preview</span>
+          <span class="hidden md:inline">Memo</span>
         </button>
 
         <button
@@ -506,17 +579,16 @@ onMounted(async () => {
         >
           <Loader2 v-if="isExportingMemo" class="w-3.5 h-3.5 animate-spin text-emerald-400" />
           <Download v-else class="w-3.5 h-3.5 text-slate-400" />
-          <span>Export</span>
+          <span class="hidden sm:inline">Export</span>
         </button>
 
         <button
           @click="emit('open-chat')"
           class="apple-press text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-          title="Toggle AI Co-Analyst Drawer (Ctrl + K)"
+          title="Open AI Co-Analyst Drawer"
         >
           <Sparkles class="w-3.5 h-3.5 fill-current" />
           <span>Co-Analyst</span>
-          <kbd class="text-[9px] font-mono bg-slate-950/20 px-1 py-0.5 rounded border border-black/20 ml-1 hidden sm:inline">Ctrl+K</kbd>
         </button>
       </div>
 
@@ -664,6 +736,49 @@ onMounted(async () => {
                     </button>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <!-- Corporate Governance & Filing Anomaly Alert Widget -->
+            <section 
+              class="apple-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border"
+              :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-950/20 border-rose-500/30' : 'bg-slate-900/60 border-white/10'"
+            >
+              <div class="flex items-center gap-3.5">
+                <div 
+                  class="p-2.5 rounded-xl border shrink-0"
+                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'"
+                >
+                  <ShieldAlert class="w-5 h-5" />
+                </div>
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-white">Governance & Disclosure Anomaly Radar</h3>
+                    <span 
+                      class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                      :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'"
+                    >
+                      {{ currentCompany.ticker === 'SMCI' ? 'CRITICAL DISCLOSURE ANOMALIES' : 'NORMALIZED GOVERNANCE' }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-300">
+                    {{ currentCompany.ticker === 'SMCI' 
+                      ? 'Auditor resignation (PCAOB Rule 3526), delinquent 10-K Form 12b-25 alerts, and inventory-sales decoupling detected.' 
+                      : 'Zero Form 12b-25 late filing delinquency, non-audit fee ratio < 10%, and unbroken executive audit committee tenure.' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+                <button
+                  @click="showAnomalyModal = true"
+                  class="apple-press px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'"
+                >
+                  <Search class="w-3.5 h-3.5" />
+                  <span>Audit Signals</span>
+                  <ArrowRight class="w-3 h-3" />
+                </button>
               </div>
             </section>
 
@@ -1135,6 +1250,12 @@ onMounted(async () => {
       :ticker="currentCompany.ticker"
       :company-name="currentCompany.name"
       @close="showAuditorModal = false"
+    />
+    <AnomalyRadarModal
+      :is-open="showAnomalyModal"
+      :initial-ticker="currentCompany.ticker"
+      @close="showAnomalyModal = false"
+      @select-ticker="selectCompany"
     />
 
     <!-- SEC EDGAR Ingestion Modal -->
