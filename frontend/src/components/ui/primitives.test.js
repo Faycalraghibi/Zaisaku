@@ -62,6 +62,12 @@ describe('DataTable', () => {
     await w.find('tbody tr').trigger('click')
     expect(w.emitted('row-click')[0][0]).toEqual(rows[0])
   })
+  it('applies rowClass per row', () => {
+    const w = mount(DataTable, { props: { columns, rows, rowKey: 'ticker', rowClass: (r) => (r.ticker === 'AMD' ? 'opacity-50' : '') } })
+    expect(w.find('[data-row="AMD"]').classes()).toContain('opacity-50')
+    expect(w.find('[data-row="NVDA"]').classes()).not.toContain('opacity-50')
+  })
+
   it('highlights the matching row', () => {
     const w = mount(DataTable, { props: { columns, rows, rowKey: 'ticker', highlight: 'AMD' } })
     expect(w.find('[data-row="AMD"]').classes()).toContain('bg-accent-soft')

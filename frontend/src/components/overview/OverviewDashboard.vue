@@ -6,7 +6,10 @@ import SeverityDot from '../ui/SeverityDot.vue'
 import SourceChip from '../ui/SourceChip.vue'
 import StatValue from '../ui/StatValue.vue'
 import ThresholdScale from '../ui/ThresholdScale.vue'
-import { buildRedFlags, riskBreakdown } from './overviewModel.js'
+import { buildRedFlags, riskBreakdown, REVIEW_STATUSES } from './overviewModel.js'
+import FlagNoteEditor from './FlagNoteEditor.vue'
+import NotesPanel from './NotesPanel.vue'
+import { useFlagReviews } from '../../composables/useFlagReviews.js'
 import { ffiTier, ffiSeverity, formatEnum, tierToSeverity, mscoreSeverity, MSCORE_THRESHOLD, MSCORE_GREY_ZONE } from '../../utils/ffi.js'
 
 const props = defineProps({
@@ -22,9 +25,27 @@ const flags = computed(() => buildRedFlags(props.company))
 const breakdown = computed(() => riskBreakdown(props.company))
 const mscoreLevel = computed(() => mscoreSeverity(props.company.mscore))
 
+const { reviewFor, setReview } = useFlagReviews()
+const hideDismissed = ref(false)
+
+const flagRows = computed(() =>
+  flags.value
+    .map((f) => {
+      const review = reviewFor(props.company.ticker, f.id)
+      return { ...f, status: review?.status ?? 'open', note: review?.note ?? '' }
+    })
+    .filter((row) => !hideDismissed.value || row.status !== 'dismissed')
+)
+
+const onStatus = (row, status) => setReview(props.company.ticker, row.id, status, row.note)
+const onNote = (row, note) => setReview(props.company.ticker, row.id, row.status, note)
+const flagRowClass = (row) => (row.status === 'dismissed' ? 'opacity-50' : '')
+
 const flagColumns = [
   { key: 'severity', label: '', width: '28px' },
   { key: 'finding', label: 'Finding' },
+  { key: 'status', label: 'Status', width: '116px' },
+  { key: 'note', label: '', width: '36px' },
   { key: 'source', label: 'Source', align: 'right', width: '120px' }
 ]
 
@@ -98,13 +119,36 @@ const docColumns = [
     </Panel>
 
     <!-- Red flags -->
-    <Panel :title="company.is_macro_index ? 'Signals' : 'Red flags'" class="md:col-span-2" :state="flags.length ? 'ready' : 'empty'" empty-text="No findings for this period.">
+    <Panel
+      :title="company.is_macro_index ? 'Signals' : 'Red flags'"
+      class="md:col-span-2"
+      :state="flagRows.length ? 'ready' : 'empty'"
+      :empty-text="flags.length ? 'All flags dismissed.' : 'No findings for this period.'"
+    >
       <template #actions>
+        <button type="button" class="btn-ghost" :aria-pressed="hideDismissed" @click="hideDismissed = !hideDismissed">
+          {{ hideDismissed ? 'Show dismissed' : 'Hide dismissed' }}
+        </button>
         <button type="button" class="btn-ghost" @click="emit('open-anomaly')">Anomaly radar</button>
       </template>
-      <DataTable :columns="flagColumns" :rows="flags" row-key="id" clickable @row-click="(row) => emit('flag-action', row.action)">
+      <DataTable :columns="flagColumns" :rows="flagRows" row-key="id" clickable :row-class="flagRowClass" @row-click="(row) => emit('flag-action', row.action)">
         <template #cell-severity="{ row }"><SeverityDot :level="row.severity" /></template>
         <template #cell-finding="{ row }"><span class="line-clamp-2">{{ row.finding }}</span></template>
+        <template #cell-status="{ row }">
+          <select
+            :value="row.status"
+            class="h-6 rounded border border-line bg-panel text-xs text-fg px-1 cursor-pointer"
+            :aria-label="`Review status: ${row.source}`"
+            @click.stop
+            @keydown.stop
+            @change="onStatus(row, $event.target.value)"
+          >
+            <option v-for="s in REVIEW_STATUSES" :key="s" :value="s">{{ s[0].toUpperCase() + s.slice(1) }}</option>
+          </select>
+        </template>
+        <template #cell-note="{ row }">
+          <FlagNoteEditor :note="row.note" :label="row.source" @save="(text) => onNote(row, text)" />
+        </template>
         <template #cell-source="{ row }"><SourceChip :label="row.source" @open="emit('flag-action', row.action)" /></template>
       </DataTable>
     </Panel>
@@ -163,7 +207,7 @@ const docColumns = [
     <!-- Peers -->
     <Panel
       title="Sector peers"
-      class="md:col-span-2 xl:col-span-3"
+      class="md:col-span-2"
       :state="peersState"
       empty-text="No peer set for this company."
       error-text="Could not load peer benchmark. The analysis service may be offline."
@@ -174,9 +218,12 @@ const docColumns = [
       </template>
       <DataTable :columns="peerColumns" :rows="peers" row-key="ticker" :highlight="company.ticker" :initial-sort="{ key: 'ffi', dir: 'desc' }">
         <template #cell-ticker="{ value }"><span class="font-mono font-semibold">{{ value }}</span></template>
-        <template #cell-risk_tier="{ value }"><SeverityDot :level="tierToSeverity(value)" /> <span class="text-muted">{{ formatEnum(value) }}</span></template>
+        <template #cell-risk_tier="{ value }"><span class="inline-flex items-center gap-1.5 whitespace-nowrap"><SeverityDot :level="tierToSeverity(value)" /><span class="text-muted">{{ formatEnum(value) }}</span></span></template>
         <template #cell-key_vulnerability="{ value }"><span class="line-clamp-1 text-muted">{{ value }}</span></template>
       </DataTable>
     </Panel>
+
+    <!-- Notes -->
+    <NotesPanel :ticker="company.ticker" />
   </div>
 </template>

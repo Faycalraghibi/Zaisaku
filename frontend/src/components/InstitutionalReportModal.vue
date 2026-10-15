@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   X,
   Printer,
@@ -18,6 +18,9 @@ import {
   mscoreSeverity,
   footnoteSeverity
 } from '../utils/ffi.js'
+import { useFlagReviews } from '../composables/useFlagReviews.js'
+import { useNotes } from '../composables/useNotes.js'
+import { FLAG_LABELS } from './overview/overviewModel.js'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -36,6 +39,18 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const { reviewsFor } = useFlagReviews()
+const notesApi = useNotes()
+
+watch(() => props.isOpen, (open) => {
+  if (open) notesApi.load(props.ticker)
+})
+
+const reviewRows = computed(() =>
+  reviewsFor(props.ticker).map((r) => ({ ...r, label: FLAG_LABELS[r.flag_id] ?? r.flag_id }))
+)
+const memoNotes = computed(() => notesApi.notesFor(props.ticker))
 
 const ffiScore = computed(() => props.profile.ffi ?? 0)
 const tier = computed(() => ffiTier(ffiScore.value))
@@ -282,6 +297,26 @@ const handleDownloadMarkdown = async () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          <!-- Section 3: Analyst review (only when the analyst recorded something) -->
+          <div v-if="reviewRows.length || memoNotes.length" class="space-y-2">
+            <h3 class="text-xs font-semibold text-blue-400 border-b border-neutral-800 pb-1 print:text-black print:border-black">
+              3. Analyst review
+            </h3>
+            <table v-if="reviewRows.length" class="w-full text-[11px] text-neutral-300 print:text-neutral-800">
+              <thead><tr class="text-left text-neutral-500"><th class="py-1 pr-3 font-medium">Flag</th><th class="py-1 pr-3 font-medium">Status</th><th class="py-1 font-medium">Note</th></tr></thead>
+              <tbody>
+                <tr v-for="r in reviewRows" :key="r.flag_id" class="border-t border-neutral-800 print:border-neutral-300">
+                  <td class="py-1 pr-3">{{ r.label }}</td>
+                  <td class="py-1 pr-3 capitalize">{{ r.status }}</td>
+                  <td class="py-1 whitespace-pre-wrap">{{ r.note || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <ul v-if="memoNotes.length" class="space-y-1 text-[11px] text-neutral-300 print:text-neutral-800">
+              <li v-for="n in memoNotes" :key="n.id" class="whitespace-pre-wrap"><span class="text-neutral-500">{{ n.created_at.slice(0, 10) }}</span> — {{ n.body }}</li>
+            </ul>
           </div>
 
           <!-- Section 3: Sign-Off -->

@@ -62,3 +62,40 @@ describe('useFlagReviews', () => {
     expect(r.reviewFor('SMCI', 'drift')).toBeNull()
   })
 })
+
+describe('useNotes', () => {
+  beforeEach(() => vi.resetModules())
+
+  it('adds a note to the front and supports undoing a delete', async () => {
+    let n = 0
+    const fetchMock = vi.fn(async (url, opts = {}) => {
+      if (opts.method === 'POST') {
+        n += 1
+        return jsonResponse(201, { id: `id${n}`, ticker: 'NVDA', body: JSON.parse(opts.body).body, created_at: `t${n}`, updated_at: `t${n}` })
+      }
+      if (opts.method === 'DELETE') return jsonResponse(204, null)
+      return jsonResponse(200, [])
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { useNotes } = await import('./useNotes.js')
+    const { useToasts } = await import('./useToasts.js')
+    const notes = useNotes()
+    await notes.load('NVDA')
+    await notes.add('NVDA', 'one')
+    await notes.add('NVDA', 'two')
+    expect(notes.notesFor('NVDA').map((x) => x.body)).toEqual(['two', 'one'])
+    await notes.remove('NVDA', 'id1')
+    expect(notes.notesFor('NVDA').map((x) => x.body)).toEqual(['two'])
+    await useToasts().toasts.value.at(-1).action.run()
+    expect(notes.notesFor('NVDA').map((x) => x.body)).toEqual(['one', 'two'])
+  })
+
+  it('restores a note when the delete fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url, opts = {}) => (opts.method === 'DELETE' ? jsonResponse(500, {}) : jsonResponse(200, [{ id: 'a', ticker: 'NVDA', body: 'keep', created_at: 't', updated_at: 't' }]))))
+    const { useNotes } = await import('./useNotes.js')
+    const notes = useNotes()
+    await notes.load('NVDA')
+    await notes.remove('NVDA', 'a')
+    expect(notes.notesFor('NVDA').map((x) => x.body)).toEqual(['keep'])
+  })
+})

@@ -44,3 +44,12 @@ export function riskBreakdown (p) {
     { id: 'contradictions', label: 'Call vs 10-Q', weight: 30, value: fmt(p.divergenceScore), severity: decouplingSeverity(p.divergenceScore) }
   ]
 }
+
+export const FLAG_LABELS = {
+  drift: 'Language drift',
+  accruals: 'Accruals / M-Score',
+  contradictions: 'Call vs 10-Q',
+  footnotes: 'Footnote disclosures'
+}
+
+export const REVIEW_STATUSES = ['open', 'reviewed', 'escalated', 'dismissed']

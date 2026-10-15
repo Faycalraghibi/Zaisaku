@@ -7,10 +7,11 @@ import { ffiTier, ffiSeverity } from '../../utils/ffi.js'
 
 const props = defineProps({
   company: { type: Object, required: true },
-  watched: { type: Boolean, default: false }
+  watched: { type: Boolean, default: false },
+  unresolved: { type: Number, default: 0 }
 })
 
-const emit = defineEmits(['tool', 'toggle-watch'])
+const emit = defineEmits(['tool', 'toggle-watch', 'show-flags'])
 
 const toolItems = [
   { id: 'run-audit', label: 'Run audit' },
@@ -44,6 +45,9 @@ const severity = computed(() => ffiSeverity(props.company.ffi))
       <li v-for="item in meta" :key="item" class="truncate max-w-64" :class="item.startsWith('CIK') ? 'font-mono' : ''">{{ item }}</li>
     </ul>
     <div class="flex items-center gap-2 ml-auto">
+      <button v-if="unresolved" type="button" class="btn text-watch" @click="emit('show-flags')">
+        {{ unresolved }} unresolved {{ unresolved === 1 ? 'flag' : 'flags' }}
+      </button>
       <button
         type="button"
         class="btn-icon"
