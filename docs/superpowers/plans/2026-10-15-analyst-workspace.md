@@ -2016,7 +2016,7 @@ const kinds = [
       <Panel title="Saved screens" :state="screensState === 'error' ? 'error' : screensState === 'ready' && !screens.length ? 'empty' : screensState === 'ready' ? 'ready' : 'loading'" empty-text="No saved screens yet." error-text="Could not load saved screens." @retry="load">
         <ul class="divide-y divide-[var(--border)]">
           <li v-for="s in screens" :key="s.id" class="flex items-center gap-2 px-3 py-2">
-            <button type="button" class="flex-1 text-left min-w-0 cursor-pointer" :title="`Load ${s.name}`" @click="loadScreen(s)">
+            <button type="button" class="flex-1 text-left min-w-0 cursor-pointer" :aria-label="`Load screen ${s.name}: ${describeCriteria(s.criteria)}`" @click="loadScreen(s)">
               <span class="block text-xs font-medium text-fg truncate">{{ s.name }}</span>
               <span class="block text-[11px] text-muted truncate">{{ describeCriteria(s.criteria) }}</span>
             </button>

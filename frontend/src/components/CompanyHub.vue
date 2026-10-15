@@ -22,6 +22,7 @@ import TopBar from './shell/TopBar.vue'
 import CompanyStrip from './shell/CompanyStrip.vue'
 import OverviewDashboard from './overview/OverviewDashboard.vue'
 import WatchlistView from './portfolio/WatchlistView.vue'
+import ScreenerView from './portfolio/ScreenerView.vue'
 import { useWatchlist } from '../composables/useWatchlist.js'
 import { useFlagReviews } from '../composables/useFlagReviews.js'
 import { unresolvedCount } from '../utils/portfolio.js'
@@ -54,7 +55,8 @@ const navigationTabs = computed(() => [
   { id: 'scenarios', label: 'Scenarios', section: 'company' },
   { id: 'interrogation', label: 'Calls & Q&A', section: 'company' },
   { id: 'filings', label: 'Filings', section: 'company', count: documents.value.length || null },
-  { id: 'watchlist', label: 'Watchlist', section: 'portfolio', count: watchlist.tickers.value.length || null }
+  { id: 'watchlist', label: 'Watchlist', section: 'portfolio', count: watchlist.tickers.value.length || null },
+  { id: 'screener', label: 'Screener', section: 'portfolio' }
 ])
 
 // --- Modal Visibility States ---
@@ -334,6 +336,7 @@ onMounted(async () => {
             @retry-documents="fetchDocuments"
           />
           <WatchlistView v-else-if="currentTab === 'watchlist'" key="watchlist" @open-company="currentTab = 'overview'" />
+          <ScreenerView v-else-if="currentTab === 'screener'" key="screener" @open-company="currentTab = 'overview'" />
 
           
           <!-- ========================================== -->
