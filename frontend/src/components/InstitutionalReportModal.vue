@@ -10,7 +10,14 @@ import {
   Building,
   UserCheck
 } from 'lucide-vue-next'
-import { ffiTier } from '../utils/ffi.js'
+import {
+  ffiTier,
+  MSCORE_THRESHOLD,
+  driftSeverity,
+  decouplingSeverity,
+  mscoreSeverity,
+  footnoteSeverity
+} from '../utils/ffi.js'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -32,27 +39,14 @@ const emit = defineEmits(['close'])
 
 const ffiScore = computed(() => props.profile.ffi ?? 0)
 const tier = computed(() => ffiTier(ffiScore.value))
-// Beneish (1999): M-Score above -1.78 flags a likely manipulator; -2.22 is the conservative cut-off.
-const MSCORE_THRESHOLD = -1.78
-const MSCORE_GREY_ZONE = -2.22
-
 const severityClass = {
   good: 'text-emerald-400',
   watch: 'text-amber-400',
   critical: 'text-rose-400'
 }
 
-const byThreshold = (value, watchAt, criticalAt) => {
-  if (value == null) return 'watch'
-  if (value >= criticalAt) return 'critical'
-  return value >= watchAt ? 'watch' : 'good'
-}
-
 const pillars = computed(() => {
   const p = props.profile
-  const mscoreSeverity = p.mscore == null
-    ? 'watch'
-    : p.mscore > MSCORE_THRESHOLD ? 'critical' : p.mscore > MSCORE_GREY_ZONE ? 'watch' : 'good'
   const mscoreVerdict = p.mscore == null
     ? 'M-Score unavailable for this filer.'
     : p.mscore > MSCORE_THRESHOLD
@@ -67,19 +61,19 @@ const pillars = computed(() => {
     {
       title: 'Language drift (Item 1A)',
       metric: p.driftScore != null ? `${p.driftScore}% YoY drift` : 'Drift not computed',
-      severity: byThreshold(p.driftScore, 15, 30),
+      severity: driftSeverity(p.driftScore),
       detail: p.driftExcerpt || 'No risk-factor redline available for this period.'
     },
     {
       title: 'Beneish M-Score & accruals',
       metric: p.mscore != null ? `M-Score: ${p.mscore}` : 'M-Score: n/a',
-      severity: mscoreSeverity,
+      severity: mscoreSeverity(p.mscore),
       detail: accrualDetail ? `${mscoreVerdict} ${accrualDetail}.` : mscoreVerdict
     },
     {
       title: 'Call vs 10-Q contradictions',
       metric: p.divergenceScore != null ? `${p.divergenceScore} / 100 decoupling` : 'Decoupling not computed',
-      severity: byThreshold(p.divergenceScore, 25, 50),
+      severity: decouplingSeverity(p.divergenceScore),
       detail: p.radarExcerpt || 'No earnings call transcript aligned for this period.'
     },
     {
@@ -87,7 +81,7 @@ const pillars = computed(() => {
       metric: p.footnotesClean === false
         ? `${p.footnoteCount ?? 0} flagged ${p.footnoteCount === 1 ? 'item' : 'items'}`
         : 'No flagged items',
-      severity: p.footnotesClean === false ? (p.footnoteCount >= 4 ? 'critical' : 'watch') : 'good',
+      severity: footnoteSeverity(p.footnotesClean, p.footnoteCount),
       detail: p.footnoteExcerpt || 'No footnote scan available for this period.'
     }
   ]
