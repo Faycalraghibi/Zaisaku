@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { pushRecent, useCompany } from './useCompany.js'
 
 describe('pushRecent', () => {
@@ -27,5 +27,42 @@ describe('useCompany.selectCompany', () => {
     const before = currentCompany.value
     selectCompany('  ')
     expect(currentCompany.value).toBe(before)
+  })
+})
+
+describe('selectCompany with a search entry', () => {
+  it('keeps the curated profile for covered tickers', async () => {
+    const { companyProfiles } = await import('../data/companyProfiles.js')
+    const { currentCompany, selectCompany } = useCompany()
+    selectCompany('SMCI', { ticker: 'SMCI', name: 'Super Micro Computer', ffi_score: 84 })
+    expect(currentCompany.value).toStrictEqual(companyProfiles.SMCI)
+  })
+})
+
+describe('runSearch', () => {
+  it('never shows results from a previous query', async () => {
+    vi.useFakeTimers()
+    const pending = []
+    vi.stubGlobal('fetch', vi.fn(() => new Promise((resolve) => pending.push(resolve))))
+    const { searchResults, runSearch } = useCompany()
+    const reply = (i, results) => pending[i]({ ok: true, json: async () => ({ results }) })
+
+    runSearch('smci')
+    await vi.advanceTimersByTimeAsync(200)
+    reply(0, [{ ticker: 'SMCI' }])
+    await vi.advanceTimersByTimeAsync(0)
+    expect(searchResults.value.map((r) => r.ticker)).toEqual(['SMCI'])
+
+    runSearch('googl')
+    expect(searchResults.value).toEqual([])
+
+    await vi.advanceTimersByTimeAsync(200)
+    runSearch('goog')
+    await vi.advanceTimersByTimeAsync(200)
+    reply(2, [{ ticker: 'GOOGL' }])
+    reply(1, [{ ticker: 'STALE' }])
+    await vi.advanceTimersByTimeAsync(0)
+    expect(searchResults.value.map((r) => r.ticker)).toEqual(['GOOGL'])
+    vi.useRealTimers()
   })
 })
