@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { 
   Calculator, 
   FileSearch, 
@@ -13,17 +13,26 @@ import {
   TrendingUp,
   Sparkles
 } from 'lucide-vue-next'
+import { formatEnum } from '../utils/ffi.js'
 
 const props = defineProps({
   isOpen: {
     type: Boolean,
     default: false
+  },
+  initialTab: {
+    type: String,
+    default: 'mscore'
   }
 })
 
 const emit = defineEmits(['close'])
 
 const activeTab = ref('mscore') // 'mscore' | 'footnotes'
+
+watch(() => props.isOpen, (open) => {
+  if (open) activeTab.value = props.initialTab
+}, { immediate: true })
 
 // --- Beneish M-Score State ---
 const beneishForm = reactive({
@@ -301,7 +310,7 @@ const indexDescriptions = {
                     ? 'bg-rose-500/10 text-rose-300 border-rose-500/30' 
                     : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'"
                 >
-                  {{ mScoreResult.risk_level.toLowerCase() }}
+                  {{ formatEnum(mScoreResult.risk_level) }}
                 </span>
               </div>
               <p class="text-xs text-slate-300 pt-1 max-w-xl leading-relaxed">
@@ -549,7 +558,7 @@ const indexDescriptions = {
                     class="px-2 py-0.5 rounded text-[10px] font-medium"
                     :class="f.severity === 'HIGH' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'"
                   >
-                    {{ f.severity.toLowerCase() }}
+                    {{ formatEnum(f.severity) }}
                   </span>
                   <span class="text-xs font-bold text-slate-200">{{ f.title }}</span>
                 </div>

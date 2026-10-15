@@ -334,7 +334,7 @@ onUnmounted(() => {
                   <div class="text-xs text-slate-400">Query vector index and financial filings with citations</div>
                 </div>
               </div>
-              <kbd class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
+              <kbd v-if="selectedIndex === 0" class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
             </div>
           </div>
 
@@ -499,7 +499,7 @@ onUnmounted(() => {
                   <div class="text-xs text-slate-400">{{ item.desc }}</div>
                 </div>
               </div>
-              <kbd class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
+              <kbd v-if="selectedIndex === flattenedItems.findIndex(i => i.type === 'action' && i.id === item.id)" class="px-1.5 py-0.5 font-mono text-[10px] bg-white/10 rounded border border-white/15 text-slate-300">↵</kbd>
             </div>
           </div>
 
