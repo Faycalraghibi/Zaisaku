@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import {
   ShieldAlert,
   GitCompare,
@@ -34,7 +34,9 @@ import {
   Activity,
   ChevronRight,
   Clock,
-  Printer
+  Printer,
+  ChevronDown,
+  Check
 } from 'lucide-vue-next'
 
 import FilingDiffModal from './FilingDiffModal.vue'
@@ -90,8 +92,243 @@ const openFilingViewer = (doc = null) => {
 // --- Active Company State & Presets ---
 const searchInput = ref('NVDA')
 const isSearching = ref(false)
+const searchResults = ref([])
+const showSearchDropdown = ref(false)
+const activeSearchIndex = ref(0)
+let searchDebounceTimer = null
+
+// --- Sector & Index Category Navigation ---
+const activeCategory = ref('All')
+const showCategoryMenu = ref(false)
+
+const sectorCategories = [
+  'All',
+  'Macro Indices',
+  'S&P 500',
+  'Nasdaq 100',
+  'Semiconductors',
+  'Financials',
+  'High-Risk'
+]
+
+const categoryTickerMap = {
+  'All': ['SPY', 'QQQ', 'NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN', 'SMCI'],
+  'Macro Indices': ['SPY', 'QQQ', 'DIA', 'IWM', 'SMH', 'XLK', 'XLF'],
+  'S&P 500': ['SPY', 'AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'BRK.B', 'JPM'],
+  'Nasdaq 100': ['QQQ', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'AVGO', 'META', 'TSLA', 'COST'],
+  'Semiconductors': ['SMH', 'NVDA', 'AVGO', 'AMD', 'INTC'],
+  'Financials': ['XLF', 'JPM', 'BAC', 'GS', 'BRK.B', 'V'],
+  'High-Risk': ['SMCI', 'COIN', 'RIVN', 'BA', 'TSLA']
+}
+
+const visibleCategoryTickers = computed(() => {
+  return categoryTickerMap[activeCategory.value] || categoryTickerMap['All']
+})
+
+const isIndexTicker = (ticker) => {
+  return ['SPY', 'QQQ', 'DIA', 'IWM', 'SMH', 'XLK', 'XLF'].includes((ticker || '').toUpperCase())
+}
 
 const companyProfiles = {
+  // --- Macro Market Benchmark Indices & Sector ETFs ---
+  SPY: {
+    ticker: 'SPY',
+    name: 'SPDR S&P 500 ETF Trust',
+    exchange: 'NYSE Arca',
+    cik: '0000884394',
+    sector: 'Large-Cap US Equities Core Benchmark',
+    period: 'FY2024 / Q3 FY2025 S&P 500 Benchmark Review',
+    auditor: 'State Street Global Advisors Trust Custody',
+    ffi: 22.5,
+    riskTier: 'LOW_RISK',
+    is_macro_index: true,
+    constituents: ['MSFT', 'AAPL', 'NVDA', 'AMZN', 'GOOGL', 'META', 'BRK.B'],
+    driftScore: 5.4,
+    driftLabel: 'Minimal Rebalancing Drift (5.4%)',
+    driftAdded: 2,
+    driftRemoved: 1,
+    driftExcerpt: 'Quarterly constituent rebalancing and market capitalization float-adjusted weight adjustments.',
+    mscore: -3.10,
+    mscoreLabel: 'Aggregate Robust Accounting (-3.10)',
+    mscoreProb: '< 0.5%',
+    tataAccrual: -0.055,
+    divergenceScore: 9.2,
+    radarLabel: 'Harmonized Macro Guidance (9.2 / 100)',
+    radarExcerpt: 'Aggregated earnings commentary across 500 leading corporations reflects disciplined operational leverage.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Index physical replication fidelity < 0.03% tracking variance.'
+  },
+  QQQ: {
+    ticker: 'QQQ',
+    name: 'Invesco QQQ Trust',
+    exchange: 'NASDAQ',
+    cik: '0001067839',
+    sector: 'Nasdaq-100 Growth & Technology Benchmark',
+    period: 'FY2024 / Q3 FY2025 Annual Reconstitution',
+    auditor: 'The Bank of New York Mellon Custody',
+    ffi: 24.8,
+    riskTier: 'LOW_RISK',
+    is_macro_index: true,
+    constituents: ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'AVGO', 'META', 'TSLA'],
+    driftScore: 7.8,
+    driftLabel: 'Tech Exposure Realignment (7.8%)',
+    driftAdded: 3,
+    driftRemoved: 2,
+    driftExcerpt: 'Special rebalancing rules enacted to constrain mega-cap technology concentration caps.',
+    mscore: -2.95,
+    mscoreLabel: 'High Quality Large-Cap Cash Flows (-2.95)',
+    mscoreProb: '< 0.8%',
+    tataAccrual: -0.060,
+    divergenceScore: 12.4,
+    radarLabel: 'Synchronized AI Guidance (12.4 / 100)',
+    radarExcerpt: 'Hyperscaler capital expenditure roadmaps correspond with high-margin enterprise cloud bookings.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Zero synthetic derivative leverage. Unbroken tracking continuity.'
+  },
+  DIA: {
+    ticker: 'DIA',
+    name: 'SPDR Dow Jones Industrial Average ETF',
+    exchange: 'NYSE Arca',
+    cik: '0001064641',
+    sector: 'Blue-Chip US Mega-Cap Benchmark',
+    period: 'Annual Price-Weighted Review',
+    auditor: 'State Street Bank and Trust Company',
+    ffi: 19.4,
+    riskTier: 'LOW_RISK',
+    is_macro_index: true,
+    constituents: ['UNH', 'GS', 'MSFT', 'HD', 'CAT', 'MCD', 'BA'],
+    driftScore: 4.8,
+    driftLabel: 'Disciplined Blue-Chip Drift (4.8%)',
+    driftAdded: 1,
+    driftRemoved: 1,
+    driftExcerpt: 'Constituent price-weighting adjustments preserving cross-industry balance.',
+    mscore: -3.05,
+    mscoreLabel: 'Blue-Chip Balance Sheets (-3.05)',
+    mscoreProb: '< 0.5%',
+    tataAccrual: -0.052,
+    divergenceScore: 8.8,
+    radarLabel: 'High Guidance Predictability (8.8 / 100)',
+    radarExcerpt: 'Mature dividend-paying industrial leaders maintain high-certainty forward margin visibility.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Standard physical custody disclosures and clean audit compliance.'
+  },
+  IWM: {
+    ticker: 'IWM',
+    name: 'iShares Russell 2000 ETF',
+    exchange: 'NYSE Arca',
+    cik: '0001100663',
+    sector: 'Small-Cap US Equities Benchmark',
+    period: 'Annual Russell Reconstitution',
+    auditor: 'BlackRock Fund Advisors Custody',
+    ffi: 44.2,
+    riskTier: 'WATCHLIST',
+    is_macro_index: true,
+    constituents: ['FTAI', 'VRT', 'SMCI', 'MEDP', 'ENSG', 'SAIA'],
+    driftScore: 28.5,
+    driftLabel: 'Small-Cap Liquidity & Credit Drift (28.5%)',
+    driftAdded: 12,
+    driftRemoved: 8,
+    driftExcerpt: 'Refinancing sensitivity to elevated floating interest rates and regional banking credit conditions.',
+    mscore: -1.98,
+    mscoreLabel: 'Elevated Non-Cash Accruals (-1.98)',
+    mscoreProb: '14.2%',
+    tataAccrual: 0.038,
+    divergenceScore: 34.0,
+    radarLabel: 'Dispersed Earnings Guidance (34.0 / 100)',
+    radarExcerpt: 'Executive projections demonstrate wide variance between profitable compounders and debt-leveraged filers.',
+    footnotesClean: false,
+    footnoteCount: 3,
+    footnoteExcerpt: '40% of small-cap constituents report negative trailing net income. Heightened 2026 debt wall.'
+  },
+  SMH: {
+    ticker: 'SMH',
+    name: 'VanEck Semiconductor ETF',
+    exchange: 'NASDAQ',
+    cik: '0001524316',
+    sector: 'Semiconductor Hardware Sector Benchmark',
+    period: 'MVIS US Listed Semiconductor 25 Index Review',
+    auditor: 'Van Eck Associates Corporation',
+    ffi: 31.0,
+    riskTier: 'WATCHLIST',
+    is_macro_index: true,
+    constituents: ['NVDA', 'TSM', 'AVGO', 'AMD', 'QCOM', 'ASML', 'TXN'],
+    driftScore: 16.2,
+    driftLabel: 'Geopolitical & Fab Capacity Drift (16.2%)',
+    driftAdded: 6,
+    driftRemoved: 3,
+    driftExcerpt: 'Foundry allocation bottlenecks, advanced packaging constraints, and multilateral export control updates.',
+    mscore: -2.60,
+    mscoreLabel: 'Capital Discipline (-2.60)',
+    mscoreProb: '< 2.5%',
+    tataAccrual: -0.032,
+    divergenceScore: 18.0,
+    radarLabel: 'Cyclical Tone Alignment (18.0 / 100)',
+    radarExcerpt: 'Silicon wafer fab utilization rates correlate with hyperscaler custom accelerator and GPU demand.',
+    footnotesClean: true,
+    footnoteCount: 1,
+    footnoteExcerpt: 'Customer concentration risks in leading fabless designers; TSMC advanced node concentration.'
+  },
+  XLK: {
+    ticker: 'XLK',
+    name: 'Technology Select Sector SPDR Fund',
+    exchange: 'NYSE Arca',
+    cik: '0001064642',
+    sector: 'Enterprise Tech & Cloud Benchmark',
+    period: 'Technology Select Sector Index Reconstitution',
+    auditor: 'State Street Bank and Trust Company',
+    ffi: 21.8,
+    riskTier: 'LOW_RISK',
+    is_macro_index: true,
+    constituents: ['MSFT', 'NVDA', 'AAPL', 'AVGO', 'CRM', 'AMD', 'ORCL'],
+    driftScore: 6.8,
+    driftLabel: 'Software & Silicon Rebalancing (6.8%)',
+    driftAdded: 3,
+    driftRemoved: 1,
+    driftExcerpt: 'Quarterly capping mechanisms maintaining diversification between enterprise SaaS and hardware.',
+    mscore: -2.88,
+    mscoreLabel: 'Robust Free Cash Conversion (-2.88)',
+    mscoreProb: '< 1%',
+    tataAccrual: -0.058,
+    divergenceScore: 11.2,
+    radarLabel: 'Harmonized Enterprise Demand (11.2 / 100)',
+    radarExcerpt: 'Enterprise recurring ARR metrics aligned with low cancellation rates and high retention rates.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Clean index replication with tight tracking efficiency.'
+  },
+  XLF: {
+    ticker: 'XLF',
+    name: 'Financial Select Sector SPDR Fund',
+    exchange: 'NYSE Arca',
+    cik: '0001064643',
+    sector: 'Money Center Banks & Financials Benchmark',
+    period: 'Financial Select Sector Index Reconstitution',
+    auditor: 'State Street Bank and Trust Company',
+    ffi: 27.2,
+    riskTier: 'LOW_RISK',
+    is_macro_index: true,
+    constituents: ['BRK.B', 'JPM', 'V', 'MA', 'BAC', 'WFC', 'GS'],
+    driftScore: 11.5,
+    driftLabel: 'Capital Adequacy & Net Interest Drift (11.5%)',
+    driftAdded: 5,
+    driftRemoved: 2,
+    driftExcerpt: 'Basel III endgame capital requirements and commercial real estate portfolio stress reserves.',
+    mscore: -2.70,
+    mscoreLabel: 'Regulated Bank Solvency (-2.70)',
+    mscoreProb: '< 1.5%',
+    tataAccrual: -0.042,
+    divergenceScore: 15.5,
+    radarLabel: 'Credit Cycle Alignment (15.5 / 100)',
+    radarExcerpt: 'Net interest income outlooks reflect deposit beta stabilization and solid loan underwriting.',
+    footnotesClean: true,
+    footnoteCount: 1,
+    footnoteExcerpt: 'Unrealized losses in held-to-maturity (HTM) securities fully disclosed and stress-tested.'
+  },
+
+  // --- Curated Institutional Equities ---
   NVDA: {
     ticker: 'NVDA',
     name: 'NVIDIA Corporation',
@@ -247,26 +484,243 @@ const companyProfiles = {
     footnotesClean: false,
     footnoteCount: 4,
     footnoteExcerpt: 'PCAOB Rule 3526 resignation of certifying accountant. Form 12b-25 late filing notifications pending.'
+  },
+  GOOGL: {
+    ticker: 'GOOGL',
+    name: 'Alphabet Inc.',
+    exchange: 'NASDAQ',
+    cik: '0001652044',
+    sector: 'Internet Services & Generative AI',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'Deloitte & Touche LLP',
+    ffi: 16.5,
+    riskTier: 'LOW_RISK',
+    driftScore: 7.2,
+    driftLabel: 'Predictable Disclosures (7.2%)',
+    driftAdded: 3,
+    driftRemoved: 1,
+    driftExcerpt: 'Antitrust regulatory litigation updates and Google Cloud enterprise AI infrastructure capex.',
+    mscore: -2.88,
+    mscoreLabel: 'Clean Cash Flow Profile (-2.88)',
+    mscoreProb: '< 1%',
+    tataAccrual: -0.048,
+    divergenceScore: 9.8,
+    radarLabel: 'Disciplined Guidance (9.8 / 100)',
+    radarExcerpt: 'Search monetization resilience and Cloud operating margin expansion correspond with MD&A disclosures.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Diversified worldwide revenues. Clean internal controls audit report.'
+  },
+  META: {
+    ticker: 'META',
+    name: 'Meta Platforms, Inc.',
+    exchange: 'NASDAQ',
+    cik: '0001326801',
+    sector: 'Social Technologies & AI Advertising',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'Ernst & Young LLP',
+    ffi: 21.0,
+    riskTier: 'LOW_RISK',
+    driftScore: 9.0,
+    driftLabel: 'Disciplined Growth (9.0%)',
+    driftAdded: 4,
+    driftRemoved: 2,
+    driftExcerpt: 'Reality Labs operating losses and data center silicon compute infrastructure scaling commitments.',
+    mscore: -2.75,
+    mscoreLabel: 'High Cash Conversion (-2.75)',
+    mscoreProb: '< 1.2%',
+    tataAccrual: -0.044,
+    divergenceScore: 13.5,
+    radarLabel: 'Consistent Commentary (13.5 / 100)',
+    radarExcerpt: 'Family of Apps ad pricing leverage aligns with reported free cash flow margin trajectory.',
+    footnotesClean: true,
+    footnoteCount: 1,
+    footnoteExcerpt: 'Legal proceedings regarding global data protection and minor child safety frameworks.'
+  },
+  AVGO: {
+    ticker: 'AVGO',
+    name: 'Broadcom Inc.',
+    exchange: 'NASDAQ',
+    cik: '0001730168',
+    sector: 'Semiconductors & Infrastructure Software',
+    period: 'FY2024 Form 10-K & Q4 Form 10-Q',
+    auditor: 'PricewaterhouseCoopers LLP',
+    ffi: 24.5,
+    riskTier: 'LOW_RISK',
+    driftScore: 11.2,
+    driftLabel: 'VMware Integration Drift (11.2%)',
+    driftAdded: 5,
+    driftRemoved: 2,
+    driftExcerpt: 'VMware subscription transition model and custom AI ASIC foundry delivery commitments.',
+    mscore: -2.62,
+    mscoreLabel: 'High Cash Quality (-2.62)',
+    mscoreProb: '< 2%',
+    tataAccrual: -0.035,
+    divergenceScore: 14.0,
+    radarLabel: 'Predictable Integration (14.0 / 100)',
+    radarExcerpt: 'AI networking switch bookings align with hyperscaler purchase order schedules.',
+    footnotesClean: true,
+    footnoteCount: 1,
+    footnoteExcerpt: 'Customer concentration in top custom silicon hyperscaler accounts for ~15% of net revenue.'
+  },
+  AMD: {
+    ticker: 'AMD',
+    name: 'Advanced Micro Devices, Inc.',
+    exchange: 'NASDAQ',
+    cik: '0000002488',
+    sector: 'Semiconductors & Datacenter Compute',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'Ernst & Young LLP',
+    ffi: 27.0,
+    riskTier: 'LOW_RISK',
+    driftScore: 12.5,
+    driftLabel: 'GPU Acceleration Ramp (12.5%)',
+    driftAdded: 5,
+    driftRemoved: 2,
+    driftExcerpt: 'MI300 datacenter GPU revenue recognition schedules and client PC inventory normalization.',
+    mscore: -2.52,
+    mscoreLabel: 'Standard Accruals (-2.52)',
+    mscoreProb: '< 2.5%',
+    tataAccrual: -0.028,
+    divergenceScore: 16.5,
+    radarLabel: 'Prudent Margin Targets (16.5 / 100)',
+    radarExcerpt: 'Executive GPU revenue guidance corresponds with reported supply commitments at TSMC.',
+    footnotesClean: true,
+    footnoteCount: 1,
+    footnoteExcerpt: 'Supply agreement commitments with external semiconductor wafer fabrication foundries.'
+  },
+  JPM: {
+    ticker: 'JPM',
+    name: 'JPMorgan Chase & Co.',
+    exchange: 'NYSE',
+    cik: '0000019617',
+    sector: 'Investment Banking & Asset Management',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'PricewaterhouseCoopers LLP',
+    ffi: 19.0,
+    riskTier: 'LOW_RISK',
+    driftScore: 8.0,
+    driftLabel: 'Fortress Balance Sheet Drift (8.0%)',
+    driftAdded: 3,
+    driftRemoved: 1,
+    driftExcerpt: 'Basel III endgame regulatory capital rules and net interest income rate sensitivity modeling.',
+    mscore: -2.95,
+    mscoreLabel: 'Fortress Solvency Profile (-2.95)',
+    mscoreProb: '< 1%',
+    tataAccrual: -0.050,
+    divergenceScore: 10.5,
+    radarLabel: 'Disciplined Banking Outlook (10.5 / 100)',
+    radarExcerpt: 'Credit card net charge-off guidance accurately reflects observed loan loss provisioning.',
+    footnotesClean: true,
+    footnoteCount: 0,
+    footnoteExcerpt: 'Allowance for credit losses fully supported. Unqualified internal controls audit.'
+  },
+  BA: {
+    ticker: 'BA',
+    name: 'The Boeing Company',
+    exchange: 'NYSE',
+    cik: '0000012927',
+    sector: 'Aerospace & Commercial Defense OEM',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'Deloitte & Touche LLP',
+    ffi: 58.0,
+    riskTier: 'WATCHLIST',
+    driftScore: 31.0,
+    driftLabel: 'Elevated Operational Drift (31.0%)',
+    driftAdded: 11,
+    driftRemoved: 5,
+    driftExcerpt: 'FAA production rate caps, IAM union labor work stoppages, and fixed-price defense program cost overruns.',
+    mscore: -1.82,
+    mscoreLabel: 'Strained Contract Accounting (-1.82)',
+    mscoreProb: '22.5%',
+    tataAccrual: 0.058,
+    divergenceScore: 48.0,
+    radarLabel: 'Divergent Cash Flow Narrative (48.0 / 100)',
+    radarExcerpt: 'Optimistic spoken delivery timeline targets diverge from negative operating cash burn in 10-Q disclosures.',
+    footnotesClean: false,
+    footnoteCount: 3,
+    footnoteExcerpt: '737 MAX quality assurance FAA directives. Liquidity credit facility amendments and equity dilution.'
+  },
+  COIN: {
+    ticker: 'COIN',
+    name: 'Coinbase Global, Inc.',
+    exchange: 'NASDAQ',
+    cik: '0001679788',
+    sector: 'Digital Asset Exchange & Custody Platform',
+    period: 'FY2024 Form 10-K & Q3 Form 10-Q',
+    auditor: 'Deloitte & Touche LLP',
+    ffi: 62.0,
+    riskTier: 'WATCHLIST',
+    driftScore: 34.5,
+    driftLabel: 'Regulatory Litigation Drift (34.5%)',
+    driftAdded: 14,
+    driftRemoved: 6,
+    driftExcerpt: 'SEC civil litigation under federal securities laws and crypto asset trading volume cyclicality.',
+    mscore: -2.05,
+    mscoreLabel: 'Volatile Transaction Accruals (-2.05)',
+    mscoreProb: '8.4%',
+    tataAccrual: 0.025,
+    divergenceScore: 52.0,
+    radarLabel: 'Volatile Revenue Guidance (52.0 / 100)',
+    radarExcerpt: 'Subscription & services revenue claims diverge from episodic retail trading fee compression.',
+    footnotesClean: false,
+    footnoteCount: 3,
+    footnoteExcerpt: 'Custodial crypto asset safeguarding obligations under SEC SAB 121 accounting.'
   }
 }
 
 const currentCompany = ref(companyProfiles.NVDA)
 
-const selectCompany = (ticker) => {
-  const t = ticker.toUpperCase().trim()
-  if (companyProfiles[t]) {
+const selectCompany = (ticker, entryData = null) => {
+  const t = (ticker || '').toUpperCase().trim()
+  if (!t) return
+
+  if (entryData) {
+    const isMacro = entryData.is_macro_index || isIndexTicker(t)
+    currentCompany.value = {
+      ticker: t,
+      name: entryData.name || `${t} Corporation`,
+      exchange: entryData.exchange || (isMacro ? 'NYSE Arca' : 'NYSE/NASDAQ'),
+      cik: entryData.cik || '0000000000',
+      sector: entryData.sector || (isMacro ? 'Macro Market Benchmark' : 'Diversified Enterprise'),
+      period: isMacro ? 'Market Benchmark Index Review' : 'Form 10-K / 10-Q Disclosures',
+      auditor: isMacro ? 'Institutional Benchmark Trustee' : 'Independent Registered Public Accounting Firm',
+      ffi: Math.round(entryData.ffi_score || 22),
+      riskTier: entryData.risk_tier || 'LOW_RISK',
+      is_macro_index: isMacro,
+      constituents: isMacro ? (companyProfiles[t]?.constituents || ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL']) : [],
+      driftScore: 9.5,
+      driftLabel: 'Standard Risk Drift (9.5%)',
+      driftAdded: 3,
+      driftRemoved: 1,
+      driftExcerpt: 'Operational and strategic risk disclosures conforming with trailing SEC reporting periods.',
+      mscore: -2.65,
+      mscoreLabel: 'Normalized Accruals (-2.65)',
+      mscoreProb: '< 1.5%',
+      tataAccrual: -0.040,
+      divergenceScore: 12.0,
+      radarLabel: 'Aligned Guidance (12.0 / 100)',
+      radarExcerpt: 'Management forward guidance corresponds with reported cash flow and balance sheet metrics.',
+      footnotesClean: true,
+      footnoteCount: 0,
+      footnoteExcerpt: 'Standard disclosure footnotes. Unqualified audit opinion on internal controls.'
+    }
+  } else if (companyProfiles[t]) {
     currentCompany.value = companyProfiles[t]
   } else {
+    const isMacro = isIndexTicker(t)
     currentCompany.value = {
       ticker: t,
       name: `${t} Corporation`,
-      exchange: 'NYSE/NASDAQ',
+      exchange: isMacro ? 'NYSE Arca' : 'NYSE/NASDAQ',
       cik: '0000000000',
-      sector: 'Diversified Enterprise',
+      sector: isMacro ? 'Macro Market Benchmark' : 'Diversified Enterprise',
       period: 'Form 10-K Annual Filing',
       auditor: 'Big 4 Independent Audit Committee',
-      ffi: 20,
+      ffi: isMacro ? 22 : 20,
       riskTier: 'LOW_RISK',
+      is_macro_index: isMacro,
+      constituents: isMacro ? ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL'] : [],
       driftScore: 10.0,
       driftLabel: 'Standard Drift (10.0%)',
       driftAdded: 3,
@@ -286,6 +740,72 @@ const selectCompany = (ticker) => {
   }
   searchInput.value = t
 }
+
+// --- Live Autocomplete Search Handler ---
+const onSearchInput = () => {
+  const q = searchInput.value.trim()
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  if (!q) {
+    searchResults.value = []
+    showSearchDropdown.value = false
+    isSearching.value = false
+    return
+  }
+  isSearching.value = true
+  searchDebounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/forensics/tickers/search?q=${encodeURIComponent(q)}&limit=8`)
+      if (res.ok) {
+        const data = await res.json()
+        searchResults.value = data.results || []
+        showSearchDropdown.value = searchResults.value.length > 0
+        activeSearchIndex.value = 0
+      }
+    } catch (e) {
+      console.error('Ticker search failed:', e)
+    } finally {
+      isSearching.value = false
+    }
+  }, 180)
+}
+
+const selectSearchResult = (item) => {
+  selectCompany(item.ticker, item)
+  showSearchDropdown.value = false
+  searchInput.value = item.ticker
+}
+
+const handleSearchEnter = () => {
+  if (showSearchDropdown.value && searchResults.value.length > 0) {
+    selectSearchResult(searchResults.value[activeSearchIndex.value] || searchResults.value[0])
+  } else if (searchInput.value.trim()) {
+    selectCompany(searchInput.value.trim())
+    showSearchDropdown.value = false
+  }
+}
+
+const navigateSearch = (dir) => {
+  if (!showSearchDropdown.value || searchResults.value.length === 0) return
+  activeSearchIndex.value = (activeSearchIndex.value + dir + searchResults.value.length) % searchResults.value.length
+}
+
+const handleClickOutside = (e) => {
+  const target = e.target
+  if (!target.closest('.category-menu-container')) {
+    showCategoryMenu.value = false
+  }
+  if (!target.closest('.search-autocomplete-container')) {
+    showSearchDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
+})
 
 // --- FFI Color Styling ---
 const ffiColor = (score) => {
@@ -514,28 +1034,115 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Quick Ticker Switcher -->
-      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/80 border border-white/10">
-        <button
-          v-for="ticker in ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN', 'SMCI']"
-          :key="ticker"
-          @click="selectCompany(ticker)"
-          class="apple-press px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer font-mono"
-          :class="currentCompany.ticker === ticker 
-            ? (ticker === 'SMCI' ? 'bg-rose-500 text-white font-bold shadow-xs' : 'bg-emerald-500 text-slate-950 font-bold shadow-xs')
-            : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
-        >
-          {{ ticker }}
-        </button>
+      <!-- Quick Ticker Switcher & Multi-Index Ribbon -->
+      <div class="flex items-center gap-2">
+        <!-- Sector / Index Filter Dropdown -->
+        <div class="relative category-menu-container">
+          <button
+            @click="showCategoryMenu = !showCategoryMenu"
+            class="apple-press flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 hover:border-white/20 text-xs font-medium text-slate-300 cursor-pointer shadow-xs"
+            title="Filter by Market Benchmark or Sector"
+          >
+            <Layers class="w-3.5 h-3.5 text-emerald-400" />
+            <span class="font-semibold text-white whitespace-nowrap">{{ activeCategory }}</span>
+            <ChevronDown class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="showCategoryMenu ? 'rotate-180' : ''" />
+          </button>
 
-        <div class="relative hidden sm:flex items-center border-l border-white/10 pl-2">
-          <Search class="w-3.5 h-3.5 text-slate-500 absolute left-4" />
-          <input
-            v-model="searchInput"
-            @keydown.enter="selectCompany(searchInput)"
-            placeholder="Search symbol..."
-            class="w-28 pl-7 pr-2 py-1 text-xs bg-slate-800/80 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:w-36 transition-all border border-transparent focus:border-emerald-500/40"
-          />
+          <!-- Category Dropdown Menu -->
+          <div
+            v-if="showCategoryMenu"
+            class="absolute top-full left-0 mt-1.5 w-48 rounded-xl bg-slate-900/95 backdrop-blur-2xl border border-white/15 p-1 shadow-2xl z-50 animate-fadeIn"
+          >
+            <button
+              v-for="cat in sectorCategories"
+              :key="cat"
+              @click="activeCategory = cat; showCategoryMenu = false"
+              class="apple-press w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-left"
+              :class="activeCategory === cat ? 'bg-emerald-500/15 text-emerald-300 font-semibold' : 'text-slate-300 hover:bg-white/5'"
+            >
+              <span>{{ cat }}</span>
+              <Check v-if="activeCategory === cat" class="w-3.5 h-3.5 text-emerald-400" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Ticker Quick Buttons for Active Category -->
+        <div class="flex items-center gap-1 p-1 rounded-xl bg-slate-900/80 border border-white/10 overflow-x-auto max-w-[280px] sm:max-w-[360px] md:max-w-[440px] scrollbar-none">
+          <button
+            v-for="ticker in visibleCategoryTickers"
+            :key="ticker"
+            @click="selectCompany(ticker)"
+            class="apple-press px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer font-mono shrink-0"
+            :class="currentCompany.ticker === ticker 
+              ? (ticker === 'SMCI' ? 'bg-rose-500 text-white font-bold shadow-xs' : (isIndexTicker(ticker) ? 'bg-blue-500 text-white font-bold shadow-xs' : 'bg-emerald-500 text-slate-950 font-bold shadow-xs'))
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+          >
+            {{ ticker }}
+          </button>
+        </div>
+
+        <!-- Universal Autocomplete Search Bar -->
+        <div class="relative search-autocomplete-container hidden sm:block">
+          <div class="relative flex items-center">
+            <Search class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 pointer-events-none" />
+            <input
+              v-model="searchInput"
+              @input="onSearchInput"
+              @focus="showSearchDropdown = searchResults.length > 0"
+              @keydown.enter="handleSearchEnter"
+              @keydown.escape="showSearchDropdown = false"
+              @keydown.down.prevent="navigateSearch(1)"
+              @keydown.up.prevent="navigateSearch(-1)"
+              placeholder="Search 10k+ SEC filers & indices..."
+              class="w-36 lg:w-48 xl:w-56 pl-7 pr-7 py-1.5 text-xs bg-slate-800/80 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:w-48 lg:focus:w-60 transition-all border border-transparent focus:border-emerald-500/40"
+            />
+            <Loader2 v-if="isSearching" class="w-3 h-3 text-emerald-400 animate-spin absolute right-2.5 pointer-events-none" />
+          </div>
+
+          <!-- Instant Search Dropdown -->
+          <div
+            v-if="showSearchDropdown && searchResults.length > 0"
+            class="absolute top-full left-0 mt-1.5 w-80 xl:w-96 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 animate-fadeIn"
+          >
+            <div class="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between border-b border-white/5 pb-1 mb-1">
+              <span>SEC EDGAR & Index Directory</span>
+              <span>{{ searchResults.length }} matches</span>
+            </div>
+            <div class="max-h-64 overflow-y-auto space-y-1 custom-scrollbar">
+              <div
+                v-for="(item, idx) in searchResults"
+                :key="item.ticker"
+                @click="selectSearchResult(item)"
+                class="apple-press flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all"
+                :class="activeSearchIndex === idx ? 'bg-emerald-500/20 border border-emerald-500/30 text-white' : 'hover:bg-white/5 text-slate-200 border border-transparent'"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span 
+                    class="px-2 py-0.5 rounded font-mono text-xs font-bold shrink-0"
+                    :class="item.is_macro_index ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : (item.risk_tier === 'CRITICAL_ALERT' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/10 text-white')"
+                  >
+                    {{ item.ticker }}
+                  </span>
+                  <div class="truncate">
+                    <div class="text-xs font-medium text-white truncate">{{ item.name }}</div>
+                    <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+                      <span>{{ item.exchange }}</span>
+                      <span>·</span>
+                      <span class="truncate">{{ item.sector }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right shrink-0 ml-2">
+                  <span 
+                    class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                    :class="item.ffi_score > 60 ? 'bg-rose-500/20 text-rose-400' : (item.ffi_score > 35 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400')"
+                  >
+                    FFI {{ Math.round(item.ffi_score) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -645,22 +1252,39 @@ onMounted(async () => {
             <section class="apple-card rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative overflow-hidden">
               <div class="space-y-4 max-w-2xl">
                 <div class="flex flex-wrap items-center gap-2.5">
-                  <span class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-white/10 text-white border border-white/15">
-                    {{ currentCompany.exchange }}: {{ currentCompany.ticker }}
+                  <span 
+                    class="px-2.5 py-1 rounded-full text-xs font-mono font-bold border"
+                    :class="currentCompany.is_macro_index ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-white/10 text-white border-white/15'"
+                  >
+                    {{ currentCompany.is_macro_index ? 'BENCHMARK' : currentCompany.exchange }}: {{ currentCompany.ticker }}
                   </span>
                   <span class="text-xs text-slate-400 flex items-center gap-1">
-                    <Building2 class="w-3.5 h-3.5 text-slate-500" />
+                    <component :is="currentCompany.is_macro_index ? Layers : Building2" class="w-3.5 h-3.5" :class="currentCompany.is_macro_index ? 'text-blue-400' : 'text-slate-500'" />
                     {{ currentCompany.sector }}
                   </span>
                   <span class="text-xs text-slate-600">·</span>
-                  <span class="text-xs text-slate-400 font-mono">CIK {{ currentCompany.cik }}</span>
+                  <span class="text-xs text-slate-400 font-mono">{{ currentCompany.is_macro_index ? `Exchange: ${currentCompany.exchange}` : `CIK ${currentCompany.cik}` }}</span>
                 </div>
 
                 <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
                   {{ currentCompany.name }}
                 </h1>
 
-                <div class="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-slate-400">
+                <!-- Macro Index Top Holdings Ribbon (if macro benchmark index) -->
+                <div v-if="currentCompany.is_macro_index && currentCompany.constituents?.length" class="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span class="text-xs text-slate-400 font-medium">Top Holdings:</span>
+                  <button
+                    v-for="c in currentCompany.constituents"
+                    :key="c"
+                    @click="selectCompany(c)"
+                    class="apple-press text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-white/10 cursor-pointer transition-colors"
+                    :title="`Analyze constituent ${c}`"
+                  >
+                    {{ c }}
+                  </button>
+                </div>
+
+                <div v-else class="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-slate-400">
                   <span class="flex items-center gap-1.5">
                     <Calendar class="w-3.5 h-3.5 text-slate-500" />
                     {{ currentCompany.period }}
@@ -681,7 +1305,7 @@ onMounted(async () => {
               <div class="w-full lg:w-auto shrink-0">
                 <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-5 sm:p-6 flex flex-col items-center gap-4 text-center shadow-xl min-w-[280px]">
                   <span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-                    Forensic Fragility Index (FFI)
+                    {{ currentCompany.is_macro_index ? 'Macro Fragility Index' : 'Forensic Fragility Index (FFI)' }}
                   </span>
 
                   <div class="relative flex items-center justify-center">
@@ -706,7 +1330,7 @@ onMounted(async () => {
                       {{ ffiColor(currentCompany.ffi).label }}
                     </span>
                     <p class="text-[11px] text-slate-400">
-                      Drift 30% · M-Score 40% · Contradictions 30%
+                      {{ currentCompany.is_macro_index ? 'Constituent Weighted Fragility Dispersion' : 'Drift 30% · M-Score 40% · Contradictions 30%' }}
                     </p>
                   </div>
 
@@ -756,15 +1380,15 @@ onMounted(async () => {
                     <h3 class="text-xs font-bold uppercase tracking-wider text-white">Governance & Disclosure Anomaly Radar</h3>
                     <span 
                       class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
-                      :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'"
+                      :class="currentCompany.ticker === 'SMCI' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : (currentCompany.is_macro_index ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20')"
                     >
-                      {{ currentCompany.ticker === 'SMCI' ? 'CRITICAL DISCLOSURE ANOMALIES' : 'NORMALIZED GOVERNANCE' }}
+                      {{ currentCompany.ticker === 'SMCI' ? 'CRITICAL DISCLOSURE ANOMALIES' : (currentCompany.is_macro_index ? 'BENCHMARK COMPOSITE DISPERSION' : 'NORMALIZED GOVERNANCE') }}
                     </span>
                   </div>
                   <p class="text-xs text-slate-300">
                     {{ currentCompany.ticker === 'SMCI' 
                       ? 'Auditor resignation (PCAOB Rule 3526), delinquent 10-K Form 12b-25 alerts, and inventory-sales decoupling detected.' 
-                      : 'Zero Form 12b-25 late filing delinquency, non-audit fee ratio < 10%, and unbroken executive audit committee tenure.' }}
+                      : (currentCompany.is_macro_index ? 'Aggregated macro benchmark index: continuous cross-asset monitoring of constituent language drift, accruals, and sector guidance dispersion.' : 'Zero Form 12b-25 late filing delinquency, non-audit fee ratio < 10%, and unbroken executive audit committee tenure.') }}
                   </p>
                 </div>
               </div>
