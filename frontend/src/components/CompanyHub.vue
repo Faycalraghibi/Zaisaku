@@ -1988,10 +1988,6 @@ onMounted(async () => {
   transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.15s ease;
 }
 
-.apple-press:active {
-  transform: scale(0.98);
-}
-
 /* Apple spring slide view transitions */
 .apple-view-enter-active,
 .apple-view-leave-active {

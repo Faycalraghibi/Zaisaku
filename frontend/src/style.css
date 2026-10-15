@@ -1,14 +1,61 @@
 @import "tailwindcss";
 
+/* Design tokens: light by default, dark under [data-theme=dark]. */
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, system-ui, sans-serif;
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --raised: #f0f2f5;
+  --border: #e2e5ea;
+  --text: #14171c;
+  --text-muted: #5d6470;
+  --text-faint: #8a919c;
+  --accent: #2f6fdb;
+  --accent-soft: rgb(47 111 219 / 0.1);
+  --sev-good: #1f8a62;
+  --sev-watch: #b57b10;
+  --sev-critical: #c9372c;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0f1115;
+  --panel: #16181d;
+  --raised: #1f2228;
+  --border: #2a2e36;
+  --text: #e6e8eb;
+  --text-muted: #9aa1ac;
+  --text-faint: #6b7280;
+  --accent: #5b8def;
+  --accent-soft: rgb(91 141 239 / 0.14);
+  --sev-good: #3fb68b;
+  --sev-watch: #e0a83a;
+  --sev-critical: #e5534b;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-line: var(--border);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--sev-good);
+  --color-watch: var(--sev-watch);
+  --color-critical: var(--sev-critical);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+:root {
+  font-family: var(--font-sans);
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.92);
-  background-color: #090d16; /* Apple deep dark slate */
-
+  color: var(--text);
+  background-color: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,7 +67,9 @@ body {
   display: flex;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #090d16;
+  /* Base text size lives on body, not :root, so rem-based Tailwind sizes stay at 16px rem. */
+  font-size: 13px;
+  background-color: var(--bg);
   overflow-x: hidden;
 }
 
@@ -28,6 +77,21 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1.5 h-7 px-2.5 rounded text-xs font-medium text-fg bg-panel border border-line hover:bg-raised transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-1.5 h-7 px-3 rounded text-xs font-semibold text-white bg-accent hover:opacity-90 transition-opacity cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-1.5 h-6 px-2 rounded text-xs font-medium text-muted hover:text-fg hover:bg-raised transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded text-muted hover:text-fg hover:bg-raised transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent;
+  }
 }
 
 /* Institutional Design Typography */
@@ -40,13 +104,6 @@ body {
 .display-subtitle {
   letter-spacing: -0.015em;
   line-height: 1.45;
-}
-
-/* Apple Tactile Pointer-Down Feedback */
-button:active:not(:disabled),
-.apple-press:active {
-  transform: scale(0.98);
-  transition: transform 90ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* Translucent Glass & Precision Surfaces */
@@ -97,11 +154,6 @@ button:active:not(:disabled),
   .spring-drawer-leave-to {
     transform: none !important;
     opacity: 0 !important;
-  }
-  button:active:not(:disabled),
-  .apple-press:active,
-  .apple-card:hover {
-    transform: none !important;
   }
 }
 
