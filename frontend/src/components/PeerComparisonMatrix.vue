@@ -10,6 +10,7 @@ import {
   Loader2,
   ExternalLink
 } from 'lucide-vue-next'
+import { formatEnum } from '../utils/ffi.js'
 
 const props = defineProps({
   ticker: {
@@ -135,7 +136,7 @@ const ffiColor = (score) => {
               </td>
               <td class="py-3 px-3">
                 <span class="px-2 py-0.5 rounded-md text-xs font-medium border" :class="riskTierBadge(p.risk_tier)">
-                  {{ p.risk_tier.toLowerCase() }}
+                  {{ formatEnum(p.risk_tier) }}
                 </span>
               </td>
               <td class="py-3 px-4 text-xs text-slate-400 max-w-sm truncate" :title="p.key_vulnerability">

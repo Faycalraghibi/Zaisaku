@@ -40,6 +40,7 @@ import {
 
 import FilingDiffModal from './FilingDiffModal.vue'
 import ForensicMScoreModal from './ForensicMScoreModal.vue'
+import { ffiTier } from '../utils/ffi.js'
 import ContradictionRadarModal from './ContradictionRadarModal.vue'
 import ForensicScorecardModal from './ForensicScorecardModal.vue'
 import FinancialTrendsChart from './FinancialTrendsChart.vue'
@@ -71,6 +72,11 @@ const navigationTabs = [
 // --- Modal Visibility States ---
 const showDiffModal = ref(false)
 const showMScoreModal = ref(false)
+const mScoreInitialTab = ref('mscore')
+const openMScoreModal = (tab) => {
+  mScoreInitialTab.value = tab
+  showMScoreModal.value = true
+}
 const showRadarModal = ref(false)
 const showScorecardModal = ref(false)
 const showSecModal = ref(false)
@@ -807,30 +813,7 @@ onUnmounted(() => {
 })
 
 // --- FFI Color Styling ---
-const ffiColor = (score) => {
-  if (score < 25) {
-    return {
-      text: 'text-emerald-400',
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
-      label: 'Low Fragility'
-    }
-  } else if (score < 50) {
-    return {
-      text: 'text-amber-400',
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/20',
-      label: 'Watchlist Fragility'
-    }
-  } else {
-    return {
-      text: 'text-rose-400',
-      bg: 'bg-rose-500/10',
-      border: 'border-rose-500/20',
-      label: 'Critical Alert'
-    }
-  }
-}
+const ffiColor = ffiTier
 
 // --- Documents Evidence Room State ---
 const documents = ref([])
@@ -988,7 +971,7 @@ const switchWorkspace = (tabId) => {
 
 const triggerAction = (actionId) => {
   if (actionId === 'sec-import') showSecModal.value = true
-  else if (actionId === 'beneish-mscore') showMScoreModal.value = true
+  else if (actionId === 'beneish-mscore') openMScoreModal('mscore')
   else if (actionId === 'auditor-studio') showAuditorModal.value = true
   else if (actionId === 'stress-tester') currentTab.value = 'scenarios'
   else if (actionId === 'export-memo') showInstitutionalReportModal.value = true
@@ -1326,10 +1309,13 @@ onMounted(async () => {
                     >
                       {{ ffiColor(currentCompany.ffi).label }}
                     </span>
-                    <div class="flex items-center justify-center gap-1.5 pt-1">
+                    <p v-if="currentCompany.is_macro_index" class="text-[11px] text-slate-400 pt-1">
+                      Constituent-weighted fragility dispersion
+                    </p>
+                    <div v-else class="flex items-center justify-center gap-1.5 pt-1">
                       <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">Drift 30%</span>
                       <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">M-Score 40%</span>
-                      <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">Tone 30%</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">Contradictions 30%</span>
                     </div>
                   </div>
 
@@ -1484,7 +1470,7 @@ onMounted(async () => {
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
                     <span class="text-[11px] text-slate-500">8-factor probabilistic model</span>
                     <button
-                      @click="showMScoreModal = true"
+                      @click="openMScoreModal('mscore')"
                       class="apple-press text-xs font-medium text-purple-300 hover:text-purple-200 cursor-pointer"
                     >
                       Audit accruals
@@ -1551,7 +1537,7 @@ onMounted(async () => {
                   <div class="pt-2 flex items-center justify-between border-t border-white/5">
                     <span class="text-[11px] text-slate-500">Automated NLP disclosure scan</span>
                     <button
-                      @click="showMScoreModal = true"
+                      @click="openMScoreModal('footnotes')"
                       class="apple-press text-xs font-medium text-rose-300 hover:text-rose-200 cursor-pointer"
                     >
                       Scan footnotes
@@ -1818,6 +1804,7 @@ onMounted(async () => {
     />
     <ForensicMScoreModal 
       :is-open="showMScoreModal" 
+      :initial-tab="mScoreInitialTab" 
       :ticker="currentCompany.ticker" 
       @close="showMScoreModal = false" 
       @open-chat="emit('open-chat', $event)" 
